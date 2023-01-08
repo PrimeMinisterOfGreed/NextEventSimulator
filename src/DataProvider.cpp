@@ -45,7 +45,8 @@ void FileDataProvider::Next()
 		data[ARRIVAL] = arrival;
 	}
 	data[SERVICE] = GetValue(_filestream);
-	if (data[SERVICE] < 0) _end = true;
+	if (data[SERVICE] < 0)
+		_end = true;
 }
 
 FileDataProvider::FileDataProvider(std::string& filePath, bool interArrivalMode): _filestream{*new std::ifstream{}},_interArrivalMode{interArrivalMode},data{0,0,0}

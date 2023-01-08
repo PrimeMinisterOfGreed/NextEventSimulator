@@ -5,7 +5,7 @@
 #include "ssq1.hpp"
 #include "DataProvider.hpp"
 
-const int endTime = 10000;
+const int endTime = 20000;
 const int targetTime = 100;
 
 class EventList : public DoubleLinkedList<Event>
@@ -13,6 +13,8 @@ class EventList : public DoubleLinkedList<Event>
 public:
 	virtual const std::string& ToString();
 };
+
+
 
 struct Statistics
 {
@@ -46,9 +48,10 @@ struct Statistics
 	double E_of_y; /* Average number of customers in service */
 	double E_of_n; /* Average number of customers at server */
 	double Target_time; /* maximum simulation time */
-
 	std::string& ToString();
 };
+
+
 
 struct Clock
 {
@@ -90,7 +93,7 @@ protected:
 
 public:
 	virtual void Execute() override;
-	virtual void Engine(); 
+	virtual void Engine();
 	virtual void Report() override;
-	NESssq(IDataProvider * provider): _provider{provider}{}
+	NESssq(IDataProvider* provider) : _provider{ provider } {}
 };

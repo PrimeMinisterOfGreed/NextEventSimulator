@@ -48,11 +48,15 @@ TEST(test_linked_list, test_insertion)
 	linkedList.Insert(new int(2), comparator);
 	linkedList.Insert(new int(3), comparator);
 	linkedList.Insert(new int(1), comparator);
+	linkedList.Insert(new int(5), comparator);
+	linkedList.Insert(new int(4), comparator);
 
 	auto itr = linkedList.begin();
 	itr++;
 	assert(*itr == 2);
+	itr++;
+	assert(*itr == 3);
 	assert(*linkedList.begin() == 1);
-	assert(*linkedList.end() == 3);
+	assert(*linkedList.end() == 5);
 }
 

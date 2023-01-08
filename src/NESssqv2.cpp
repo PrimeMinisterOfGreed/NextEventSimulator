@@ -20,7 +20,7 @@ void NESssq::Arrival(Event& e)
 	{
 		e.Type = EventType::NO_EVENT;
 		e.OccurTime = 0.0;
-		_inputQueue.Enqueue(*new Event(e));
+		_inputQueue.Enqueue(new Event(e));
 		_statistic.ndelayed++;
 	}
 	if (!_provider->end())
@@ -100,7 +100,7 @@ void NESssq::Execute()
 
 void NESssq::Engine()
 {
-	auto newEvent = _futureEvents.Pull();
+	auto& newEvent = _futureEvents.Pull();
 	_clock.oldclock = _clock.clock;
 	_clock.clock = newEvent.OccurTime;
 	double interval = _clock.clock - _clock.oldclock;
@@ -167,7 +167,7 @@ const std::string & EventList::ToString()
 {
 	std::stringstream buffer{};
 	auto ptr = begin();
-	while (ptr != end())
+	while (ptr != end() &&  &ptr() != nullptr)
 	{
 		buffer << "|Job:" << (*ptr).Name << ",T:" << std::to_string((*ptr).OccurTime) << "|-->";
 		ptr++;

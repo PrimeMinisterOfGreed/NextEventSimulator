@@ -1,21 +1,20 @@
 #pragma once
-#include <iterator>
-#include <functional>
 #include <exception>
+#include <functional>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 
-
-template<typename T>
-class Node
+template <typename T> class Node
 {
 private:
 	T* _val;
+
 protected:
 	Node* _previous;
 	Node* _next;
-public:
 
+public:
 	Node();
 	Node(T* value);
 	Node(T& value);
@@ -25,78 +24,81 @@ public:
 
 	void operator>>(Node& next);
 	void operator<<(Node& previous);
-	inline void SetPrevious(Node* previous) { _previous = previous; }
-	inline void SetNext(Node* next) { _next = next; }
+	inline void SetPrevious(Node* previous)
+	{
+		_previous = previous;
+	}
+	inline void SetNext(Node* next)
+	{
+		_next = next;
+	}
 	T& Value() const;
-	T& operator*() const { return Value(); }
-	Node<T>* Next() const { return _next; }
-	Node<T>* Previous() const { return _previous; }
+	T& operator*() const
+	{
+		return Value();
+	}
+	Node<T>* Next() const
+	{
+		return _next;
+	}
+	Node<T>* Previous() const
+	{
+		return _previous;
+	}
 };
 
-template<typename T>
-inline Node<T>::Node()
+template <typename T> inline Node<T>::Node()
 {
 	_val = nullptr;
 }
 
-template<typename T>
-inline Node<T>::Node(T* value) : _val{ value },_next{nullptr},_previous{nullptr}
+template <typename T> inline Node<T>::Node(T* value) : _val{ value }, _next{ nullptr }, _previous{ nullptr }
 {
 }
 
-template<typename T>
-inline Node<T>::Node(T& value)
+template <typename T> inline Node<T>::Node(T& value)
 {
 	_val = &value;
 }
 
-template<typename T>
-inline Node<T>::Node(Node&& n) : _val{ n._val }
+template <typename T> inline Node<T>::Node(Node&& n) : _val{ n._val }
 {
 	n.~Node();
 }
 
-template<typename T>
-inline Node<T>::Node(Node& n) : _val{ n._val }
+template <typename T> inline Node<T>::Node(Node& n) : _val{ n._val }
 {
 }
 
-
-template<typename T>
-inline Node<T>::~Node()
+template <typename T> inline Node<T>::~Node()
 {
 	_val = nullptr;
 	_next = nullptr;
 	_previous = nullptr;
 }
 
-template<typename T>
-inline void Node<T>::operator>>(Node& next)
+template <typename T> inline void Node<T>::operator>>(Node& next)
 {
 	_next = &next;
 	next._previous = this;
 }
 
-template<typename T>
-inline void Node<T>::operator<<(Node& previous)
+template <typename T> inline void Node<T>::operator<<(Node& previous)
 {
 	_previous = &previous;
 	previous._next = this;
 }
 
-
-
-template<typename T>
-inline T& Node<T>::Value() const
+template <typename T> inline T& Node<T>::Value() const
 {
 	return *_val;
 }
 
-template<typename T>
-class NodeIterator
+template <typename T> class NodeIterator
 {
 private:
 	Node<T>* _currentNode;
+
 public:
 	NodeIterator& operator++(int)
 	{
@@ -124,7 +126,6 @@ public:
 		return *this;
 	}
 
-
 	T& operator*()
 	{
 		return _currentNode->Value();
@@ -135,39 +136,66 @@ public:
 		return *_currentNode;
 	}
 
-	NodeIterator(Node<T>* reference) : _currentNode{ reference } {}
+	NodeIterator(Node<T>* reference) : _currentNode{ reference }
+	{
+	}
 
-	inline bool operator==(NodeIterator& itr) { return _currentNode == &itr(); }
-	inline bool operator!=(NodeIterator& itr) { return _currentNode != &itr(); }
+	inline bool operator==(NodeIterator& itr)
+	{
+		return _currentNode == &itr();
+	}
+	inline bool operator!=(NodeIterator& itr)
+	{
+		return _currentNode != &itr();
+	}
 };
 
-
-template<class T>
-class DoubleLinkedList
+template <class T> class DoubleLinkedList
 {
 private:
 	Node<T>* _begin;
 	Node<T>* _end;
 	size_t _count = 0;
+
 public:
-	NodeIterator<T> begin() const { return NodeIterator(_begin); }
-	NodeIterator<T> end() const { return NodeIterator(_end); }
-	inline size_t Count() const { return _count; }
+	NodeIterator<T> begin() const
+	{
+		return NodeIterator(_begin);
+	}
+	NodeIterator<T> end() const
+	{
+		return NodeIterator(_end);
+	}
+	inline size_t Count() const
+	{
+		return _count;
+	}
 
 	void Push(T* val);
-	void Push(T val) { Push(&val); }
+	void Push(T val)
+	{
+		Push(&val);
+	}
 	T& Pull();
 	void Enqueue(T* val);
-	void Enqueue(T val) { Enqueue(&val); }
+	void Enqueue(T val)
+	{
+		Enqueue(&val);
+	}
 	T& Dequeue();
 	void Insert(T* val, int index);
-	void Insert(T val, int index) { Insert(&val, index); }
+	void Insert(T val, int index)
+	{
+		Insert(&val, index);
+	}
 	void Insert(T* val, std::function<bool(const T&, const T&)> comparer);
-	void Insert(T val, std::function<bool(const T&, const T&)> comparer) { Insert(&val, comparer); }
+	void Insert(T val, std::function<bool(const T&, const T&)> comparer)
+	{
+		Insert(&val, comparer);
+	}
 };
 
-template<class T>
-void DoubleLinkedList<T>::Push(T* val)
+template <class T> void DoubleLinkedList<T>::Push(T* val)
 {
 	Node<T>* new_node = new Node<T>(val);
 	if (_begin != nullptr)
@@ -178,21 +206,21 @@ void DoubleLinkedList<T>::Push(T* val)
 	_count++;
 }
 
-template<class T>
-T& DoubleLinkedList<T>::Pull()
+template <class T> T& DoubleLinkedList<T>::Pull()
 {
-	if (_begin == nullptr || _begin == NULL)
+	if (_begin == nullptr)
 		throw new std::invalid_argument("Trying to pull from the list but is empty");
 	Node<T>* res = _begin;
 	_begin = _begin->Next();
-	if (_begin != nullptr) _begin->SetPrevious(nullptr);
+	if (_begin != nullptr)
+		_begin->SetPrevious(nullptr);
 	T& val = res->Value();
+	
 	delete res;
 	return val;
 }
 
-template<class T>
-inline void DoubleLinkedList<T>::Enqueue(T* val)
+template <class T> inline void DoubleLinkedList<T>::Enqueue(T* val)
 {
 	Node<T>* newNode = new Node<T>(val);
 	if (_begin == nullptr)
@@ -209,14 +237,12 @@ inline void DoubleLinkedList<T>::Enqueue(T* val)
 	}
 }
 
-template<class T>
-inline T& DoubleLinkedList<T>::Dequeue()
+template <class T> inline T& DoubleLinkedList<T>::Dequeue()
 {
 	return Pull();
 }
 
-template<class T>
-void DoubleLinkedList<T>::Insert(T* val, int index)
+template <class T> void DoubleLinkedList<T>::Insert(T* val, int index)
 {
 	if (index > _count)
 		throw new std::invalid_argument("Index out of bounds");
@@ -234,11 +260,9 @@ void DoubleLinkedList<T>::Insert(T* val, int index)
 		ptr << newNode;
 		_count++;
 	}
-
 }
 
-template<class T>
-void DoubleLinkedList<T>::Insert(T* val, std::function<bool(const T&, const T&)> comparer)
+template <class T> void DoubleLinkedList<T>::Insert(T* val, std::function<bool(const T&, const T&)> comparer)
 {
 	Node<T>& newNode = *new Node<T>(val);
 	auto itr = begin();
@@ -248,7 +272,8 @@ void DoubleLinkedList<T>::Insert(T* val, std::function<bool(const T&, const T&)>
 	{
 		while (itr != end() && !comparer(*itr, *newNode))
 			itr++;
-		if (itr == end())
+
+		if (itr == end() && !comparer(*itr,*newNode))
 			Enqueue(val);
 		else
 		{
@@ -258,5 +283,4 @@ void DoubleLinkedList<T>::Insert(T* val, std::function<bool(const T&, const T&)>
 			_count++;
 		}
 	}
-
 }
