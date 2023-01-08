@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <functional>
-#include "NES/LinkedList.hpp"
+#include "LinkedList.hpp"
 
 
 

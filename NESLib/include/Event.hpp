@@ -1,13 +1,13 @@
 #include <iostream>
 
 
-enum class EventType : int
+enum class EventType : char
 {
 	NO_EVENT = -1,
-	ARRIVAL,
-	DEPARTURE,
-	END,
-	PROBE
+	ARRIVAL = 'A' ,
+	DEPARTURE = 'D',
+	END = 'E',
+	PROBE = 'P',
 };
 
 
