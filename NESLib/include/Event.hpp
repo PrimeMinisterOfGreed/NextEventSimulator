@@ -9,6 +9,7 @@ enum class EventType : char
     DEPARTURE = 'D',
     END = 'E',
     PROBE = 'P',
+    MAINTENANCE = 'M'
 };
 
 struct Event

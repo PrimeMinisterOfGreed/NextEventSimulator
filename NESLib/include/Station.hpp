@@ -17,19 +17,19 @@ struct StationEvent : public Event
 
 struct StationStatistic
 {
-    double E_of_sigma;
-    double E_of_S;
-    double E_of_D;
-    double E_of_W;
-    double U;
-    double X;
-    double Theta;
-    double Lambda;
-    double Mu;
-    double Rho;
-    double E_of_q;
-    double E_of_y;
-    double E_of_n;
+    double avgInterArrival;
+    double avgServiceTime;
+    double avgDelay;
+    double avgWaiting;
+    double utilization;
+    double throughput;
+    double inputRate;
+    double arrivalRate;
+    double serviceRate;
+    double traffic;
+    double meanCustomInQueue;
+    double meanCustomerInService;
+    double meanCustomerInSystem;
     std::string &ToString() const;
 };
 
@@ -58,5 +58,6 @@ class Station
     void Process(Event *event);
     virtual std::string &ToString();
     StationStatistic GetStatistics();
+    virtual void Reset();
     Station(ILogEngine *logger, int station);
 };
