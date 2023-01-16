@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
         simulator = new NESssq(new TraceDrivenDataProvider(vm.at("-file").as<std::string>(), true), ConsoleLogEngine::Instance());
     else
     {
-        simulator = new NESssq(new DoubleStreamNegExpRandomDataProvider(endTime), ConsoleLogEngine::Instance());
+        simulator = new NESssq(new DoubleStreamNegExpRandomDataProvider(endTime,0.14,0.10), ConsoleLogEngine::Instance());
     }
     simulator->Execute();
     simulator->Report();

@@ -91,10 +91,10 @@ void DoubleStreamNegExpRandomDataProvider::Next()
     _dataUsed[ARRIVAL] = false;
     _dataUsed[SERVICE] = false;
     _dataUsed[INTERARRIVAL] = false;
+    SelectStream(0);
+    double interarrival = NegExp(_interArrivalLambda);
     SelectStream(1);
-    double interarrival = NegExp(0.1);
-    SelectStream(2);
-    double serviceTime = NegExp(0.14);
+    double serviceTime = NegExp(_serviceLambda);
 
     if (_data[INTERARRIVAL] != 0)
     {
@@ -104,8 +104,10 @@ void DoubleStreamNegExpRandomDataProvider::Next()
     _data[SERVICE] = serviceTime;
 }
 
-DoubleStreamNegExpRandomDataProvider::DoubleStreamNegExpRandomDataProvider(double endTime) : _endTime(endTime)
+DoubleStreamNegExpRandomDataProvider::DoubleStreamNegExpRandomDataProvider(double endTime,double interArrivalLambda, double serviceLambda) : _endTime(endTime),_interArrivalLambda(interArrivalLambda),_serviceLambda(serviceLambda)
 {
     Next();
     _init = true;
 }
+
+

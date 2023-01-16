@@ -55,9 +55,11 @@ class DoubleStreamNegExpRandomDataProvider : public BaseDataProvider
 {
   private:
     double _endTime = 0;
-    bool _init=false;
+    bool _init = false;
+    double _interArrivalLambda =0.0;
+    double _serviceLambda = 0.0;
   public:
     bool end() override;
     void Next() override;
-    DoubleStreamNegExpRandomDataProvider(double endTime);
+    DoubleStreamNegExpRandomDataProvider(double endTime, double interArrivalLambda, double serviceLambda);
 };

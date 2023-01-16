@@ -1,14 +1,18 @@
 #pragma once
 #include "Event.hpp"
 #include "LogEngine.hpp"
+#include "DataProvider.hpp"
 
 enum class StationEventType : char
 {
     MAINTENANCE = 'M'
+
 };
 
 struct StationEvent : public Event
 {
+    int Station;
+    
 };
 
 struct StationStatistic
@@ -33,6 +37,7 @@ class Station
 {
   protected:
     std::string _name;
+    int _stationIndex = 0;
     int _arrivals;
     int _completions;
     int _sysClients;
@@ -44,15 +49,14 @@ class Station
     double _areaS;
     double _oldclock = 0.0;
     double _clock = 0.0;
-    virtual void ProcessArrival(Event &evt);
-    virtual void ProcessDeparture(Event &evt);
-    virtual void ProcessEnd(Event &evt);
-    virtual void ProcessProbe(Event &evt);
+    virtual void ProcessArrival(Event *evt);
+    virtual void ProcessDeparture(Event *evt);
+    virtual void ProcessEnd(Event *evt);
+    virtual void ProcessProbe(Event *evt);
     ILogEngine *_logger;
-
   public:
-    void Process(Event &event);
+    void Process(Event *event);
     virtual std::string &ToString();
     StationStatistic GetStatistics();
-    Station(ILogEngine *logger);
+    Station(ILogEngine *logger, int station);
 };

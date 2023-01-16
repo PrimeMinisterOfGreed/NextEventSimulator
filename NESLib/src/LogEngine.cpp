@@ -1,9 +1,13 @@
 #include "LogEngine.hpp"
+#include <cstdio>
 #include <fstream>
 #include <ios>
+#include <istream>
+#include <ostream>
 #include <streambuf>
+#include <string>
 
-ConsoleLogEngine* ConsoleLogEngine::_instance = nullptr;
+ConsoleLogEngine *ConsoleLogEngine::_instance = nullptr;
 
 std::string &LogTypeToString(LogType logType)
 {
@@ -22,6 +26,18 @@ std::string &LogTypeToString(LogType logType)
     }
 }
 
+void writeBuffer(std::istream * buffer, std::ostream * save)
+{
+    using namespace std;
+    std::string line;
+    while (std::getline(*buffer, line))
+    {
+        char statBuf[line.size() + 1];
+        sprintf(statBuf, "%s\n",line.c_str());
+        save->write(statBuf,line.size()+1);
+    }
+}
+
 /**
  * @brief  Save the log file
  * @note   used RTTI on fstream  to save the log file so at the end of the function the stream will be closed
@@ -30,21 +46,22 @@ std::string &LogTypeToString(LogType logType)
 void ConsoleLogEngine::Finalize()
 {
     using namespace std;
-    fstream logFile(_logFile, ios_base::out | ios_base::app);
-    char buffer[1024];
-    while (!_buffer.eof())
-    {
-        _buffer.readsome(buffer, 1024);
-        logFile.write(buffer, 1024);
-    }
+    fstream logFile(_logFile, ios_base::app);
+    writeBuffer(&_buffer, &logFile);
+    
 }
+
+
 
 void ConsoleLogEngine::Trace(LogType type, std::string &message)
 {
+    using namespace std;
     if (_verbosity >= (int)type)
     {
         std::string log = LogTypeToString(type) + message;
-        printf("%s", log.c_str());
-        _buffer.write(log.c_str(),log.size());
+        char buffer[log.size() + 1];
+        sprintf(buffer, "%s\n",log.c_str());
+        printf("%s\n",log.c_str());
+        _buffer.write(buffer, log.size()+1);
     }
 }

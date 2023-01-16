@@ -192,7 +192,9 @@ public:
 	void Insert(T val, std::function<bool(const T&, const T&)> comparer)
 	{
 		Insert(&val, comparer);
-	}
+    }
+
+    std::string ToString();
 };
 
 template <class T> void DoubleLinkedList<T>::Push(T* val)
