@@ -11,20 +11,17 @@ int main()
 {
     ConsoleLogEngine::CreateInstance(1, "log.txt");
     int endTime = 20000;
-   
+
     std::vector<StationStatistic> repairStationStatistics{};
-    for (int i = 0; i < 100; i++)
-    {
-        PlantSeeds(123456789 + i);
-         MachineRepairman &repairman = *new MachineRepairman(
+    MachineRepairman &repairman = *new MachineRepairman(
         ConsoleLogEngine::Instance(), new DoubleStreamNegExpRandomDataProvider(endTime, 0.1, 0.14), endTime);
+    for (int i = 0; i < 2; i++)
+    {
+        PlantSeeds(123456789 + i + 1);
         repairman.Execute();
         auto stats = repairman.GetStats();
         repairStationStatistics.push_back(stats[0]);
         repairman.Reset();
         ConsoleLogEngine::Instance()->Finalize();
     }
-
-
-    
 }

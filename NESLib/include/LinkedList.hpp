@@ -237,7 +237,8 @@ template <class T> inline void DoubleLinkedList<T>::Enqueue(T* val)
 		*ptr >> *newNode;
 		*newNode << *ptr;
 		_end = newNode;
-	}
+    }
+    _count++;
 }
 
 template <class T> inline T& DoubleLinkedList<T>::Dequeue()

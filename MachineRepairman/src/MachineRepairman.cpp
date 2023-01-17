@@ -58,6 +58,7 @@ void MachineRepairman::Reset()
         auto evt = &_eventList.Dequeue();
         delete evt;
     }
+    Initialize();
 }
 
 std::vector<StationStatistic> MachineRepairman::GetStats() const
