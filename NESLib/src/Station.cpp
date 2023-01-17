@@ -93,17 +93,17 @@ StationStatistic Station::GetStatistics()
 
 void Station::Reset()
 {
-    int _arrivals= 0.0;
-    int _completions= 0.0;
-    int _sysClients= 0.0;
-    int _maxClients= 0.0;
-    double _busyTime= 0.0;
-    double _observationPeriod= 0.0;
-    double _lastArrival= 0.0;
-    double _areaN= 0.0;
-    double _areaS= 0.0;
-    double _oldclock = 0.0;
-    double _clock = 0.0;
+    _arrivals= 0;
+    _completions= 0;
+    _sysClients= 0;
+    _maxClients= 0;
+    _busyTime= 0.0;
+    _observationPeriod= 0.0;
+    _lastArrival= 0.0;
+    _areaN= 0.0;
+    _areaS= 0.0;
+    _oldclock = 0.0;
+    _clock = 0.0;
 }
 
 Station::Station(ILogEngine *logger,  int station) : _logger(logger),  _stationIndex(station)

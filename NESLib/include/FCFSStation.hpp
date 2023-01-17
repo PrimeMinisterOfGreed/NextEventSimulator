@@ -19,5 +19,6 @@ class FCFSStation : public Station
     void ProcessDeparture(Event *evt) override;
     void ProcessEnd(Event *evt) override;
     void ProcessProbe(Event *evt) override;
+    void Reset() override;
     FCFSStation(ILogEngine * logger, IScheduler * scheduler, int stationIndex);
 };

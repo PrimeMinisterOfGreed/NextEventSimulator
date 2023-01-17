@@ -194,6 +194,7 @@ public:
 		Insert(&val, comparer);
     }
 
+  
     std::string ToString();
 };
 
@@ -217,7 +218,7 @@ template <class T> T& DoubleLinkedList<T>::Pull()
 	if (_begin != nullptr)
 		_begin->SetPrevious(nullptr);
 	T& val = res->Value();
-	
+	_count--;
 	delete res;
 	return val;
 }
@@ -286,3 +287,4 @@ template <class T> void DoubleLinkedList<T>::Insert(T* val, std::function<bool(c
 		}
 	}
 }
+

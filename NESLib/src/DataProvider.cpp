@@ -41,9 +41,18 @@ double BaseDataProvider::GetInterArrival()
     return _data[INTERARRIVAL];
 }
 
+void BaseDataProvider::Reset()
+{
+    _data[0] = 0.0;
+    _data[1] = 0.0;
+    _data[2] = 0.0;
+    _dataUsed[0] = false;
+    _dataUsed[1] = false;
+    _dataUsed[2] = false;
+}
+
 BaseDataProvider::BaseDataProvider()
 {
-  
 }
 
 void TraceDrivenDataProvider::Next()
@@ -86,7 +95,7 @@ inline bool DoubleStreamNegExpRandomDataProvider::end()
 
 void DoubleStreamNegExpRandomDataProvider::Next()
 {
-    if ((!_dataUsed[ARRIVAL] || !_dataUsed[SERVICE]) && _init)
+    if ((!_dataUsed[ARRIVAL] || !_dataUsed[SERVICE]) && _inited)
         throw std::invalid_argument("Trying to acquire new data when the old one is not used");
     _dataUsed[ARRIVAL] = false;
     _dataUsed[SERVICE] = false;
@@ -98,16 +107,24 @@ void DoubleStreamNegExpRandomDataProvider::Next()
 
     if (_data[INTERARRIVAL] != 0)
     {
-        _data[ARRIVAL] +=  interarrival;
+        _data[ARRIVAL] += interarrival;
     }
     _data[INTERARRIVAL] = interarrival;
     _data[SERVICE] = serviceTime;
 }
 
-DoubleStreamNegExpRandomDataProvider::DoubleStreamNegExpRandomDataProvider(double endTime,double interArrivalLambda, double serviceLambda) : _endTime(endTime),_interArrivalLambda(interArrivalLambda),_serviceLambda(serviceLambda)
+void DoubleStreamNegExpRandomDataProvider::Reset()
 {
+    _inited = false;
+    BaseDataProvider::Reset();
     Next();
-    _init = true;
+    _inited = true;
 }
 
-
+DoubleStreamNegExpRandomDataProvider::DoubleStreamNegExpRandomDataProvider(double endTime, double interArrivalLambda,
+                                                                           double serviceLambda)
+    : _endTime(endTime), _interArrivalLambda(interArrivalLambda), _serviceLambda(serviceLambda)
+{
+    Next();
+    _inited = true;
+}

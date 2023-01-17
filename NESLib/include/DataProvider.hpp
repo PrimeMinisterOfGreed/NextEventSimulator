@@ -12,6 +12,7 @@ class IDataProvider
     virtual double GetService() = 0;
     virtual double GetInterArrival() = 0;
     virtual bool end() = 0;
+    virtual void Reset() =0;
 };
 
 class BaseDataProvider : public IDataProvider
@@ -25,6 +26,7 @@ class BaseDataProvider : public IDataProvider
     virtual double GetArrival() override;
     virtual double GetService() override;
     virtual double GetInterArrival() override;
+    virtual void Reset() override;
     BaseDataProvider();
 };
 
@@ -55,11 +57,12 @@ class DoubleStreamNegExpRandomDataProvider : public BaseDataProvider
 {
   private:
     double _endTime = 0;
-    bool _init = false;
+    bool _inited = false;
     double _interArrivalLambda =0.0;
     double _serviceLambda = 0.0;
   public:
     bool end() override;
     void Next() override;
+    void Reset() override;
     DoubleStreamNegExpRandomDataProvider(double endTime, double interArrivalLambda, double serviceLambda);
 };

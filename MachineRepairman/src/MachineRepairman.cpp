@@ -3,7 +3,17 @@
 #include "FCFSStation.hpp"
 #include "LogEngine.hpp"
 #include "Station.hpp"
+#include "ToString.hpp"
+#include <gtest/gtest.h>
 #include <vector>
+
+void MachineRepairman::Initialize()
+{
+    double arrival = _provider->GetArrival();
+    double service = _provider->GetService();
+    Schedule(new Event(makeformat("J{}S1", 0), EventType::ARRIVAL, _clock, arrival, service, arrival));
+    Schedule(new Event(makeformat("END"), EventType::END, _clock, _endTime, 0, 0));
+}
 
 void MachineRepairman::Execute()
 {
@@ -38,6 +48,18 @@ void MachineRepairman::Report()
     _logger->TraceResult("Statistics\n{}", stats.ToString());
 }
 
+void MachineRepairman::Reset()
+{
+    _clock = 0.0;
+    _repairStation->Reset();
+    _provider->Reset();
+    while (_eventList.Count() > 0)
+    {
+        auto evt = &_eventList.Dequeue();
+        delete evt;
+    }
+}
+
 std::vector<StationStatistic> MachineRepairman::GetStats() const
 {
     return *new std::vector<StationStatistic>({_repairStation->GetStatistics()});
@@ -48,17 +70,9 @@ void MachineRepairman::Schedule(Event *event)
     _eventList.Insert(event, [](const Event &a, const Event &b) { return a.OccurTime > b.OccurTime; });
 }
 
-void MachineRepairman::Reset()
-{
-    _repairStation->Reset();
-    _clock = 0.0;
-}
-
 MachineRepairman::MachineRepairman(ILogEngine *logger, IDataProvider *provider, double endTime)
-    : _repairStation(new FCFSStation(logger, this, 1)), _provider(provider), _logger(logger)
+    : _repairStation(new FCFSStation(logger, this, 1)), _provider(provider), _logger(logger),_endTime(endTime)
 {
-    double arrival = provider->GetArrival();
-    double service = provider->GetService();
-    Schedule(new Event(makeformat("J{}S1", 0), EventType::ARRIVAL, _clock, arrival, service, arrival));
-    Schedule(new Event(makeformat("END"), EventType::END, _clock, endTime, 0, 0));
+    
+    Initialize();
 }

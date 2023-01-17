@@ -2,6 +2,7 @@
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Station.hpp"
+#include "ToString.hpp"
 
 void FCFSStation::ProcessArrival(Event *evt)
 {
@@ -26,7 +27,7 @@ void FCFSStation::ProcessDeparture(Event *evt)
     Station::ProcessDeparture(evt);
     if (evt != _eventUnderProcess)
         throw std::runtime_error("The departure requested is not equal as the event under process");
-    if (_sysClients>0)
+    if (_sysClients > 0)
     {
         _eventUnderProcess = &_eventQueue.Dequeue();
         _eventUnderProcess->ArrivalTime = _clock;
@@ -49,6 +50,12 @@ void FCFSStation::ProcessEnd(Event *evt)
 void FCFSStation::ProcessProbe(Event *evt)
 {
     Station::ProcessProbe(evt);
+}
+
+void FCFSStation::Reset()
+{
+    Station::Reset();
+   _eventQueue = *new EventList();
 }
 
 FCFSStation::FCFSStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex)

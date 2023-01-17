@@ -17,6 +17,8 @@ class MachineRepairman : public ISimulatorEsembler, public IScheduler
     IDataProvider *_provider;
     ILogEngine *_logger;
     double _clock = 0.0;
+    double _endTime = 0.0;
+    void Initialize();
   public:
     void Execute() override;
     void Report() override;

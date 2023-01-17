@@ -37,6 +37,7 @@ struct Event
     ~Event()
     {
         Name.clear();
+        DeletedNodes++;
     }
 
     Event(const Event &e)
