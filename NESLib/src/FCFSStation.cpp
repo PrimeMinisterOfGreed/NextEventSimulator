@@ -55,7 +55,11 @@ void FCFSStation::ProcessProbe(Event *evt)
 void FCFSStation::Reset()
 {
     Station::Reset();
-    _eventQueue = *new EventList();
+    while (_eventQueue.Count() > 0)
+    {
+        auto evt = _eventQueue.Dequeue();
+    }
+    _eventUnderProcess = nullptr;
 }
 
 FCFSStation::FCFSStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex)

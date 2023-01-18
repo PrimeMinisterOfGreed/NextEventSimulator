@@ -98,4 +98,18 @@ TEST(test_linked_list, test_random_enqueuement)
         assert(v == queue.front());
         queue.pop();
     }
+
+     for (int i = 0; i < 1000; i++)
+    {
+        double val = NegExp(1 / 20);
+        queue.emplace(val);
+        linkedList.Enqueue(val);
+    }
+
+    while (linkedList.Count() > 0)
+    {
+        auto v = linkedList.Dequeue();
+        assert(v == queue.front());
+        queue.pop();
+    }
 }
