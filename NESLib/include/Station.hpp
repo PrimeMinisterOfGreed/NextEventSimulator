@@ -53,6 +53,7 @@ class Station
     virtual void ProcessDeparture(Event *evt);
     virtual void ProcessEnd(Event *evt);
     virtual void ProcessProbe(Event *evt);
+    virtual void ProcessMaintenance(Event * evt);
     ILogEngine *_logger;
   public:
     void Process(Event *event);

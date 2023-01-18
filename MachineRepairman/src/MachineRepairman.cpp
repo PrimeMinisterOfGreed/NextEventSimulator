@@ -23,7 +23,7 @@ void MachineRepairman::Execute()
         _logger->TraceTransfer("EventList:{}\n", _eventList.ToString());
         auto nextEvt = &_eventList.Dequeue();
         auto type = nextEvt->Type;
-        _repairStation->Process(nextEvt);
+        _machineStation->Process(nextEvt);
         _clock = nextEvt->OccurTime;
 
         if (type == EventType::ARRIVAL)
@@ -44,8 +44,10 @@ void MachineRepairman::Execute()
 
 void MachineRepairman::Report()
 {
-    auto stats = _repairStation->GetStatistics();
-    _logger->TraceResult("Statistics\n{}", stats.ToString());
+    auto delStat = _machineStation->GetStatistics();
+    auto repstats = _repairStation->GetStatistics();
+    _logger->TraceResult("Delivery station Statistics\n{}", delStat.ToString());
+    _logger->TraceResult("RepairStation Statistics\n{}", repstats.ToString());
 }
 
 void MachineRepairman::Reset()
@@ -74,6 +76,6 @@ void MachineRepairman::Schedule(Event *event)
 MachineRepairman::MachineRepairman(ILogEngine *logger, IDataProvider *provider, double endTime)
     : _repairStation(new FCFSStation(logger, this, 1)), _provider(provider), _logger(logger),_endTime(endTime)
 {
-    
+    _machineStation = new TandemFCFSStation(_repairStation,logger,this,0);
     Initialize();
 }

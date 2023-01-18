@@ -6,6 +6,7 @@
 #include "Station.hpp"
 #include "ISimulator.hpp"
 #include "ToString.hpp"
+#include "gtest/gtest.h"
 #include <queue>
 
 class FCFSStation : public Station
@@ -21,4 +22,16 @@ class FCFSStation : public Station
     void ProcessProbe(Event *evt) override;
     void Reset() override;
     FCFSStation(ILogEngine * logger, IScheduler * scheduler, int stationIndex);
+};
+
+class TandemFCFSStation : public FCFSStation
+{
+  private:
+    Station *_next;
+  protected:
+    virtual void EnqueueNext(Event * evt);
+  public:
+    void ProcessDeparture(Event *evt) override;
+    void Reset() override;
+    TandemFCFSStation(Station * next,ILogEngine * logger, IScheduler * scheduler, int stationIndex);
 };
