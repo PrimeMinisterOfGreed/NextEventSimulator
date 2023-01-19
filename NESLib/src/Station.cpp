@@ -1,6 +1,7 @@
 #include "Station.hpp"
 #include "DataProvider.hpp"
 #include "Event.hpp"
+#include "FCFSStation.hpp"
 #include "LogEngine.hpp"
 #include <sstream>
 
@@ -133,3 +134,5 @@ std::string &StationStatistic::ToString() const
         << makeformat("\n   Average number in service ....................... = {}", meanCustomerInService);
     return *new std::string(buf.str());
 }
+
+

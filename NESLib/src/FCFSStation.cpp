@@ -61,3 +61,10 @@ void FCFSStation::Reset()
     }
     _eventUnderProcess = nullptr;
 }
+
+    
+FCFSStation::FCFSStation(ILogEngine * logger, IScheduler * scheduler, int stationIndex):Station(logger,stationIndex), _scheduler(scheduler)
+{
+    
+}
+

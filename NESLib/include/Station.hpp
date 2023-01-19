@@ -52,3 +52,16 @@ class Station
     virtual void Reset();
     Station(ILogEngine *logger, int station);
 };
+
+
+class DelayStation
+{
+  protected:
+    std::string _name;
+    double _thinkTime;
+    int _numClients;
+    
+  public:
+    Event& Process();
+    DelayStation(double thinkTime, int numClients);
+};

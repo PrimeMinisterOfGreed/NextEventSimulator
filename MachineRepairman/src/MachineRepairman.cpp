@@ -15,18 +15,7 @@ void MachineRepairman::Initialize()
     Schedule(new Event(makeformat("END"), EventType::END, _clock, _endTime, 0, 0));
 }
 
-void MachineRepairman::Route(Event *evt)
-{
-    switch (evt->Station) {
-    case 0:
-        _machineStation->Process(evt);
-        break;
 
-    case 1:
-        _repairStation->Process(evt);
-        break;
-    }
-}
 
 void MachineRepairman::Execute()
 {
@@ -36,7 +25,7 @@ void MachineRepairman::Execute()
         _logger->TraceTransfer("EventList:{}\n", _eventList.ToString());
         auto nextEvt = &_eventList.Dequeue();
         auto type = nextEvt->Type;
-        _machineStation->Process(nextEvt);
+        _repairStation->Process(nextEvt);
         _clock = nextEvt->OccurTime;
 
         if (type == EventType::ARRIVAL)
@@ -57,9 +46,7 @@ void MachineRepairman::Execute()
 
 void MachineRepairman::Report()
 {
-    auto delStat = _machineStation->GetStatistics();
     auto repstats = _repairStation->GetStatistics();
-    _logger->TraceResult("Delivery station Statistics\n{}", delStat.ToString());
     _logger->TraceResult("RepairStation Statistics\n{}", repstats.ToString());
 }
 
@@ -89,6 +76,5 @@ void MachineRepairman::Schedule(Event *event)
 MachineRepairman::MachineRepairman(ILogEngine *logger, IDataProvider *provider, double endTime)
     : _repairStation(new FCFSStation(logger, this, 1)), _provider(provider), _logger(logger),_endTime(endTime)
 {
-    
     Initialize();
 }

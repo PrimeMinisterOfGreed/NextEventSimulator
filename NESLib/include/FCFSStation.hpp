@@ -27,12 +27,4 @@ class FCFSStation : public Station
     FCFSStation(ILogEngine * logger, IScheduler * scheduler, int stationIndex);
 };
 
-class TandemFCFSStation : public FCFSStation
-{
-  private:
-    int _next;
-  public:
-    void ProcessDeparture(Event *evt) override;
-    void Reset() override;
-    TandemFCFSStation(int nextStation,ILogEngine * logger, IScheduler * scheduler, int stationIndex);
-};
+
