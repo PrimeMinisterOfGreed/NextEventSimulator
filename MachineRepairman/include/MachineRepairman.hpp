@@ -19,6 +19,7 @@ class MachineRepairman : public ISimulatorEsembler, public IScheduler
     ILogEngine *_logger;
     double _clock = 0.0;
     double _endTime = 0.0;
+    bool _autoEnd = false;
     void Initialize();
   public:
     void Execute() override;
@@ -26,5 +27,5 @@ class MachineRepairman : public ISimulatorEsembler, public IScheduler
     std::vector<StationStatistic> GetStats() const;
     void Schedule(Event *event) override;
     void Reset() override;
-    MachineRepairman(ILogEngine* logger, IDataProvider * provider, double endTime);
+    MachineRepairman(ILogEngine* logger, IDataProvider * provider, double endTime = 0.0);
 };        

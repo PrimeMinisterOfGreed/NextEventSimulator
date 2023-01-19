@@ -22,7 +22,7 @@ int main()
 
     std::vector<StationStatistic> repairStationStatistics{};
     MachineRepairman &repairman = *new MachineRepairman(
-        ConsoleLogEngine::Instance(), new DoubleStreamNegExpRandomDataProvider(endTime, 0.1, 0.14), endTime);
+        ConsoleLogEngine::Instance(), new DoubleStreamNegExpRandomDataProvider(endTime, 0.1, 0.14));
     for (int i = 0; i < 1; i++)
     {
         PlantSeeds(123456789 + i + 1);

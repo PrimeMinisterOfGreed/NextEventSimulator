@@ -45,6 +45,7 @@ void FCFSStation::ProcessDeparture(Event *evt)
 void FCFSStation::ProcessEnd(Event *evt)
 {
     Station::ProcessEnd(evt);
+
 }
 
 void FCFSStation::ProcessProbe(Event *evt)
@@ -55,10 +56,7 @@ void FCFSStation::ProcessProbe(Event *evt)
 void FCFSStation::Reset()
 {
     Station::Reset();
-    while (_eventQueue.Count() > 0)
-    {
-        auto evt = _eventQueue.Dequeue();
-    }
+    _eventQueue.Clear();
     _eventUnderProcess = nullptr;
 }
 

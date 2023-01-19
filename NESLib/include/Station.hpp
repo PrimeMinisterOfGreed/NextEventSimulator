@@ -51,6 +51,16 @@ class Station
     StationStatistic GetStatistics();
     virtual void Reset();
     Station(ILogEngine *logger, int station);
+
+    int stationIndex() const { return _stationIndex; }
+
+    int arrivals() const { return _arrivals; }
+
+    int completions() const { return _completions; }
+
+    int sysClients() const { return _sysClients; }
+    
+
 };
 
 

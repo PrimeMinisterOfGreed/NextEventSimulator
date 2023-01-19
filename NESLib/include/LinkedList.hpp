@@ -1,12 +1,18 @@
 #pragma once
+#include <concepts>
+#include <cstddef>
 #include <exception>
 #include <functional>
 #include <iostream>
 #include <iterator>
 #include <sstream>
 
+template <class T> class DoubleLinkedList;
+
 template <typename T> class Node
 {
+    friend class DoubleLinkedList<T>;
+
   private:
     T *_val;
 
@@ -24,18 +30,10 @@ template <typename T> class Node
 
     void operator>>(Node &next);
     void operator<<(Node &previous);
-    inline void SetPrevious(Node *previous)
-    {
-        _previous = previous;
-    }
-    inline void SetNext(Node *next)
-    {
-        _next = next;
-    }
-    T &Value() const;
+    T *Value() const;
     T &operator*() const
     {
-        return Value();
+        return *Value();
     }
     Node<T> *Next() const
     {
@@ -72,7 +70,8 @@ template <typename T> inline Node<T>::Node(Node &n) : _val{n._val}
 
 template <typename T> inline Node<T>::~Node()
 {
-    _val = nullptr;
+    if (_val != nullptr)
+        delete _val;
     _next = nullptr;
     _previous = nullptr;
 }
@@ -89,9 +88,9 @@ template <typename T> inline void Node<T>::operator<<(Node &previous)
     previous._next = this;
 }
 
-template <typename T> inline T &Node<T>::Value() const
+template <typename T> inline T *Node<T>::Value() const
 {
-    return *_val;
+    return _val;
 }
 
 template <typename T> class NodeIterator
@@ -128,7 +127,7 @@ template <typename T> class NodeIterator
 
     T &operator*()
     {
-        return _currentNode->Value();
+        return *_currentNode->Value();
     }
 
     Node<T> &operator()()
@@ -194,6 +193,8 @@ template <class T> class DoubleLinkedList
         Insert(&val, comparer);
     }
 
+    void Clear();
+
     std::string ToString();
 };
 
@@ -217,18 +218,19 @@ template <class T> T &DoubleLinkedList<T>::Pull()
     {
         _begin = _begin->Next();
         if (_begin != nullptr)
-            _begin->SetPrevious(nullptr);
+            _begin->_previous = nullptr;
     }
     else
     {
         _begin = nullptr;
         _end = nullptr;
     }
-    T &val = res->Value();
+    auto val = res->Value();
     _count--;
-    delete res;
-
-    return val;
+    res->_next = nullptr;
+    res->_previous = nullptr;
+    res->_val = nullptr;
+    return *val;
 }
 
 template <class T> inline void DoubleLinkedList<T>::Enqueue(T *val)
@@ -294,5 +296,17 @@ template <class T> void DoubleLinkedList<T>::Insert(T *val, std::function<bool(c
             itr() << newNode;
             _count++;
         }
+    }
+}
+
+template <class T> inline void DoubleLinkedList<T>::Clear()
+{
+    auto itr = begin();
+    while (itr != end())
+    {
+        auto prev = itr();
+        itr++;
+        if (prev.Value() != nullptr)
+            delete prev.Value();
     }
 }
