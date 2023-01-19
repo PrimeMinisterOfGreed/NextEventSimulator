@@ -14,14 +14,13 @@ enum class EventType : char
 
 struct Event
 {
-
+    int Station = 0;
     static int GeneratedNodes;
     static int DeletedNodes;
     double CreateTime = 0.0;
     double OccurTime = 0.0;
     double ServiceTime = 0.0;
     double ArrivalTime = 0.0;
-
     std::string Name{};
     EventType Type = EventType::NO_EVENT;
     Event()
@@ -31,7 +30,6 @@ struct Event
         : Name{name}, Type{type}, CreateTime{CreateTime}, OccurTime{occurTime}, ServiceTime{serviceTime},
           ArrivalTime{arrivalTime}
     {
-
         Event::GeneratedNodes++;
     }
     ~Event()

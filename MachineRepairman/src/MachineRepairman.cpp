@@ -15,6 +15,19 @@ void MachineRepairman::Initialize()
     Schedule(new Event(makeformat("END"), EventType::END, _clock, _endTime, 0, 0));
 }
 
+void MachineRepairman::Route(Event *evt)
+{
+    switch (evt->Station) {
+    case 0:
+        _machineStation->Process(evt);
+        break;
+
+    case 1:
+        _repairStation->Process(evt);
+        break;
+    }
+}
+
 void MachineRepairman::Execute()
 {
     bool isEnd = false;
@@ -76,6 +89,6 @@ void MachineRepairman::Schedule(Event *event)
 MachineRepairman::MachineRepairman(ILogEngine *logger, IDataProvider *provider, double endTime)
     : _repairStation(new FCFSStation(logger, this, 1)), _provider(provider), _logger(logger),_endTime(endTime)
 {
-    _machineStation = new TandemFCFSStation(_repairStation,logger,this,0);
+    
     Initialize();
 }

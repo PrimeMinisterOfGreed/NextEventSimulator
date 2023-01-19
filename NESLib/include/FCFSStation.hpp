@@ -6,8 +6,11 @@
 #include "Station.hpp"
 #include "ISimulator.hpp"
 #include "ToString.hpp"
-#include "gtest/gtest.h"
 #include <queue>
+#include <vector>
+
+
+
 
 class FCFSStation : public Station
 {
@@ -27,11 +30,9 @@ class FCFSStation : public Station
 class TandemFCFSStation : public FCFSStation
 {
   private:
-    Station *_next;
-  protected:
-    virtual void EnqueueNext(Event * evt);
+    int _next;
   public:
     void ProcessDeparture(Event *evt) override;
     void Reset() override;
-    TandemFCFSStation(Station * next,ILogEngine * logger, IScheduler * scheduler, int stationIndex);
+    TandemFCFSStation(int nextStation,ILogEngine * logger, IScheduler * scheduler, int stationIndex);
 };

@@ -61,30 +61,3 @@ void FCFSStation::Reset()
     }
     _eventUnderProcess = nullptr;
 }
-
-FCFSStation::FCFSStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex)
-    : Station(logger, stationIndex), _scheduler(scheduler)
-{
-}
-
-void TandemFCFSStation::EnqueueNext(Event *evt)
-{
-    _next->Process(evt);
-}
-
-void TandemFCFSStation::ProcessDeparture(Event *evt)
-{
-    FCFSStation::ProcessDeparture(evt);
-    EnqueueNext(evt);
-}
-
-void TandemFCFSStation::Reset()
-{
-    FCFSStation::Reset();
-    _next->Reset();
-}
-
-TandemFCFSStation::TandemFCFSStation(Station *next, ILogEngine *logger, IScheduler *scheduler, int stationIndex)
-    : FCFSStation(logger, scheduler, stationIndex), _next(next)
-{
-}

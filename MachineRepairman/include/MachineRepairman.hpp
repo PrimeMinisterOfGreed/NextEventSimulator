@@ -20,6 +20,7 @@ class MachineRepairman : public ISimulatorEsembler, public IScheduler
     double _clock = 0.0;
     double _endTime = 0.0;
     void Initialize();
+    void Route(Event * evt);
   public:
     void Execute() override;
     void Report() override;

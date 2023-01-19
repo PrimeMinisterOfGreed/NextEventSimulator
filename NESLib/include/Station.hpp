@@ -3,17 +3,7 @@
 #include "LogEngine.hpp"
 #include "DataProvider.hpp"
 
-enum class StationEventType : char
-{
-    MAINTENANCE = 'M'
 
-};
-
-struct StationEvent : public Event
-{
-    int Station;
-    
-};
 
 struct StationStatistic
 {
