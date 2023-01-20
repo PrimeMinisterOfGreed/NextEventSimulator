@@ -45,13 +45,13 @@ void FCFSStation::ProcessDeparture(Event *evt)
 void FCFSStation::ProcessEnd(Event *evt)
 {
     Station::ProcessEnd(evt);
-
 }
 
 void FCFSStation::ProcessProbe(Event *evt)
 {
     Station::ProcessProbe(evt);
 }
+
 
 void FCFSStation::Reset()
 {
@@ -60,9 +60,7 @@ void FCFSStation::Reset()
     _eventUnderProcess = nullptr;
 }
 
-    
-FCFSStation::FCFSStation(ILogEngine * logger, IScheduler * scheduler, int stationIndex):Station(logger,stationIndex), _scheduler(scheduler)
+FCFSStation::FCFSStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex)
+    : Station(logger, stationIndex), _scheduler(scheduler)
 {
-    
 }
-

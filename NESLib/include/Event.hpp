@@ -26,9 +26,9 @@ struct Event
     Event()
     {
     }
-    Event(std::string name, EventType type, double createTime, double occurTime, double serviceTime, double arrivalTime)
+    Event(std::string name, EventType type, double createTime, double occurTime, double serviceTime, double arrivalTime, int stationTarget = 0)
         : Name{name}, Type{type}, CreateTime{CreateTime}, OccurTime{occurTime}, ServiceTime{serviceTime},
-          ArrivalTime{arrivalTime}
+          ArrivalTime{arrivalTime},Station(stationTarget)
     {
         Event::GeneratedNodes++;
     }
