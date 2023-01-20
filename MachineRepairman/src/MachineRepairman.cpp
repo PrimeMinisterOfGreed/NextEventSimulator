@@ -28,7 +28,7 @@ void MachineRepairman::Execute()
         auto type = nextEvt->Type;
         _repairStation->Process(nextEvt);
         _clock = nextEvt->OccurTime;
-        if (_autoEnd && (_repairStation->arrivals() - _repairStation->completions()) <= 0 && _clock > 1000)
+        if (_autoEnd && (_repairStation->arrivals() - _repairStation->completions()) <= 0 && _clock > 20000)
         {
             Schedule(new Event("END", EventType::END, _clock, _clock, 0, _clock));
         }
@@ -42,6 +42,7 @@ void MachineRepairman::Execute()
         }
         else if (type == EventType::DEPARTURE)
         {
+            delete nextEvt;
         }
         else if (type == EventType::END)
         {

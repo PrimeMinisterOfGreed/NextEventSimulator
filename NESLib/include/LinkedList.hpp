@@ -71,10 +71,13 @@ template <typename T> inline Node<T>::Node(Node &n) : _val{n._val}
 template <typename T> inline Node<T>::~Node()
 {
     if (_val != nullptr)
+    {
         delete _val;
+    }
     _next = nullptr;
     _previous = nullptr;
 }
+
 
 template <typename T> inline void Node<T>::operator>>(Node &next)
 {
@@ -99,6 +102,7 @@ template <typename T> class NodeIterator
     Node<T> *_currentNode;
 
   public:
+  
     NodeIterator &operator++(int)
     {
         _currentNode = _currentNode->Next();
@@ -304,9 +308,14 @@ template <class T> inline void DoubleLinkedList<T>::Clear()
     auto itr = begin();
     while (itr != end())
     {
-        auto prev = itr();
+        auto prev = &itr();
         itr++;
-        if (prev.Value() != nullptr)
-            delete prev.Value();
+        if (prev->Value() != nullptr)
+        {
+            delete prev;
+        }
     }
+    _begin = nullptr;
+    _end = nullptr;
+    _count = 0;
 }

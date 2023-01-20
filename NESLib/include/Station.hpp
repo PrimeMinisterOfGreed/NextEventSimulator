@@ -23,6 +23,7 @@ struct StationStatistic
     std::string &ToString() const;
 };
 
+
 class Station
 {
   protected:
