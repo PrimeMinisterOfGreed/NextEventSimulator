@@ -76,7 +76,6 @@ std::string &Station::ToString()
 
 void Station::ProcessMaintenance(Event *evt)
 {
-    
 }
 
 StationStatistic Station::GetStatistics()
@@ -117,6 +116,10 @@ Station::Station(ILogEngine *logger, int station) : _logger(logger), _stationInd
 {
 }
 
+void Station::Initialize()
+{
+}
+
 std::string &StationStatistic::ToString() const
 {
     std::stringstream buf{};
@@ -134,5 +137,3 @@ std::string &StationStatistic::ToString() const
         << makeformat("\n   Average number in service ....................... = {}", meanCustomerInService);
     return *new std::string(buf.str());
 }
-
-

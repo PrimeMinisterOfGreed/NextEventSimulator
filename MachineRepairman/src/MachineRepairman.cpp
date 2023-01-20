@@ -2,6 +2,7 @@
 #include "Event.hpp"
 #include "FCFSStation.hpp"
 #include "LogEngine.hpp"
+#include "RepairStation.hpp"
 #include "Station.hpp"
 #include "ToString.hpp"
 #include <gtest/gtest.h>
@@ -83,7 +84,8 @@ void MachineRepairman::Schedule(Event *event)
 }
 
 MachineRepairman::MachineRepairman(ILogEngine *logger, IDataProvider *provider, double endTime)
-    : _repairStation(new FCFSStation(logger, this, 1)), _provider(provider), _logger(logger), _endTime(endTime)
+    : _repairStation(new RepairStation(logger, this, 1)), _provider(provider), _logger(logger), _endTime(endTime)
 {
     Initialize();
+    _repairStation->Initialize();
 }

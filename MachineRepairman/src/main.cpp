@@ -24,7 +24,7 @@ int main()
 
     StatisticCollector & collector = *new StatisticCollector();
     MachineRepairman &repairman = *new MachineRepairman(
-        ConsoleLogEngine::Instance(), new DoubleStreamNegExpRandomDataProvider(endTime, 0.1, 0.14));
+        ConsoleLogEngine::Instance(), new DoubleStreamNegExpRandomDataProvider(endTime, 0.000185185, 0.001111111));
     for (int i = 0; i < 100; i++)
     {
         PlantSeeds(123456789 + i + 1);
