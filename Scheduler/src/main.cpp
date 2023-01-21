@@ -5,6 +5,8 @@
 #include <boost/type_traits/promote.hpp>
 #include <iostream>
 
+
+
 boost::program_options::variables_map & optionsMap = *new boost::program_options::variables_map();
 int main(int argc, char ** argv)
 {

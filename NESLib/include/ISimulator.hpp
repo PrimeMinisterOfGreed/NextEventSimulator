@@ -3,9 +3,16 @@
 
 class ISimulator
 {
-  public:
+  protected:
+    int _clientsInSystem = 0;
+public:
+
+public:
     virtual void Execute() = 0;
     virtual void Report() = 0;
+
+    int clientsInSystem() const { return _clientsInSystem; }
+    void setClientsInSystem(int clientsInSystem) { _clientsInSystem = clientsInSystem; }
 };
 
 class ISimulatorEsembler : public ISimulator

@@ -7,6 +7,8 @@
 #include <streambuf>
 #include <string>
 
+
+
 ConsoleLogEngine *ConsoleLogEngine::_instance = nullptr;
 
 std::string &LogTypeToString(LogType logType)

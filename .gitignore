@@ -12,10 +12,10 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-
+cmake-build-debug
 # Mono auto generated files
 mono_crash.*
-
+.idea
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
