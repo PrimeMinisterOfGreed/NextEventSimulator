@@ -23,10 +23,10 @@ int main()
 {
     ConsoleLogEngine::CreateInstance(1, "log.txt");
     int endTime = 20000;
-    int sample = 100;
-    StatisticCollector & collector = *new StatisticCollector();
+    int sample = 10000;
+    StatisticCollector &collector = *new StatisticCollector();
     MachineRepairman &repairman = *new MachineRepairman(
-        ConsoleLogEngine::Instance(), new DoubleStreamNegExpRandomDataProvider(endTime, 0.000185185, 0.001111111));
+            ConsoleLogEngine::Instance(), new StreamGenerator(), 0.000185185, 0.001111111);
     for (int i = 0; i < sample; i++)
     {
         PlantSeeds(123456789 + i + 1);
@@ -38,15 +38,15 @@ int main()
     }
 
 
-
-    double sampleMean =  boost::accumulators::mean(collector.avgWaiting());
-    ConsoleLogEngine::Instance()->TraceResult("Mean of waits:{}",sampleMean);
+    double sampleMean = boost::accumulators::mean(collector.avgWaiting());
+    ConsoleLogEngine::Instance()->TraceResult("Mean of waits:{}", sampleMean);
 
     double interval =
-        idfStudent(sample - 1, 0.95) * (boost::accumulators::variance(collector.avgWaiting()) / sqrt(sample - 1));
+            idfStudent(sample - 1, 0.95) * (boost::accumulators::variance(collector.avgWaiting()) / sqrt(sample - 1));
 
     ConsoleLogEngine::Instance()->TraceResult("Delta interval:{} ", interval);
-    ConsoleLogEngine::Instance()->TraceResult("Mean waiting interval: {}<=u<={}", sampleMean - interval, sampleMean+interval);
+    ConsoleLogEngine::Instance()->TraceResult("Mean waiting interval: {}<=u<={}", sampleMean - interval,
+                                              sampleMean + interval);
     ConsoleLogEngine::Instance()->Finalize();
 
 }

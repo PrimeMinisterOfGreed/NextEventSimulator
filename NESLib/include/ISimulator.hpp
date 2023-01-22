@@ -5,6 +5,7 @@ class ISimulator
 {
   protected:
     int _clientsInSystem = 0;
+    double _clock = 0.0;
 public:
 
 public:

@@ -2,18 +2,18 @@
 #include "Enums.hpp"
 #include "rngs.hpp"
 #include "OperativeSystem.hpp"
-CPU::CPU(ILogEngine *logger, IScheduler *scheduler) : FCFSStation(logger, scheduler, Stations::CPU)
+Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler) : FCFSStation(logger, scheduler, Stations::CPU)
 {
 
 }
 
-void CPU::ProcessArrival(Event *evt)
+void Cpu::ProcessArrival(Event *evt)
 {
     FCFSStation::ProcessArrival(evt);
 
 }
 
-void CPU::ProcessDeparture(Event *evt)
+void Cpu::ProcessDeparture(Event *evt)
 {
     FCFSStation::ProcessDeparture(evt);
 

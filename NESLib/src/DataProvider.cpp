@@ -128,3 +128,4 @@ DoubleStreamNegExpRandomDataProvider::DoubleStreamNegExpRandomDataProvider(doubl
     Next();
     _inited = true;
 }
+

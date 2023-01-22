@@ -3,12 +3,12 @@
 #include "FCFSStation.hpp"
 
 
-class CPU : public FCFSStation {
+class Cpu : public FCFSStation {
 
 
 
 public:
-    CPU(ILogEngine *logger, IScheduler *scheduler);
+    Cpu(ILogEngine *logger, IScheduler *scheduler);
 
     void ProcessArrival(Event *evt) override;
 
