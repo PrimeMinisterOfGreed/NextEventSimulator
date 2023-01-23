@@ -4,10 +4,12 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/type_traits/promote.hpp>
 #include <iostream>
-
+#include "Generators.hpp"
 
 
 boost::program_options::variables_map & optionsMap = *new boost::program_options::variables_map();
+
+extern std::shared_ptr<IGenerator> & streamGenerator;
 int main(int argc, char ** argv)
 {
     using namespace boost::program_options;
@@ -15,6 +17,8 @@ int main(int argc, char ** argv)
     descr.add_options()("help", "display this help");
     store(parse_command_line(argc, argv, descr), optionsMap);
     notify(optionsMap);
+
+    streamGenerator = std::shared_ptr<IGenerator>(new StreamGenerator());
 
     if (optionsMap.count("help"))
     {

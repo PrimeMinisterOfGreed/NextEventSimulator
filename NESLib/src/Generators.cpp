@@ -8,7 +8,7 @@ double NegExp(double lambda)
 }
 
 
-
+StreamGenerator* StreamGenerator::_instance;
 
 double StreamGenerator::Random(const IRandomVariable *variable) const
 {
@@ -23,7 +23,12 @@ void StreamGenerator::RegisterRandomVariable(IRandomVariable *variable)
 }
 
 
-
+StreamGenerator *StreamGenerator::Instance()
+{
+    if(_instance == nullptr)
+        _instance = new StreamGenerator();
+    return _instance;
+}
 
 
 double NegExpVariable::GetValue() const
@@ -50,4 +55,14 @@ void BaseRandomVariable::SetStream(int stream)
 BaseRandomVariable::BaseRandomVariable(IGenerator *generator): _generator(generator)
 {
     generator->RegisterRandomVariable(this);
+}
+
+double RandomVariable::GetValue() const
+{
+    return _generator->Random(this);
+}
+
+RandomVariable::RandomVariable(IGenerator *generator) : BaseRandomVariable(generator)
+{
+
 }

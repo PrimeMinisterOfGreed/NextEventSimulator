@@ -29,9 +29,9 @@ class BaseRandomVariable : public IRandomVariable
 {
 protected:
     int _stream = -1;
-    const IGenerator* _generator;
+    const IGenerator *_generator;
 public:
-    BaseRandomVariable(IGenerator *generator);
+    explicit BaseRandomVariable(IGenerator *generator);
 
     int GetStream() const override;
 
@@ -46,13 +46,20 @@ class StreamGenerator : public IGenerator
 protected:
 
     int _currentStream = 0;
-
+    static StreamGenerator *_instance;
 public:
-
+    static StreamGenerator *Instance();
 
     double Random(const IRandomVariable *variable) const override;
 
     void RegisterRandomVariable(IRandomVariable *variable) override;
+};
+
+class RandomVariable : public BaseRandomVariable
+{
+public:
+    RandomVariable(IGenerator * generator);
+    double GetValue() const override;
 };
 
 class NegExpVariable : BaseRandomVariable
@@ -61,8 +68,8 @@ protected:
     double _lambda;
 
 
-
 public:
     double GetValue() const override;
-    explicit NegExpVariable(double lambda, IGenerator * generator);
+
+    explicit NegExpVariable(double lambda, IGenerator *generator);
 };
