@@ -2,9 +2,9 @@
 #include <cstddef>
 #include <iostream>
 
-enum class EventType : char
+enum EventType : char
 {
-    NO_EVENT = -1,
+    NO_EVENT = 'N',
     ARRIVAL = 'A',
     DEPARTURE = 'D',
     END = 'E',
@@ -22,11 +22,12 @@ struct Event
     double ServiceTime = 0.0;
     double ArrivalTime = 0.0;
     std::string Name{};
-    EventType Type = EventType::NO_EVENT;
+    char Type = EventType::NO_EVENT;
+    char SubType = EventType::NO_EVENT;
     Event()
     {
     }
-    Event(std::string name, EventType type, double createTime, double occurTime, double serviceTime, double arrivalTime, int stationTarget = 0)
+    Event(std::string name, char type, double createTime, double occurTime, double serviceTime, double arrivalTime, int stationTarget = 0)
         : Name{name}, Type{type}, CreateTime{CreateTime}, OccurTime{occurTime}, ServiceTime{serviceTime},
           ArrivalTime{arrivalTime},Station(stationTarget)
     {

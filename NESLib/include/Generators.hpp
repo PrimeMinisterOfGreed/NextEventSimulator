@@ -58,7 +58,8 @@ public:
 class RandomVariable : public BaseRandomVariable
 {
 public:
-    RandomVariable(IGenerator * generator);
+    RandomVariable(IGenerator *generator);
+
     double GetValue() const override;
 };
 
@@ -72,4 +73,17 @@ public:
     double GetValue() const override;
 
     explicit NegExpVariable(double lambda, IGenerator *generator);
+};
+
+class DoubleStageHyperExpVariable : BaseRandomVariable
+{
+private:
+    double _alpha;
+    double _beta;
+    double _u1;
+    double _u2;
+
+public:
+    double GetValue() const override;
+    DoubleStageHyperExpVariable(double alpha, double beta, double u1, double u2, IGenerator * generator);
 };

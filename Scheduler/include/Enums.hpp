@@ -7,5 +7,6 @@ enum Stations : int
     SWAP_IN,
     CPU,
     IO_1,
-    IO_2
+    IO_2,
+    SWAP_OUT
 };
