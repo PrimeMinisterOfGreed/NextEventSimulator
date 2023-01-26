@@ -5,11 +5,12 @@
 #include "Options.hpp"
 
 
-Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(logger, 3), _timeSlice(timeSlice),
+Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(logger, Stations::CPU), _timeSlice(timeSlice),
                                                                         _scheduler(scheduler)
 {
     _routing = new RandomVariable(streamGenerator.get());
-    _processServiceTime = new NegExpVariable(37.037037037, streamGenerator.get());
+    double filteredLambda = timeSlice/1000;
+    _processServiceTime = new NegExpVariable(1/filteredLambda, streamGenerator.get());
     _burst = new DoubleStageHyperExpVariable(0.95, 0.05, 0.01, 0.35, streamGenerator.get());
 }
 
@@ -87,4 +88,10 @@ void Cpu::ManageProcess(Event *evt, double burst)
     evt->ServiceTime -= burst;
     evt->Type = EventType::DEPARTURE;
     _scheduler->Schedule(evt);
+}
+
+void Cpu::Reset()
+{
+    Station::Reset();
+    _eventQueue.Clear();
 }

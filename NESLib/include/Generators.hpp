@@ -29,7 +29,7 @@ class BaseRandomVariable : public IRandomVariable
 {
 protected:
     int _stream = -1;
-    const IGenerator *_generator;
+    IGenerator *_generator;
 public:
     explicit BaseRandomVariable(IGenerator *generator);
 

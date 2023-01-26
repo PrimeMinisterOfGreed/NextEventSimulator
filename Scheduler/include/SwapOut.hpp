@@ -12,7 +12,7 @@ protected:
     IScheduler * _scheduler;
     RandomVariable * _swap;
 public:
-    SwapOut(ILogEngine *logger, IScheduler * scheduler , int station);
+    SwapOut(ILogEngine *logger, IScheduler * scheduler );
 
 protected:
     void ProcessArrival(Event *evt) override;

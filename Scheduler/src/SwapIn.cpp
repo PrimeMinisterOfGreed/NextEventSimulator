@@ -5,8 +5,8 @@
 #include "Options.hpp"
 #include "Enums.hpp"
 
-SwapIn::SwapIn(ILogEngine *logger, IScheduler *scheduler, int stationIndex) : FCFSStation(logger, scheduler,
-                                                                                          stationIndex)
+SwapIn::SwapIn(ILogEngine *logger, IScheduler *scheduler) : FCFSStation(logger, scheduler,
+                                                                                          Stations::SWAP_IN)
 {
     _serviceTime = new NegExpVariable(4.761904762, streamGenerator.get());
 }

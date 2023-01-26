@@ -9,7 +9,7 @@
 
 boost::program_options::variables_map & optionsMap = *new boost::program_options::variables_map();
 
-extern std::shared_ptr<IGenerator> & streamGenerator;
+std::shared_ptr<IGenerator> streamGenerator;
 int main(int argc, char ** argv)
 {
     using namespace boost::program_options;

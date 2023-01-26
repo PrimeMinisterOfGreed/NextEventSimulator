@@ -3,7 +3,7 @@
 
 
 
-class ReserveStation : FCFSStation
+class ReserveStation : public FCFSStation
 {
   protected:
     int _multiProgrammingDegree;
@@ -11,5 +11,5 @@ class ReserveStation : FCFSStation
   public:
     void ProcessArrival(Event *evt) override;
     void ProcessDeparture(Event *evt) override;
-
+    ReserveStation(int multiProgrammingDegree, ILogEngine * logger, IScheduler * scheduler);
 };

@@ -5,7 +5,7 @@
 class SwapIn : public FCFSStation
 {
 public:
-    SwapIn(ILogEngine *logger, IScheduler *scheduler, int stationIndex);
+    SwapIn(ILogEngine *logger, IScheduler *scheduler);
 
     void ProcessArrival(Event *evt) override;
 

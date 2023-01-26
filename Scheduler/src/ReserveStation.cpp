@@ -22,3 +22,9 @@ void ReserveStation::ProcessDeparture(Event *evt)
     _scheduler->Schedule(evt);
 }
 
+ReserveStation::ReserveStation(int multiProgrammingDegree, ILogEngine * logger, IScheduler * scheduler) : _multiProgrammingDegree(multiProgrammingDegree),
+                                                             FCFSStation(logger,scheduler,Stations::RESERVE_STATION)
+{
+
+}
+

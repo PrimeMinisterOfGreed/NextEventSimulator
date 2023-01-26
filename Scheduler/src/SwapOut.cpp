@@ -30,7 +30,7 @@ void SwapOut::ProcessDeparture(Event *evt)
     }
 }
 
-SwapOut::SwapOut(ILogEngine *logger, IScheduler *scheduler, int station) : Station(logger, station)
+SwapOut::SwapOut(ILogEngine *logger, IScheduler *scheduler) : Station(logger,Stations::SWAP_OUT)
 {
     _scheduler = scheduler;
     _swap = new RandomVariable(streamGenerator.get());

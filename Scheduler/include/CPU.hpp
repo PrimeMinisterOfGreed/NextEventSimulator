@@ -21,4 +21,6 @@ public:
 
     void ProcessDeparture(Event *evt) override;
 
+    void Reset() override;
+
 };
