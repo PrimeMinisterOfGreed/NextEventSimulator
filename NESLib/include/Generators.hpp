@@ -14,7 +14,7 @@ class IRandomVariable
 {
 
 public:
-	virtual double GetValue() const = 0;
+	virtual double GetValue()  = 0;
 
 	virtual BaseStream* GetStream()  = 0;
 };
@@ -37,7 +37,7 @@ protected:
 public:
 	explicit BaseRandomVariable(IGenerator* generator);
 	BaseStream* GetStream() override;
-
+    virtual double GetValue() override;
 };
 
 
@@ -61,7 +61,7 @@ class RandomVariable : public BaseRandomVariable
 public:
 	RandomVariable(IGenerator* generator);
 
-	double GetValue() const override;
+	double GetValue() override ;
 };
 
 class NegExpVariable : BaseRandomVariable
@@ -71,7 +71,7 @@ protected:
 
 
 public:
-	double GetValue() const override;
+	double GetValue() override;
 
 	explicit NegExpVariable(double lambda, IGenerator* generator);
 };
@@ -85,6 +85,6 @@ private:
 	double _u2;
 
 public:
-	double GetValue() const override;
+	double GetValue() override;
 	DoubleStageHyperExpVariable(double alpha, double beta, double u1, double u2, IGenerator* generator);
 };

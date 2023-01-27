@@ -372,6 +372,7 @@ template<class T>
 template<class T>
     inline void DoubleLinkedList<T>::Clear()
     {
+        if(_count == 0) return;
         auto itr = begin();
         while (itr != end())
         {
