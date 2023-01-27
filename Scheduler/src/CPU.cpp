@@ -5,13 +5,14 @@
 #include "Options.hpp"
 
 
-Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(logger, Stations::CPU), _timeSlice(timeSlice),
+Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(logger, Stations::CPU),
+                                                                        _timeSlice(timeSlice),
                                                                         _scheduler(scheduler)
 {
-    _routing = new RandomVariable(streamGenerator.get());
-    double filteredLambda = timeSlice/1000;
-    _processServiceTime = new NegExpVariable(1/filteredLambda, streamGenerator.get());
-    _burst = new DoubleStageHyperExpVariable(0.95, 0.05, 0.01, 0.35, streamGenerator.get());
+    _routing = new RandomVariable(streamGenerator);
+    double filteredLambda = timeSlice / 1000;
+    _processServiceTime = new NegExpVariable(1 / filteredLambda, streamGenerator);
+    _burst = new DoubleStageHyperExpVariable(0.95, 0.05, 0.01, 0.35, streamGenerator);
 }
 
 
@@ -45,8 +46,16 @@ void Cpu::ProcessDeparture(Event *evt)
     }
     if (evt->ServiceTime > 0)
     {
-        evt->Type = EventType::ARRIVAL;
-        _eventQueue.Enqueue(evt);
+        if (_sysClients > 0)
+        {
+            evt->Type = EventType::ARRIVAL;
+            _eventQueue.Enqueue(evt);
+        }
+        else
+        {
+            evt->Type = EventType::ARRIVAL;
+            _scheduler->Schedule(evt);
+        }
     }
     else
     {

@@ -39,7 +39,6 @@ StreamGenerator *StreamGenerator::Instance()
 
 double NegExpVariable::GetValue()
 {
-    BaseRandomVariable::GetValue();
     return -log(1 - _generator->Random(_stream)) / _lambda;
 }
 
@@ -53,18 +52,13 @@ NegExpVariable::NegExpVariable(double lambda, IGenerator *generator) : _lambda(l
 
 BaseRandomVariable::BaseRandomVariable(IGenerator *generator) : _generator(generator)
 {
-
+    _stream = generator->GetStream();
 }
 
-double BaseRandomVariable::GetValue()
-{
-    if(_stream == nullptr)
-        _stream = _generator->GetStream();
-}
 
 double RandomVariable::GetValue()
 {
-    BaseRandomVariable::GetValue();
+
     return _generator->Random(_stream);
 }
 
@@ -75,7 +69,7 @@ RandomVariable::RandomVariable(IGenerator *generator) : BaseRandomVariable(gener
 
 double DoubleStageHyperExpVariable::GetValue()
 {
-    BaseRandomVariable::GetValue();
+
     double x = _generator->Random(_stream);
     return _alpha*(1/_u1)* exp(-x/_u1)+_beta*(1/_u2)* exp(-x/_u2);
 }

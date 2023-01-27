@@ -8,7 +8,7 @@
 SwapIn::SwapIn(ILogEngine *logger, IScheduler *scheduler) : FCFSStation(logger, scheduler,
                                                                                           Stations::SWAP_IN)
 {
-    _serviceTime = new NegExpVariable(4.761904762, streamGenerator.get());
+    _serviceTime = new NegExpVariable(4.761904762, streamGenerator);
 }
 
 void SwapIn::ProcessArrival(Event *evt)

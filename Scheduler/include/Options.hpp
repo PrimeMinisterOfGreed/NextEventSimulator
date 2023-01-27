@@ -6,4 +6,4 @@ extern boost::program_options::variables_map & optionsMap;
 
 
 
-extern std::shared_ptr<IGenerator> & streamGenerator;
+extern IGenerator * streamGenerator;

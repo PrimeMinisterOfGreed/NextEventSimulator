@@ -38,7 +38,7 @@ OS::OS(ILogEngine *logger, double cpuTimeSlice, int multiProgrammingDegree)
     _swapOut = new SwapOut(logger, this);
     _swapIn = new SwapIn(logger, this);
     _stations = new std::vector<Station *>({_cpu, _reserveStation, _io1, _io2, _swapIn, _swapOut});
-    _nextArrival = new NegExpVariable(0.2,streamGenerator.get());
+    _nextArrival = new NegExpVariable(0.2,streamGenerator);
     Initialize();
 }
 

@@ -32,12 +32,12 @@ class BaseRandomVariable : public IRandomVariable
 {
 protected:
 	bool _registered = false;
-	BaseStream* _stream;
-	IGenerator* _generator;
+	BaseStream* _stream = nullptr;
+	IGenerator* _generator = nullptr;
 public:
 	explicit BaseRandomVariable(IGenerator* generator);
 	BaseStream* GetStream() override;
-    virtual double GetValue() override;
+
 };
 
 
