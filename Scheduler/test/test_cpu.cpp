@@ -7,18 +7,20 @@
 class MockScheduler : public IScheduler
 {
 public:
-    EventList &EvtList = *new EventList();
+	EventList& EvtList = *new EventList();
 
-    void Schedule(Event *event) override
-    {
-        EvtList.Insert(event, [](const Event &a, const Event &b)
-        { return a.OccurTime > b.OccurTime; });
-    }
+	void Schedule(Event* event) override
+	{
+		EvtList.Insert(event, [](const Event& a, const Event& b)
+			{
+				return a.OccurTime > b.OccurTime;
+			});
+	}
 
-    virtual ~MockScheduler()
-    {
-        EvtList.Clear();
-    }
+	virtual ~MockScheduler()
+	{
+		EvtList.Clear();
+	}
 
 
 };
@@ -26,20 +28,20 @@ public:
 class CpuTest : public ::testing::Test
 {
 private:
-    Cpu *_cpu;
-    MockScheduler *_mockScheduler;
+	Cpu* _cpu;
+	MockScheduler* _mockScheduler;
 protected:
-    virtual void TearDown()
-    {
-        _cpu->Reset();
-        delete _mockScheduler;
-    }
+	virtual void TearDown()
+	{
+		_cpu->Reset();
+		delete _mockScheduler;
+	}
 
-    virtual void SetUp()
-    {
-        ConsoleLogEngine::CreateInstance(3, "testLog.txt");
-        _cpu = new Cpu(ConsoleLogEngine::Instance(), _mockScheduler, 2.7);
-    }
+	virtual void SetUp()
+	{
+		ConsoleLogEngine::CreateInstance(3, "testLog.txt");
+		_cpu = new Cpu(ConsoleLogEngine::Instance(), _mockScheduler, 2.7);
+	}
 };
 
 

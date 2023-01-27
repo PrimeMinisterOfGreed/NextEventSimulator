@@ -1,8 +1,8 @@
 project(Simulator)
 cmake_minimum_required(VERSION 3.04)
 find_package(Boost COMPONENTS container program_options REQUIRED)
-find_package(GTest REQUIRED)
-find_package(fmt REQUIRED)
+find_package(GTest REQUIRED CONFIG)
+find_package(fmt REQUIRED CONFIG)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -519,3 +519,4 @@ build/.cmake/api/v1/reply/cmakeFiles-v1-3c3566c80c9a53fa5208.json
 build/.cmake/api/v1/reply/index-2022-12-25T21-24-44-0217.json
 build/CMakeFiles/simulator_v2.dir/src/Generators.cpp.o
 build/CMakeFiles/simulator_v2.dir/src/rngs.c.o
+/CMakeSettings.json

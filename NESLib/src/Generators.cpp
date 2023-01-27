@@ -10,18 +10,24 @@ double NegExp(double lambda)
 
 StreamGenerator *StreamGenerator::_instance;
 
-double StreamGenerator::Random(const IRandomVariable *variable) const
+
+double StreamGenerator::Random(const BaseStream* stream) const
 {
-    SelectStream(variable->GetStream());
+    SelectStream(stream->Stream);
     return ::Random();
 }
 
-void StreamGenerator::RegisterRandomVariable(IRandomVariable *variable)
+BaseStream* StreamGenerator::GetStream() 
 {
-    variable->SetStream(_currentStream);
+    auto stream = new BaseStream{ _currentStream };
     _currentStream++;
+    return stream;
 }
 
+BaseStream* BaseRandomVariable::GetStream()
+{
+    return _stream;
+}
 
 StreamGenerator *StreamGenerator::Instance()
 {
@@ -33,7 +39,7 @@ StreamGenerator *StreamGenerator::Instance()
 
 double NegExpVariable::GetValue() const
 {
-    return -log(1 - _generator->Random(this)) / _lambda;
+    return -log(1 - _generator->Random(_stream)) / _lambda;
 }
 
 NegExpVariable::NegExpVariable(double lambda, IGenerator *generator) : _lambda(lambda), BaseRandomVariable(generator)
@@ -42,24 +48,17 @@ NegExpVariable::NegExpVariable(double lambda, IGenerator *generator) : _lambda(l
 }
 
 
-int BaseRandomVariable::GetStream() const
-{
-    return _stream;
-}
 
-void BaseRandomVariable::SetStream(int stream)
-{
-    _stream = stream;
-}
 
 BaseRandomVariable::BaseRandomVariable(IGenerator *generator) : _generator(generator)
 {
-    generator->RegisterRandomVariable(this);
+    _stream = generator->GetStream();
 }
 
 double RandomVariable::GetValue() const
 {
-    return _generator->Random(this);
+
+    return _generator->Random(_stream);
 }
 
 RandomVariable::RandomVariable(IGenerator *generator) : BaseRandomVariable(generator)
@@ -69,7 +68,7 @@ RandomVariable::RandomVariable(IGenerator *generator) : BaseRandomVariable(gener
 
 double DoubleStageHyperExpVariable::GetValue() const
 {
-    double x = _generator->Random(this);
+    double x = _generator->Random(_stream);
     return _alpha*(1/_u1)* exp(-x/_u1)+_beta*(1/_u2)* exp(-x/_u2);
 }
 
