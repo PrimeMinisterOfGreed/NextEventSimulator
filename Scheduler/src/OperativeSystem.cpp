@@ -11,6 +11,7 @@ void OS::Execute()
     {
         auto nextEvt = &_eventQueue.Dequeue();
         ISimulator::_clock = nextEvt->OccurTime;
+        OnEventProcess.Invoke(GetStatistics());
         if (nextEvt->Station == Stations::RESERVE_STATION && nextEvt->Type == EventType::ARRIVAL)
         {
             double nextArrival = _nextArrival->GetValue() + ISimulator::_clock;
@@ -25,6 +26,7 @@ void OS::Execute()
         else if (nextEvt->Station == Stations::SWAP_OUT && nextEvt->Type == EventType::DEPARTURE)
         {
             Process(nextEvt);
+            OnProcessFinished.Invoke(GetStatistics());
         }
         RouteToStation(nextEvt);
     }
@@ -33,6 +35,10 @@ void OS::Execute()
 void OS::Report()
 {
     _logger->TraceResult("Simulator Statistics:\n{}", GetStatistics().ToString());
+    _logger->TraceResult("CPU:\n{}", _cpu->GetStatistics().ToString());
+    _logger->TraceResult("IO1:\n{}", _io1->GetStatistics().ToString());
+    _logger->TraceResult("IO2\n{}", _io2->GetStatistics().ToString());
+    _logger->TraceResult("Reserve Station:\n{}", _reserveStation->GetStatistics().ToString());
 }
 
 OS::OS(ILogEngine *logger, double cpuTimeSlice, int multiProgrammingDegree) : Station(logger, -1)

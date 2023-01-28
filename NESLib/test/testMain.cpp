@@ -16,9 +16,9 @@ TEST(TestEventHandler, test_handling)
     std::mutex mutex;
     EventHandler handler;
     handler += [&](){mutex.unlock();};
-    std::async([&](){
+    auto ret = std::async([&](){
         sleep(1);
-        mutex.unlock();
+        handler.Invoke();
     });
     mutex.lock();
 }

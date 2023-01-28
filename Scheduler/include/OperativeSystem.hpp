@@ -1,6 +1,8 @@
 #pragma once
+#include "EventHandler.hpp"
 #include "ISimulator.hpp"
 #include "CPU.hpp"
+#include "Station.hpp"
 #include "SwapIn.hpp"
 #include "IOStation.hpp"
 #include "ReserveStation.hpp"
@@ -20,14 +22,16 @@ private:
     SwapOut * _swapOut;
     EventList & _eventQueue = *new EventList();
     void RouteToStation(Event * evt);
-    NegExpVariable * _nextArrival;
+    NegExpVariable *_nextArrival;
+    
 protected:
     void Initialize() override;
   public:
     void Execute() override;
     void Report() override;
     void Reset() override;
-
+    EventHandler<StationStatistic> OnEventProcess;
+    EventHandler<StationStatistic> OnProcessFinished;
     OS(ILogEngine * logger, double cpuSliceTime, int multiProgrammingDegree);
     void Schedule(Event *event) override;
 };
