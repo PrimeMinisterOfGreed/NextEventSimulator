@@ -9,7 +9,9 @@ class ReserveStation : public FCFSStation
     int _multiProgrammingDegree;
     NegExpVariable * _serviceTime;
   public:
-    void ProcessArrival(Event *evt) override;
     void ProcessDeparture(Event *evt) override;
+
+    void ProcessArrival(Event *evt) override;
+
     ReserveStation(int multiProgrammingDegree, ILogEngine * logger, IScheduler * scheduler);
 };

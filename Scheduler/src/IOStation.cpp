@@ -22,9 +22,15 @@ void IOStation::ProcessDeparture(Event *evt)
 IOStation::IOStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex) : FCFSStation(logger, scheduler,
                                                                                                 stationIndex) {
     if(stationIndex == 4)
+    {
         _serviceTime = new NegExpVariable(25, streamGenerator);
+        _name = "IO1";
+    }
     else if(stationIndex == 5)
-        _serviceTime = new NegExpVariable(5.555555556,streamGenerator);
+    {
+        _serviceTime = new NegExpVariable(5.555555556, streamGenerator);
+        _name = "IO2";
+    }
 }
 
 

@@ -5,8 +5,9 @@
 #include "IOStation.hpp"
 #include "ReserveStation.hpp"
 #include "SwapOut.hpp"
-
-class OS : public ISimulatorEsembler, public IScheduler
+#include "Statistics.hpp"
+#include <map>
+class OS : public ISimulatorEsembler, public IScheduler, public Station
 {
 private:
     bool _end = false;
@@ -21,11 +22,12 @@ private:
     void RouteToStation(Event * evt);
     NegExpVariable * _nextArrival;
 protected:
-    void Initialize();
+    void Initialize() override;
   public:
     void Execute() override;
     void Report() override;
     void Reset() override;
+
     OS(ILogEngine * logger, double cpuSliceTime, int multiProgrammingDegree);
     void Schedule(Event *event) override;
 };

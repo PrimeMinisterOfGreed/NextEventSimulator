@@ -13,15 +13,16 @@ Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(
     double filteredLambda = timeSlice / 1000;
     _processServiceTime = new NegExpVariable(1 / filteredLambda, streamGenerator);
     _burst = new DoubleStageHyperExpVariable(0.95, 0.05, 0.01, 0.35, streamGenerator);
+    _name = "CPU";
 }
 
 
 void Cpu::ProcessArrival(Event *evt)
 {
-    Station::ProcessArrival(evt);
     double burst = _burst->GetValue();
     if (evt->SubType == EventType::NO_EVENT)
     {
+        Station::ProcessArrival(evt);
         evt->SubType = 'C';
         double processServiceTime = _processServiceTime->GetValue();
         evt->ServiceTime = processServiceTime;
@@ -29,6 +30,7 @@ void Cpu::ProcessArrival(Event *evt)
     if (_eventUnderProcess == nullptr)
     {
         ManageProcess(evt, burst);
+        _scheduler->Schedule(evt);
     }
     else
     {
@@ -38,32 +40,28 @@ void Cpu::ProcessArrival(Event *evt)
 
 void Cpu::ProcessDeparture(Event *evt)
 {
-    Station::ProcessDeparture(evt);
-    if (_sysClients > 0)
-    {
-        auto newEvt = &_eventQueue.Dequeue();
-        ManageProcess(newEvt, _burst->GetValue());
-    }
     if (evt->ServiceTime > 0)
     {
-        if (_sysClients > 0)
+        evt->Type = EventType::ARRIVAL;
+        evt->OccurTime = _clock;
+        if (_sysClients > 1)
         {
-            evt->Type = EventType::ARRIVAL;
             _eventQueue.Enqueue(evt);
         }
         else
         {
-            evt->Type = EventType::ARRIVAL;
+
             _scheduler->Schedule(evt);
         }
     }
     else
     {
-        double probabilities[3] = {0.65, 0.9, 1};
+        Station::ProcessDeparture(evt);
+        double probabilities[3] = {0, 0.65, 0.9};
         double num = _routing->GetValue();
         int selected = 0;
         for (int i = 0; i < 3; i++)
-            if (num > probabilities[i])
+            if (num >= probabilities[i])
                 selected = i;
         evt->ArrivalTime = _clock;
         evt->OccurTime = _clock;
@@ -84,6 +82,12 @@ void Cpu::ProcessDeparture(Event *evt)
         }
         _scheduler->Schedule(evt);
     }
+    if (_sysClients > 0)
+    {
+        auto nextEvt = &_eventQueue.Dequeue();
+        ManageProcess(nextEvt,_burst->GetValue());
+        _scheduler->Schedule(nextEvt);
+    }
 }
 
 void Cpu::ManageProcess(Event *evt, double burst)
@@ -96,7 +100,6 @@ void Cpu::ManageProcess(Event *evt, double burst)
         evt->OccurTime = _clock + evt->ServiceTime;
     evt->ServiceTime -= burst;
     evt->Type = EventType::DEPARTURE;
-    _scheduler->Schedule(evt);
 }
 
 void Cpu::Reset()

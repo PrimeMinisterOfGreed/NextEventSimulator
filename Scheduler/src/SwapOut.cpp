@@ -34,6 +34,7 @@ SwapOut::SwapOut(ILogEngine *logger, IScheduler *scheduler) : Station(logger,Sta
 {
     _scheduler = scheduler;
     _swap = new RandomVariable(streamGenerator);
+    _name = "SWAPOUT";
 }
 
 
