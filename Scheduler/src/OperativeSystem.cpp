@@ -76,7 +76,8 @@ void OS::Initialize()
 
     Schedule(new Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
                        Station::_clock, 0, 0, 0, Stations::RESERVE_STATION));
-    Schedule(new Event("END", END, ISimulator::_clock, 10000, 0, 0, -1));
+    Schedule(new Event("END", END, ISimulator::_clock, 10000, 0, 0,
+                       -1)); //remove this and substitute with regeneration point finder
 }
 
 void OS::Schedule(Event *event)
