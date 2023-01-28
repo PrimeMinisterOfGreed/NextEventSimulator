@@ -50,7 +50,13 @@ OS::OS(ILogEngine *logger, double cpuTimeSlice, int multiProgrammingDegree) : St
 
 void OS::Reset()
 {
+    Station::Reset();
     _end = false;
+    for (auto station: *_stations)
+    {
+        station->Reset();
+    }
+    _eventQueue.Clear();
 }
 
 void OS::RouteToStation(Event *evt)
@@ -76,8 +82,6 @@ void OS::Initialize()
 
     Schedule(new Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
                        Station::_clock, 0, 0, 0, Stations::RESERVE_STATION));
-    Schedule(new Event("END", END, ISimulator::_clock, 10000, 0, 0,
-                       -1)); //remove this and substitute with regeneration point finder
 }
 
 void OS::Schedule(Event *event)
