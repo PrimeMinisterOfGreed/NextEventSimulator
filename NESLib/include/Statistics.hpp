@@ -9,9 +9,17 @@
 
 using StatisticAccumulator = boost::accumulators::accumulator_set<
     double, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>>;
+
+using Interval = std::pair<double,double>;
+
 class StatisticCollector
 {
   private:
+    int _samples = 0;
+public:
+    int getSamples() const;
+
+private:
     StatisticAccumulator _avgInterArrival;
     StatisticAccumulator _avgServiceTime;
     StatisticAccumulator _avgDelay;
@@ -25,6 +33,7 @@ class StatisticCollector
     StatisticAccumulator _meanCustomInQueue;
     StatisticAccumulator _meanCustomerInService;
     StatisticAccumulator _meanCustomerInSystem;
+    
 
     public:
     StatisticAccumulator avgInterArrival() const { return _avgInterArrival; }
@@ -57,4 +66,8 @@ class StatisticCollector
     }
 
     void Accumulate(const StationStatistic& stat);
+
+
 };
+
+double idfStudent(double df, double quantile);

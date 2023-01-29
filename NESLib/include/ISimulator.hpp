@@ -1,6 +1,6 @@
 #pragma once
 #include "Event.hpp"
-
+#include "EventHandler.hpp"
 class ISimulator
 {
   protected:
@@ -11,7 +11,6 @@ public:
 public:
     virtual void Execute() = 0;
     virtual void Report() = 0;
-
     int clientsInSystem() const { return _clientsInSystem; }
     void setClientsInSystem(int clientsInSystem) { _clientsInSystem = clientsInSystem; }
 };
