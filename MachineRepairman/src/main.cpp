@@ -34,19 +34,10 @@ int main()
         auto stats = repairman.GetStats();
         collector.Accumulate(stats[0]);
         repairman.Reset();
-        ConsoleLogEngine::Instance()->Finalize();
     }
 
-
-    double sampleMean = boost::accumulators::mean(collector.avgWaiting());
-    ConsoleLogEngine::Instance()->TraceResult("Mean of waits:{}", sampleMean);
-
-    double interval =
-            idfStudent(sample - 1, 0.95) * (boost::accumulators::variance(collector.avgWaiting()) / sqrt(sample - 1));
-
-    ConsoleLogEngine::Instance()->TraceResult("Delta interval:{} ", interval);
-    ConsoleLogEngine::Instance()->TraceResult("Mean waiting interval: {}<=u<={}", sampleMean - interval,
-                                              sampleMean + interval);
+    ConsoleLogEngine::Instance()->TraceResult("Collector Results:\n{}",collector.ToString());
     ConsoleLogEngine::Instance()->Finalize();
+
 
 }

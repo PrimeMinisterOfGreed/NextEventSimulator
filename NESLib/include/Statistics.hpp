@@ -6,7 +6,7 @@
 #include <boost/accumulators/statistics.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
-
+#include <map>
 using StatisticAccumulator = boost::accumulators::accumulator_set<
     double, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>>;
 
@@ -33,41 +33,17 @@ private:
     StatisticAccumulator _meanCustomInQueue;
     StatisticAccumulator _meanCustomerInService;
     StatisticAccumulator _meanCustomerInSystem;
-    
+
 
     public:
-    StatisticAccumulator avgInterArrival() const { return _avgInterArrival; }
 
-    StatisticAccumulator avgServiceTime() const { return _avgServiceTime; }
-
-    StatisticAccumulator avgDelay() const { return _avgDelay; }
-
-    StatisticAccumulator avgWaiting() const { return _avgWaiting; }
-
-    StatisticAccumulator utilization() const { return _utilization; }
-
-    StatisticAccumulator throughput() const { return _throughput; }
-
-    StatisticAccumulator inputRate() const { return _inputRate; }
-
-    StatisticAccumulator arrivalRate() const { return _arrivalRate; }
-
-    StatisticAccumulator serviceRate() const { return _serviceRate; }
-
-    StatisticAccumulator traffic() const { return _traffic; }
-
-    StatisticAccumulator meanCustomInQueue() const { return _meanCustomInQueue; }
-
-    StatisticAccumulator meanCustomerInService() const { return _meanCustomerInService; }
-
-    StatisticAccumulator meanCustomerInSystem() const
-    {
-        return _meanCustomerInSystem;
-    }
+    std::map<std::string,StatisticAccumulator>& GetAccumulators();
+    std::map<std::string,Interval>& GetConfidenceIntervals(double confidence);
 
     void Accumulate(const StationStatistic& stat);
 
-
+    std::string ToString();
 };
 
 double idfStudent(double df, double quantile);
+
