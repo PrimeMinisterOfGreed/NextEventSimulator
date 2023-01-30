@@ -7,7 +7,7 @@ class ReserveStation : public FCFSStation
 {
   protected:
     int _multiProgrammingDegree;
-    NegExpVariable * _serviceTime;
+
   public:
     void ProcessDeparture(Event *evt) override;
 

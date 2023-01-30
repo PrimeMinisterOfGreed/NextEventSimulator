@@ -55,6 +55,12 @@ BaseRandomVariable::BaseRandomVariable(IGenerator *generator) : _generator(gener
     _stream = generator->GetStream();
 }
 
+double BaseRandomVariable::operator()()
+{
+    double result = GetValue();
+    OnVariableGenerated.Invoke(result);
+    return result;
+}
 
 double RandomVariable::GetValue()
 {

@@ -5,27 +5,28 @@
 #include "Options.hpp"
 #include "Enums.hpp"
 
-SwapIn::SwapIn(ILogEngine *logger, IScheduler *scheduler) : FCFSStation(logger, scheduler,
-                                                                                          Stations::SWAP_IN)
+SwapIn::SwapIn(ILogEngine* logger, IScheduler* scheduler) : FCFSStation(logger, scheduler,
+	Stations::SWAP_IN),
+	_serviceTime(*new NegExpVariable(4.761904762, streamGenerator))
 {
-    _serviceTime = new NegExpVariable(4.761904762, streamGenerator);
-    _name = "SWAPIN";
+
+	_name = "SWAPIN";
 }
 
-void SwapIn::ProcessArrival(Event *evt)
+void SwapIn::ProcessArrival(Event* evt)
 {
-    evt->ServiceTime = _serviceTime->GetValue();
-    FCFSStation::ProcessArrival(evt);
+	evt->ServiceTime = _serviceTime();
+	FCFSStation::ProcessArrival(evt);
 }
 
-void SwapIn::ProcessDeparture(Event *evt)
+void SwapIn::ProcessDeparture(Event* evt)
 {
-    FCFSStation::ProcessDeparture(evt);
-    evt->OccurTime = _clock;
-    evt->Station = Stations::CPU;
-    evt->ArrivalTime = _clock;
-    evt->Type = EventType::ARRIVAL;
-    _scheduler->Schedule(evt);
+	FCFSStation::ProcessDeparture(evt);
+	evt->OccurTime = _clock;
+	evt->Station = Stations::CPU;
+	evt->ArrivalTime = _clock;
+	evt->Type = EventType::ARRIVAL;
+	_scheduler->Schedule(evt);
 }
 
 

@@ -10,6 +10,8 @@
 using StatisticAccumulator = boost::accumulators::accumulator_set<
     double, boost::accumulators::features<boost::accumulators::tag::mean, boost::accumulators::tag::variance>>;
 
+
+
 using Interval = std::pair<double,double>;
 
 class StatisticCollector

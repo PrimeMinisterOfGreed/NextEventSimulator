@@ -6,7 +6,7 @@
 
 void IOStation::ProcessArrival(Event *evt)
 {
-    evt->ServiceTime = _serviceTime->GetValue();
+    evt->ServiceTime = _serviceTime();
     FCFSStation::ProcessArrival(evt);
 }
 
@@ -20,17 +20,10 @@ void IOStation::ProcessDeparture(Event *evt)
 }
 
 IOStation::IOStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex) : FCFSStation(logger, scheduler,
-                                                                                                stationIndex) {
-    if(stationIndex == 4)
-    {
-        _serviceTime = new NegExpVariable(25, streamGenerator);
-        _name = "IO1";
-    }
-    else if(stationIndex == 5)
-    {
-        _serviceTime = new NegExpVariable(5.555555556, streamGenerator);
-        _name = "IO2";
-    }
+                                                                                                stationIndex),
+    _serviceTime{stationIndex == 4? *new NegExpVariable(25, streamGenerator) :  *new NegExpVariable(5.555555556, streamGenerator)}
+{
+    _name = _stationIndex == 4 ? "IO1" : "IO2";
 }
 
 

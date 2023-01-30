@@ -12,7 +12,7 @@ public:
     void ProcessDeparture(Event *evt) override;
 
 private:
-    NegExpVariable * _serviceTime;
+    NegExpVariable& _serviceTime;
 public:
 
 };

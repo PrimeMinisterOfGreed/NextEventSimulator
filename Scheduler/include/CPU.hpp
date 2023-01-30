@@ -6,9 +6,9 @@
 class Cpu : public Station {
 
 private:
-    DoubleStageHyperExpVariable * _burst;
-    NegExpVariable * _processServiceTime;
-    RandomVariable * _routing;
+    DoubleStageHyperExpVariable & _burst;
+    NegExpVariable & _processServiceTime;
+    RandomVariable & _routing;
     Event * _eventUnderProcess;
     IScheduler * _scheduler;
     double _timeSlice;

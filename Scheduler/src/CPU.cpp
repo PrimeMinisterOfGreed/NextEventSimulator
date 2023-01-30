@@ -7,24 +7,23 @@
 
 Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(logger, Stations::CPU),
                                                                         _timeSlice(timeSlice),
-                                                                        _scheduler(scheduler)
+                                                                        _scheduler(scheduler),
+    _burst{ *new DoubleStageHyperExpVariable(0.95, 0.05, 0.01, 0.35, streamGenerator) },
+    _processServiceTime{ *new NegExpVariable(1 / (timeSlice / 1000), streamGenerator)},
+    _routing{ *new RandomVariable(streamGenerator) }
 {
-    _routing = new RandomVariable(streamGenerator);
-    double filteredLambda = timeSlice / 1000;
-    _processServiceTime = new NegExpVariable(1 / filteredLambda, streamGenerator);
-    _burst = new DoubleStageHyperExpVariable(0.95, 0.05, 0.01, 0.35, streamGenerator);
     _name = "CPU";
 }
 
 
 void Cpu::ProcessArrival(Event *evt)
 {
-    double burst = _burst->GetValue();
+    double burst = _burst();
     if (evt->SubType == EventType::NO_EVENT)
     {
         Station::ProcessArrival(evt);
         evt->SubType = 'C';
-        double processServiceTime = _processServiceTime->GetValue();
+        double processServiceTime = _processServiceTime();
         evt->ServiceTime = processServiceTime;
     }
     if (_eventUnderProcess == nullptr)
@@ -58,7 +57,7 @@ void Cpu::ProcessDeparture(Event *evt)
     {
         Station::ProcessDeparture(evt);
         double probabilities[3] = {0, 0.65, 0.9};
-        double num = _routing->GetValue();
+        double num = _routing();
         int selected = 0;
         for (int i = 0; i < 3; i++)
             if (num >= probabilities[i])
@@ -85,7 +84,7 @@ void Cpu::ProcessDeparture(Event *evt)
     if (_sysClients > 0)
     {
         auto nextEvt = &_eventQueue.Dequeue();
-        ManageProcess(nextEvt,_burst->GetValue());
+        ManageProcess(nextEvt,_burst());
         _scheduler->Schedule(nextEvt);
     }
 }

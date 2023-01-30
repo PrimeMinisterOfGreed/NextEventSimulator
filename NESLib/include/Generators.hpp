@@ -2,6 +2,7 @@
 
 #include "rngs.hpp"
 #include <numbers>
+#include "EventHandler.hpp"
 
 double NegExp(double lambda);
 
@@ -12,9 +13,9 @@ struct BaseStream
 
 class IRandomVariable
 {
-
+protected:
+	virtual double GetValue() = 0;
 public:
-	virtual double GetValue()  = 0;
 
 	virtual BaseStream* GetStream()  = 0;
 };
@@ -35,9 +36,10 @@ protected:
 	BaseStream* _stream = nullptr;
 	IGenerator* _generator = nullptr;
 public:
+	EventHandler<double> OnVariableGenerated;
 	explicit BaseRandomVariable(IGenerator* generator);
 	BaseStream* GetStream() override;
-
+	virtual double operator()();
 };
 
 
@@ -58,33 +60,39 @@ public:
 
 class RandomVariable : public BaseRandomVariable
 {
+protected:
+	double GetValue() override;
+
 public:
 	RandomVariable(IGenerator* generator);
 
-	double GetValue() override ;
 };
 
-class NegExpVariable : BaseRandomVariable
+class NegExpVariable : public BaseRandomVariable
 {
+
+
 protected:
 	double _lambda;
+	double GetValue() override;
 
 
 public:
-	double GetValue() override;
+	
 
 	explicit NegExpVariable(double lambda, IGenerator* generator);
 };
 
-class DoubleStageHyperExpVariable : BaseRandomVariable
+class DoubleStageHyperExpVariable : public BaseRandomVariable
 {
 private:
 	double _alpha;
 	double _beta;
 	double _u1;
 	double _u2;
+protected:
+	double GetValue() override;
 
 public:
-	double GetValue() override;
 	DoubleStageHyperExpVariable(double alpha, double beta, double u1, double u2, IGenerator* generator);
 };

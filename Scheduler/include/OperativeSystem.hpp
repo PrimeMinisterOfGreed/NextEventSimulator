@@ -22,7 +22,7 @@ private:
     SwapOut * _swapOut;
     EventList & _eventQueue = *new EventList();
     void RouteToStation(Event * evt);
-    NegExpVariable *_nextArrival;
+    NegExpVariable &_nextArrival;
     
 protected:
     void Initialize() override;

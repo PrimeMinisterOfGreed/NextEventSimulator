@@ -48,8 +48,9 @@ Interval GetValueConfidence(int samples, double confidence, StatisticAccumulator
     using namespace boost::accumulators;
     double u = mean(acc);
     double sigma = variance(acc);
+    double alpha = 1 - 0.95;
     double delta =
-            idfStudent(samples - 1, confidence) * (sigma/ sqrt(samples - 1));
+            idfStudent(samples - 1, 1 - (alpha/2)) * (sigma/ sqrt(samples - 1));
     return {u-delta,u+delta};
 }
 
