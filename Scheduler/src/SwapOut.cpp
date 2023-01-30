@@ -17,7 +17,7 @@ void SwapOut::ProcessArrival(Event *evt)
 void SwapOut::ProcessDeparture(Event *evt)
 {
     Station::ProcessDeparture(evt);
-    if (_swap->GetValue() <= 0.4)
+    if (_swap() <= 0.4)
     {
         delete evt;
     }
@@ -30,10 +30,11 @@ void SwapOut::ProcessDeparture(Event *evt)
     }
 }
 
-SwapOut::SwapOut(ILogEngine *logger, IScheduler *scheduler) : Station(logger,Stations::SWAP_OUT)
+SwapOut::SwapOut(ILogEngine *logger, IScheduler *scheduler) : Station(logger,Stations::SWAP_OUT),
+                                                              _swap{*new RandomVariable(streamGenerator)}
 {
     _scheduler = scheduler;
-    _swap = new RandomVariable(streamGenerator);
+
     _name = "SWAPOUT";
 }
 

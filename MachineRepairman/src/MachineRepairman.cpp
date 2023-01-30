@@ -10,8 +10,8 @@
 
 void MachineRepairman::Initialize()
 {
-    double arrival = _interArrivalVariable->GetValue();
-    double service = _serviceVariable->GetValue();
+    double arrival = _interArrivalVariable();
+    double service = _serviceVariable();
     Schedule(new Event(makeformat("J{}S1", 0), EventType::ARRIVAL, _clock, arrival, service, arrival));
     if (_endTime != 0.0)
         Schedule(new Event(makeformat("END"), EventType::END, _clock, _endTime, 0, 0));
@@ -36,7 +36,7 @@ void MachineRepairman::Execute()
         if (type == EventType::ARRIVAL)
         {
 
-            double interArrival = _interArrivalVariable->GetValue();
+            double interArrival = _interArrivalVariable();
             double arrival = interArrival + _clock;
             Schedule(new Event(makeformat("J{}S1", Event::GeneratedNodes), EventType::ARRIVAL, _clock, arrival,
                                0, arrival));
@@ -86,7 +86,7 @@ void MachineRepairman::Schedule(Event *event)
 MachineRepairman::MachineRepairman(ILogEngine *logger, IGenerator * stream, double serviceLambda,
                                    double interarrivalLambda, double endTime)
         : _repairStation(new RepairStation(logger, this, 1,stream)),  _logger(logger), _endTime(endTime),
-          _interArrivalVariable(new NegExpVariable(interarrivalLambda,stream)), _serviceVariable(new NegExpVariable(serviceLambda,stream))
+          _interArrivalVariable(*new NegExpVariable(interarrivalLambda,stream)), _serviceVariable(*new NegExpVariable(serviceLambda,stream))
 {
     Initialize();
     _repairStation->Initialize();

@@ -30,8 +30,8 @@ template<typename ...Args>
 
         void operator-=(std::function<void(Args...)> fnc)
         {
-            std::remove_if(_handlers.begin(), _handlers.end(), [](auto a, auto b)
-            { return a == b; });
+            std::remove_if(_handlers.begin(), _handlers.end(), [fnc](const auto& a)
+            { return a == fnc; });
         }
 
 

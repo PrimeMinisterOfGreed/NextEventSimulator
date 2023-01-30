@@ -14,9 +14,9 @@ class MachineRepairman : public ISimulatorEsembler, public IScheduler
   private:
     DoubleLinkedList<Event> &_eventList = *new DoubleLinkedList<Event>();
     Station *_repairStation;
-    Station * _machineStation;
-    NegExpVariable * _interArrivalVariable;
-    NegExpVariable * _serviceVariable;
+    Station *_machineStation;
+    NegExpVariable & _interArrivalVariable;
+    NegExpVariable & _serviceVariable;
     ILogEngine *_logger;
     double _clock = 0.0;
     double _endTime = 0.0;

@@ -5,7 +5,7 @@ class RepairStation : public FCFSStation
 {
   protected:
     bool _maintenance = false;
-    NegExpVariable * _serviceVariable;
+    NegExpVariable & _serviceVariable;
     void ProcessMaintenance(Event *evt) override;
   public:
     void Reset() override;

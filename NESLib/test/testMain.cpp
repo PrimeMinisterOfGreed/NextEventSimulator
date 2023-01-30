@@ -15,10 +15,26 @@ TEST(TestEventHandler, test_handling)
 {
     std::mutex mutex;
     EventHandler handler;
-    handler += [&](){mutex.unlock();};
-    auto ret = std::async([&](){
-        sleep(1);
-        handler.Invoke();
-    });
+    handler += [&]()
+    { mutex.unlock(); };
+    auto ret = std::async([&]()
+                          {
+                              sleep(1);
+                              handler.Invoke();
+                          });
     mutex.lock();
+}
+
+TEST(TestEventHandler, test_handler_deletion)
+{
+    std::mutex mutex;
+    EventHandler handler;
+    bool target = false;
+    auto fnc = [&](){target = true;};
+    handler += fnc;
+    handler -= fnc;
+    handler.Invoke();
+    ASSERT_EQ(target, false);
+
+
 }

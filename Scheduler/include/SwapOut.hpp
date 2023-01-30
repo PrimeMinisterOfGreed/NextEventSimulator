@@ -10,7 +10,7 @@ class SwapOut : public Station
 {
 protected:
     IScheduler * _scheduler;
-    RandomVariable * _swap;
+    RandomVariable & _swap;
 public:
     SwapOut(ILogEngine *logger, IScheduler * scheduler );
 

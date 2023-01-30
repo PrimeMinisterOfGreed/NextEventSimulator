@@ -53,14 +53,14 @@ void RepairStation::ProcessDeparture(Event *evt)
 }
 
 RepairStation::RepairStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex, IGenerator * stream)
-    : FCFSStation(logger, scheduler, stationIndex), _serviceVariable(new NegExpVariable(0.000185185,stream))
+    : FCFSStation(logger, scheduler, stationIndex), _serviceVariable(*new NegExpVariable(0.000185185,stream))
 {
 
 }
 
 void RepairStation::ProcessArrival(Event *evt)
 {
-    double serviceTime = _serviceVariable->GetValue();
+    double serviceTime = _serviceVariable();
     evt->ServiceTime = serviceTime;
     FCFSStation::ProcessArrival(evt);
 }

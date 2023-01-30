@@ -16,7 +16,7 @@ class IRandomVariable
 protected:
 	virtual double GetValue() = 0;
 public:
-
+    virtual double operator()() = 0;
 	virtual BaseStream* GetStream()  = 0;
 };
 
@@ -32,14 +32,13 @@ public:
 class BaseRandomVariable : public IRandomVariable
 {
 protected:
-	bool _registered = false;
 	BaseStream* _stream = nullptr;
 	IGenerator* _generator = nullptr;
 public:
 	EventHandler<double> OnVariableGenerated;
 	explicit BaseRandomVariable(IGenerator* generator);
 	BaseStream* GetStream() override;
-	virtual double operator()();
+	double operator()() override;
 };
 
 
