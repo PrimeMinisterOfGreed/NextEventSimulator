@@ -36,5 +36,4 @@ TEST(TestEventHandler, test_handler_deletion)
     handler.Invoke();
     ASSERT_EQ(target, false);
 
-
 }

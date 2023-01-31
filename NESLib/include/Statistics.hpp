@@ -14,6 +14,12 @@ using StatisticAccumulator = boost::accumulators::accumulator_set<
                 boost::accumulators::tag::variance
         >>;
 
+using VariableAccumulator = boost::accumulators::accumulator_set<
+        double, boost::accumulators::features<
+        boost::accumulators::tag::count,
+        boost::accumulators::tag::sum,
+        boost::accumulators::tag::mean
+        >>>;
 
 using Interval = std::pair<double, double>;
 
@@ -55,13 +61,24 @@ double idfStudent(double df, double quantile);
 class BaseVariableMonitor
 {
 private:
-    std::map<std::string,BaseRandomVariable*> _register{};
-    std::map<std::string,std::function<void(double)>> _handlers;
+    std::map<std::string, BaseRandomVariable *> _register{};
+    std::map<std::string, std::function<void(double)>> _handlers;
 protected:
     virtual void Collect(std::string name, double value) = 0;
+
 public:
-    void AddRandomVar(std::string name, BaseRandomVariable* variable);
-    void RemoveRandomVar(std::string name);
+    virtual void AddRandomVar(std::string name, BaseRandomVariable *variable);
+
+    virtual void RemoveRandomVar(std::string name);
 };
 
 
+
+class ValueCollector : public BaseVariableMonitor
+{
+private:
+    std::map<std::string, VariableAccumulator> _counters{};
+protected:
+    void Collect(std::string name, double value) override;
+public:
+};

@@ -116,3 +116,12 @@ void BaseVariableMonitor::RemoveRandomVar(std::string name)
     _handlers.erase(name);
     _register.erase(name);
 }
+
+void ValueCollector::Collect(std::string name, double value)
+{
+    if(!_counters.count(name))
+        _counters[name] = VariableAccumulator();
+    _counters[name](value);
+}
+
+
