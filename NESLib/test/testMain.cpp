@@ -30,7 +30,7 @@ TEST(TestEventHandler, test_handler_deletion)
     std::mutex mutex;
     EventHandler handler;
     bool target = false;
-    auto fnc = [&](){target = true;};
+    std::function<void()> fnc = [&](){target = true;};
     handler += fnc;
     handler -= fnc;
     handler.Invoke();

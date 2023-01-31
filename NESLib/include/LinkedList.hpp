@@ -98,6 +98,7 @@ template<typename T>
     }
 
 
+
 template<typename T>
     inline void Node<T>::operator>>(Node &next)
     {

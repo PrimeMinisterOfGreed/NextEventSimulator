@@ -117,7 +117,7 @@ TEST(test_linked_list, TestClearance)
     {
         double val = NegExp(1 / 20);
         queue.emplace(val);
-        linkedList.Enqueue(val);
+        linkedList.Enqueue(new double(val));
     }
     linkedList.Clear();
     assert(linkedList.Count() == 0);

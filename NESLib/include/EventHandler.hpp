@@ -28,10 +28,16 @@ template<typename ...Args>
             *this -= std::function<void(Args...)>(fncPtr);
         }
 
-        void operator-=(std::function<void(Args...)> fnc)
+        void operator-=(std::function<void(Args...)>& fnc)
         {
-            std::remove_if(_handlers.begin(), _handlers.end(), [fnc](const auto& a)
-            { return a == fnc; });
+            for (int i = 0; i < _handlers.size(); i++)
+            {
+                void (*const* t1)(Args...) = _handlers.at(i).template target<void(*)(Args...)>();
+                void (*const* t2)(Args...) = fnc.template target<void(*)(Args...)>();
+
+                if (t1 && t2 && t1 == t2)
+                    _handlers.erase(_handlers.begin() + i);
+            }
         }
 
 
