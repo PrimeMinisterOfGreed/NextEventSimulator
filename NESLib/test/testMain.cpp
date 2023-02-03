@@ -15,8 +15,8 @@ TEST(TestEventHandler, test_handling)
 {
     std::mutex mutex;
     EventHandler handler;
-    handler += [&]()
-    { mutex.unlock(); };
+    handler += new FunctionHandler<>([&mutex]()
+                                      { mutex.unlock(); });
     auto ret = std::async([&]()
                           {
                               sleep(1);
@@ -25,15 +25,18 @@ TEST(TestEventHandler, test_handling)
     mutex.lock();
 }
 
+void fnc(bool *a)
+{ *a = true; }
+
 TEST(TestEventHandler, test_handler_deletion)
 {
-    std::mutex mutex;
-    EventHandler handler;
-    bool target = false;
-    std::function<void()> fnc = [&](){target = true;};
-    handler += fnc;
-    handler -= fnc;
-    handler.Invoke();
-    ASSERT_EQ(target, false);
-
+    bool a = false;
+    EventHandler<bool *> handler;
+    FunctionHandler<bool *> fnc([](bool *a)
+                                { *a = false; });
+    handler += &fnc;
+    handler -= &fnc;
+    handler.Invoke(&a);
+    ASSERT_EQ(a, false);
 }
+

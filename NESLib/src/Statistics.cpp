@@ -104,7 +104,7 @@ double idfStudent(double df, double quantile)
 void BaseVariableMonitor::AddRandomVar(std::string name, BaseRandomVariable *variable)
 {
     _register[name] = variable;
-    _handlers[name] = std::function<void(double)>{[this,name](double value){
+    _handlers[name] = new FunctionHandler<double>{[this,name](double value){
         this->Collect(name,value);
     }};
     _register[name]->OnVariableGenerated += _handlers[name];

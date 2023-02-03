@@ -6,38 +6,69 @@
 #include <functional>
 
 template<typename ...Args>
+    class IHandler
+    {
+    public:
+        virtual void operator()(Args...) = 0;
+        virtual bool compare(const IHandler<Args...>& oth) = 0;
+    };
+
+template<typename ...Args>
+    class FunctionHandler : public IHandler<Args...>
+    {
+    private:
+        std::function<void(Args...)> _handler;
+        static size_t _generated;
+        size_t _ordType = -1;
+    public:
+        FunctionHandler(std::function<void(Args...)> handler): _handler(handler){
+            _ordType = _generated;
+            _generated++;
+            _generated %= INT64_MAX; // i don't think you'll need this, but i agree that people that do this jobs are mad mans so just in case....
+        }
+
+         void operator()(Args... args) override
+        {
+            _handler(args...);
+        }
+
+        bool compare(const IHandler<Args...>& oth) override
+        {
+            const auto* othH= dynamic_cast<const FunctionHandler<Args...>*>(&oth);
+            return othH != nullptr && othH->_ordType == _ordType;
+        }
+
+
+    };
+
+template<typename ...Args>
+    size_t FunctionHandler<Args...>::_generated = 0;
+
+/**
+ * EventHandler in C# style, use FunctionHandler to implement lambda type handlers
+ * @tparam Args
+ * @example with lambda EventHandler handler += new FunctionHandler<>([](){});
+ */
+template<typename ...Args>
     class EventHandler
     {
     private:
-        std::vector<std::function<void(Args...)>> _handlers;
+        std::vector<IHandler<Args...>*> _handlers;
 
     public:
 
-        void operator+=(void(*fncPtr)(Args...))
+
+        void operator+=(IHandler<Args...>* handler)
         {
-            _handlers.push_back(fncPtr);
+            _handlers.push_back(handler);
         }
 
-        void operator+=(std::function<void(Args...)> fnc)
-        {
-            _handlers.push_back(fnc);
-        }
 
-        void operator-=(void(*fncPtr)(Args...))
+        void operator-=(IHandler<Args...>* handler)
         {
-            *this -= std::function<void(Args...)>(fncPtr);
-        }
 
-        void operator-=(std::function<void(Args...)>& fnc)
-        {
-            for (int i = 0; i < _handlers.size(); i++)
-            {
-                void (*const* t1)(Args...) = _handlers.at(i).template target<void(*)(Args...)>();
-                void (*const* t2)(Args...) = fnc.template target<void(*)(Args...)>();
-
-                if (t1 && t2 && t1 == t2)
-                    _handlers.erase(_handlers.begin() + i);
-            }
+            std::remove_if(_handlers.begin(),_handlers.end(),
+                           [handler](IHandler<Args...>* h){ return h->compare(*handler);});
         }
 
 
@@ -45,7 +76,7 @@ template<typename ...Args>
         {
             for (auto handler: _handlers)
             {
-                handler(args...);
+                (*handler)(args...);
             }
         }
 

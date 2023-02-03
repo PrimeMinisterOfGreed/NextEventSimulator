@@ -19,7 +19,7 @@ using VariableAccumulator = boost::accumulators::accumulator_set<
         boost::accumulators::tag::count,
         boost::accumulators::tag::sum,
         boost::accumulators::tag::mean
-        >>>;
+        >>;
 
 using Interval = std::pair<double, double>;
 
@@ -61,8 +61,8 @@ double idfStudent(double df, double quantile);
 class BaseVariableMonitor
 {
 private:
-    std::map<std::string, BaseRandomVariable *> _register{};
-    std::map<std::string, std::function<void(double)>> _handlers;
+    std::map<std::string, BaseRandomVariable*> _register{};
+    std::map<std::string, FunctionHandler<double>*> _handlers;
 protected:
     virtual void Collect(std::string name, double value) = 0;
 
