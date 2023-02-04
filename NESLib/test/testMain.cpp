@@ -3,6 +3,7 @@
 #include <mutex>
 #include <thread>
 #include <future>
+#include "Measure.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -16,7 +17,7 @@ TEST(TestEventHandler, test_handling)
     std::mutex mutex;
     EventHandler handler;
     handler += new FunctionHandler<>([&mutex]()
-                                      { mutex.unlock(); });
+                                     { mutex.unlock(); });
     auto ret = std::async([&]()
                           {
                               sleep(1);
@@ -40,3 +41,9 @@ TEST(TestEventHandler, test_handler_deletion)
     ASSERT_EQ(a, false);
 }
 
+
+TEST(TestMeasure, test_measure_add)
+{
+    Measure<double,2> measure{};
+
+}

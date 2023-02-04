@@ -4,6 +4,7 @@
 #pragma once
 
 #include <functional>
+#include <cstdint>
 
 template<typename ...Args>
     class IHandler
