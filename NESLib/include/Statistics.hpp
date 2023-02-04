@@ -2,7 +2,7 @@
 
 #include "Station.hpp"
 #include <map>
-
+#include "Measure.hpp"
 
 using Interval = std::pair<double, double>;
 
@@ -14,23 +14,23 @@ public:
     int getSamples() const;
 
 private:
-    StatisticAccumulator _avgInterArrival;
-    StatisticAccumulator _avgServiceTime;
-    StatisticAccumulator _avgDelay;
-    StatisticAccumulator _avgWaiting;
-    StatisticAccumulator _utilization;
-    StatisticAccumulator _throughput;
-    StatisticAccumulator _inputRate;
-    StatisticAccumulator _arrivalRate;
-    StatisticAccumulator _serviceRate;
-    StatisticAccumulator _traffic;
-    StatisticAccumulator _meanCustomInQueue;
-    StatisticAccumulator _meanCustomerInService;
-    StatisticAccumulator _meanCustomerInSystem;
+    Measure<double> _avgInterArrival;
+    Measure<double> _avgServiceTime;
+    Measure<double> _avgDelay;
+    Measure<double> _avgWaiting;
+    Measure<double> _utilization;
+    Measure<double> _throughput;
+    Measure<double> _inputRate;
+    Measure<double> _arrivalRate;
+    Measure<double> _serviceRate;
+    Measure<double> _traffic;
+    Measure<double> _meanCustomInQueue;
+    Measure<double> _meanCustomerInService;
+    Measure<double> _meanCustomerInSystem;
 
 public:
 
-    std::map<std::string, StatisticAccumulator> &GetAccumulators();
+    std::map<std::string, Measure<double>> &GetAccumulators();
 
     std::map<std::string, Interval> &GetConfidenceIntervals(double confidence);
 
@@ -57,11 +57,3 @@ public:
 
 
 
-class ValueCollector : public BaseVariableMonitor
-{
-private:
-    std::map<std::string, VariableAccumulator> _counters{};
-protected:
-    void Collect(std::string name, double value) override;
-public:
-};

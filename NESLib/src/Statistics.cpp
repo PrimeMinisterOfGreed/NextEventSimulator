@@ -24,9 +24,9 @@ int StatisticCollector::getSamples() const
     return _samples;
 }
 
-std::map<std::string, StatisticAccumulator> &StatisticCollector::GetAccumulators()
+std::map<std::string, Measure<double>> &StatisticCollector::GetAccumulators()
 {
-    auto &map = *new std::map<std::string, StatisticAccumulator>();
+    auto &map = *new std::map<std::string, Measure<double>>();
     map["avgInterArrival"] = _avgInterArrival;
     map["avgServiceTime"] = _avgServiceTime;
     map["avgDelay"] = _avgDelay;
@@ -43,11 +43,11 @@ std::map<std::string, StatisticAccumulator> &StatisticCollector::GetAccumulators
     return map;
 }
 
-Interval GetValueConfidence(int samples, double confidence, StatisticAccumulator acc)
+Interval GetValueConfidence(int samples, double confidence, Measure<double> acc)
 {
-    using namespace boost::accumulators;
-    double u = mean(acc);
-    double sigma = variance(acc);
+
+    double u = acc.mean(0);
+    double sigma = acc.variance();
     double alpha = 1 - 0.95;
     double delta =
             idfStudent(samples - 1, 1 - (alpha / 2)) * (sigma / sqrt(samples - 1));
@@ -77,7 +77,7 @@ std::map<std::string, Interval> &StatisticCollector::GetConfidenceIntervals(doub
 
 std::string StatisticCollector::ToString()
 {
-    using namespace boost::accumulators;
+
     auto &valueMap = GetAccumulators();
     auto &intervalMap = GetConfidenceIntervals(0.95);
     std::string result = "";
@@ -86,7 +86,7 @@ std::string StatisticCollector::ToString()
     for (auto &value: valueMap)
     {
         auto interval = intervalMap[value.first];
-        result += makeformat("|{}|{}|{}|{}|{}|\n", value.first, mean(value.second), variance(value.second),
+        result += makeformat("|{}|{}|{}|{}|{}|\n", value.first, value.second.mean(), value.second.variance(),
                              interval.first, interval.second);
     }
     return result;
@@ -115,13 +115,6 @@ void BaseVariableMonitor::RemoveRandomVar(std::string name)
     _register[name]->OnVariableGenerated -= _handlers[name];
     _handlers.erase(name);
     _register.erase(name);
-}
-
-void ValueCollector::Collect(std::string name, double value)
-{
-    if(!_counters.count(name))
-        _counters[name] = VariableAccumulator();
-    _counters[name](value);
 }
 
 

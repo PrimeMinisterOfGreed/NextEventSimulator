@@ -44,6 +44,13 @@ TEST(TestEventHandler, test_handler_deletion)
 
 TEST(TestMeasure, test_measure_add)
 {
-    Measure<double,2> measure{};
+    Measure<> measure{};
 
+    for (int i = 0; i <= 100; i++)
+    {
+        measure(i);
+    }
+    ASSERT_EQ(50,measure.mean());
+    ASSERT_EQ(850,measure.variance());
+    ASSERT_EQ(101,measure.count());
 }
