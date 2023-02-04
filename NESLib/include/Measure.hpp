@@ -12,7 +12,16 @@ template<typename T, int Moments>
     class Measure
     {
     private:
+        T _sum[Moments];
+        size_t _count;
+
+        T get(int moment) const
+        {
+            static_assert(moment < Moments);
+
+        }
 
     public:
+
 
     };
