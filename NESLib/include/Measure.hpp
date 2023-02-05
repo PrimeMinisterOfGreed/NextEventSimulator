@@ -16,7 +16,6 @@ template<typename T = double, int Moments = 2>
     private:
         T _sum[Moments];
 
-
         size_t _count;
 
 
@@ -77,7 +76,36 @@ template<typename T = double, int Moments = 2>
         { return _sum[0]; }
     };
 
+template<typename T = double, int Moments = 2>
+    class CovariatedMeasure
+    {
+    private:
+        T _acc[Moments];
+        Measure<T, Moments> &_m1;
+        Measure<T, Moments> &_m2;
+        size_t _count = 0;
+    public:
+        CovariatedMeasure(Measure<T, Moments> &m1, Measure<T, Moments> &m2) : _m1{m1}, _m2(m2)
+        {}
+
+        CovariatedMeasure() : _m1{*new Measure<T, Moments>{}}, _m2{*new Measure<T, Moments>{}}
+        {}
+
+        void Accumulate(T v1, T v2)
+        {
+            _m1(v1);
+            _m2(v2);
+        }
+
+        void operator()(T v1, T v2)
+        {
+            Accumulate(v1, v2);
+        }
 
 
+        T covariation() const
+        {
 
+        }
 
+    };
