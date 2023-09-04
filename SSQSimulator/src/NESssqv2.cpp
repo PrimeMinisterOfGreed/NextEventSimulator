@@ -39,6 +39,7 @@ void NESssq::Arrival(Event &e)
     }
 }
 
+
 void NESssq::Schedule(Event &e)
 {
     _futureEvents.Insert(&e, [](const Event &a, const Event &b) { return a.OccurTime >= b.OccurTime; });
@@ -190,6 +191,7 @@ const std::string &EventList::ToString()
     }
     return *new std::string(buffer.str());
 }
+
 
 std::string &Statistics::ToString()
 {

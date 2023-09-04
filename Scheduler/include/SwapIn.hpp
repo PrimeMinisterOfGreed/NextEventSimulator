@@ -1,6 +1,7 @@
-#include "FCFSStation.hpp"
 
 #pragma once
+#include "FCFSStation.hpp"
+
 
 class SwapIn : public FCFSStation
 {

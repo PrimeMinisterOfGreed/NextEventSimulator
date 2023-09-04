@@ -346,6 +346,8 @@ template<class T>
         }
     }
 
+
+
 template<class T>
     void DoubleLinkedList<T>::Insert(T *val, std::function<bool(const T &, const T &)> comparer)
     {

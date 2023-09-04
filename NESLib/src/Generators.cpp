@@ -2,10 +2,6 @@
 #include <cmath>
 #include "rngs.hpp"
 
-double NegExp(double lambda)
-{
-    return -log(1 - Random()) / lambda;
-}
 
 
 StreamGenerator *StreamGenerator::_instance;
@@ -14,7 +10,7 @@ StreamGenerator *StreamGenerator::_instance;
 double StreamGenerator::Random(const BaseStream* stream) const
 {
     SelectStream(stream->Stream);
-    return ::Random();
+    return this.Random();
 }
 
 BaseStream* StreamGenerator::GetStream() 

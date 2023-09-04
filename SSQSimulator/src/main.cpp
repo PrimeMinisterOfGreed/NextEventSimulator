@@ -1,7 +1,7 @@
 #include "DataProvider.hpp"
 #include "LogEngine.hpp"
 #include "NESssqv2.hpp"
-#include "rngs.hpp"
+#include "rngs.h"
 #include <boost/program_options.hpp>
 #include <string>
 #include <vector>

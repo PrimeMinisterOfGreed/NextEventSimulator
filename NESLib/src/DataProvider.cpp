@@ -1,6 +1,6 @@
 #include "DataProvider.hpp"
-#include "Generators.hpp"
 #include "rngs.hpp"
+#include "rvgs.h"
 #include <stdexcept>
 
 enum
@@ -101,9 +101,9 @@ void DoubleStreamNegExpRandomDataProvider::Next()
     _dataUsed[SERVICE] = false;
     _dataUsed[INTERARRIVAL] = false;
     SelectStream(0);
-    double interarrival = NegExp(_interArrivalLambda);
+    double interarrival = Exponential(_interArrivalLambda);
     SelectStream(1);
-    double serviceTime = NegExp(_serviceLambda);
+    double serviceTime = Exponential(_serviceLambda);
 
     if (_data[INTERARRIVAL] != 0)
     {

@@ -1,6 +1,6 @@
-#include "Generators.hpp"
 #include "LinkedList.hpp"
-#include "rngs.hpp"
+#include "rngs.h"
+#include "rvgs.h"
 #include <cassert>
 #include <functional>
 #include <gtest/gtest.h>
@@ -65,7 +65,7 @@ TEST(test_linked_list, test_random_comparator)
     std::function<bool(double, double)> comparator = [](double a, double b) { return a > b; };
     for (int i = 0; i < 1000; i++)
     {
-        linkedList.Insert(NegExp(1 / 100), comparator);
+        linkedList.Insert(Exponential(1 / 100), comparator);
     }
     double lastVal = linkedList.Dequeue();
     while (linkedList.Count() > 0)
@@ -82,7 +82,7 @@ TEST(test_linked_list, test_random_enqueuement)
     std::queue<double> queue{};
     for (int i = 0; i < 1000; i++)
     {
-        double val = NegExp(1 / 20);
+        double val = Exponential(1 / 20);
         queue.emplace(val);
         linkedList.Enqueue(val);
     }
@@ -96,7 +96,7 @@ TEST(test_linked_list, test_random_enqueuement)
 
     for (int i = 0; i < 1000; i++)
     {
-        double val = NegExp(1 / 20);
+        double val = Exponential(1 / 20);
         queue.emplace(val);
         linkedList.Enqueue(val);
     }
@@ -115,7 +115,7 @@ TEST(test_linked_list, TestClearance)
     std::queue<double> queue{};
     for (int i = 0; i < 1000; i++)
     {
-        double val = NegExp(1 / 20);
+        double val = Exponential(1 / 20);
         queue.emplace(val);
         linkedList.Enqueue(new double(val));
     }

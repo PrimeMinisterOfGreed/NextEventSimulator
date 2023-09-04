@@ -1,6 +1,6 @@
 #include "CPU.hpp"
 #include "Enums.hpp"
-#include "rngs.hpp"
+#include "rngs.h"
 #include "OperativeSystem.hpp"
 #include "Options.hpp"
 

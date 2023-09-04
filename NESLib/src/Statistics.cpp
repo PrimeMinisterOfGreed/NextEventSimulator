@@ -1,6 +1,6 @@
 #include "Statistics.hpp"
 #include <boost/math/distributions.hpp>
-
+#include "rvms.h"
 void StatisticCollector::Accumulate(const StationStatistic &stat)
 {
     _samples++;
@@ -49,8 +49,7 @@ Interval GetValueConfidence(int samples, double confidence, Measure<double> acc)
     double u = acc.mean(0);
     double sigma = acc.variance();
     double alpha = 1 - 0.95;
-    double delta =
-            idfStudent(samples - 1, 1 - (alpha / 2)) * (sigma / sqrt(samples - 1));
+    double delta = idfStudent(samples - 1, 1 - (alpha / 2)) * (sigma / sqrt(samples - 1));
     return {u - delta, u + delta};
 }
 
@@ -92,29 +91,6 @@ std::string StatisticCollector::ToString()
     return result;
 }
 
-double idfStudent(double df, double quantile)
-{
-    boost::math::students_t stud{df};
-    return
-            boost::math::quantile(stud, quantile
-            );
-}
 
-
-void BaseVariableMonitor::AddRandomVar(std::string name, BaseRandomVariable *variable)
-{
-    _register[name] = variable;
-    _handlers[name] = new FunctionHandler<double>{[this,name](double value){
-        this->Collect(name,value);
-    }};
-    _register[name]->OnVariableGenerated += _handlers[name];
-}
-
-void BaseVariableMonitor::RemoveRandomVar(std::string name)
-{
-    _register[name]->OnVariableGenerated -= _handlers[name];
-    _handlers.erase(name);
-    _register.erase(name);
-}
 
 
