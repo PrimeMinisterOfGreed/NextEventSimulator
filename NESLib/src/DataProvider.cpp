@@ -100,9 +100,9 @@ void DoubleStreamNegExpRandomDataProvider::Next()
     _dataUsed[ARRIVAL] = false;
     _dataUsed[SERVICE] = false;
     _dataUsed[INTERARRIVAL] = false;
-    SelectStream(0);
+    RandomStream::Global().SelectStream(0);
     double interarrival = Exponential(_interArrivalLambda);
-    SelectStream(1);
+    RandomStream::Global().SelectStream(1);
     double serviceTime = Exponential(_serviceLambda);
 
     if (_data[INTERARRIVAL] != 0)

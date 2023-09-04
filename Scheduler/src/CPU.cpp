@@ -1,16 +1,14 @@
 #include "CPU.hpp"
 #include "Enums.hpp"
-#include "rngs.h"
+#include "rngs.hpp"
+#include "rvgs.h"
 #include "OperativeSystem.hpp"
 #include "Options.hpp"
 
 
 Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(logger, Stations::CPU),
                                                                         _timeSlice(timeSlice),
-                                                                        _scheduler(scheduler),
-    _burst{ *new DoubleStageHyperExpVariable(0.95, 0.05, 0.01, 0.35, streamGenerator) },
-    _processServiceTime{ *new NegExpVariable(1 / (timeSlice / 1000), streamGenerator)},
-    _routing{ *new RandomVariable(streamGenerator) }
+                                                                        _scheduler(scheduler)
 {
     _name = "CPU";
 }
@@ -18,12 +16,12 @@ Cpu::Cpu(ILogEngine *logger, IScheduler *scheduler, double timeSlice) : Station(
 
 void Cpu::ProcessArrival(Event *evt)
 {
-    double burst = _burst();
+    double burst = Burst(0.95, 0.05, 0.01, 0.35);
     if (evt->SubType == EventType::NO_EVENT)
     {
         Station::ProcessArrival(evt);
         evt->SubType = 'C';
-        double processServiceTime = _processServiceTime();
+        double processServiceTime = Exponential(1/_timeSlice/1000);
         evt->ServiceTime = processServiceTime;
     }
     if (_eventUnderProcess == nullptr)
@@ -57,7 +55,7 @@ void Cpu::ProcessDeparture(Event *evt)
     {
         Station::ProcessDeparture(evt);
         double probabilities[3] = {0, 0.65, 0.9};
-        double num = _routing();
+        double num = Uniform(0.0,1.0);
         int selected = 0;
         for (int i = 0; i < 3; i++)
             if (num >= probabilities[i])
@@ -84,7 +82,7 @@ void Cpu::ProcessDeparture(Event *evt)
     if (_sysClients > 0)
     {
         auto nextEvt = &_eventQueue.Dequeue();
-        ManageProcess(nextEvt,_burst());
+        ManageProcess(nextEvt,Burst(0.95, 0.05, 0.01, 0.35));
         _scheduler->Schedule(nextEvt);
     }
 }
@@ -99,6 +97,12 @@ void Cpu::ManageProcess(Event *evt, double burst)
         evt->OccurTime = _clock + evt->ServiceTime;
     evt->ServiceTime -= burst;
     evt->Type = EventType::DEPARTURE;
+}
+
+double Cpu::Burst(double alpha, double beta ,double u1, double u2)
+{
+    auto x = RandomStream::Global().Random();
+    return alpha*(1/u1)* exp(-x/u1)+beta*(1/u2)* exp(-x/u2);
 }
 
 void Cpu::Reset()

@@ -27,7 +27,6 @@ public:
     void GetSeed(long *x);
     void PutSeed(long x);
     void SelectStream(int index);
-    void TestRandom(void);
     static RandomStream& Global();
 };
 
