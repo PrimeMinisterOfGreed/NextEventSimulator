@@ -8,22 +8,23 @@
 #include "ReserveStation.hpp"
 #include "SwapOut.hpp"
 #include "Statistics.hpp"
+#include "rngs.hpp"
 #include <map>
+#include <memory>
 class OS : public ISimulatorEsembler, public IScheduler, public Station
 {
 private:
     bool _end = false;
-    std::vector<Station*>* _stations;
-    Cpu* _cpu;
-    ReserveStation * _reserveStation;
-    IOStation * _io1;
-    IOStation * _io2;
-    SwapIn * _swapIn;
-    SwapOut * _swapOut;
-    EventList & _eventQueue = *new EventList();
+    std::vector<Station*> _stations;
+    Cpu _cpu;
+    ReserveStation _reserveStation;
+    IOStation _io1;
+    IOStation _io2;
+    SwapIn _swapIn;
+    SwapOut _swapOut;
+    EventList _eventQueue{};
     void RouteToStation(Event * evt);
-    NegExpVariable &_nextArrival;
-    
+    std::unique_ptr<VariableStream> _nextArrival;  
 protected:
     void Initialize() override;
   public:

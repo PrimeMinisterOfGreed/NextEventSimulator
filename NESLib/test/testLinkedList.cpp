@@ -1,5 +1,5 @@
 #include "LinkedList.hpp"
-#include "rngs.h"
+#include "rngs.hpp"
 #include "rvgs.h"
 #include <cassert>
 #include <functional>

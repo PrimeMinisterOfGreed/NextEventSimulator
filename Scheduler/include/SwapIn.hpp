@@ -1,6 +1,8 @@
 
 #pragma once
 #include "FCFSStation.hpp"
+#include "rngs.hpp"
+#include <memory>
 
 
 class SwapIn : public FCFSStation
@@ -13,7 +15,7 @@ public:
     void ProcessDeparture(Event *evt) override;
 
 private:
-    NegExpVariable& _serviceTime;
+    std::unique_ptr<VariableStream> _serviceTime;
 public:
 
 };

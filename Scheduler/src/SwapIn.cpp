@@ -4,18 +4,23 @@
 #include "SwapIn.hpp"
 #include "Options.hpp"
 #include "Enums.hpp"
+#include "rngs.hpp"
+#include "rvgs.h"
 
 SwapIn::SwapIn(ILogEngine* logger, IScheduler* scheduler) : FCFSStation(logger, scheduler,
-	Stations::SWAP_IN),
-	_serviceTime(*new NegExpVariable(4.761904762, streamGenerator))
+	Stations::SWAP_IN)
 {
-
+	_serviceTime = RandomStream::Global().GetStream(
+		[](auto&rng){
+			return Exponential(4.761904762);
+		}
+	);
 	_name = "SWAPIN";
 }
 
 void SwapIn::ProcessArrival(Event* evt)
 {
-	evt->ServiceTime = _serviceTime();
+	evt->ServiceTime = (*_serviceTime)();
 	FCFSStation::ProcessArrival(evt);
 }
 

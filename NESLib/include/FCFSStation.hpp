@@ -15,7 +15,7 @@
 class FCFSStation : public Station
 {
   protected:
-    EventList& _eventQueue= *new EventList();
+    EventList _eventQueue{};
     Event* _eventUnderProcess;
     IScheduler *_scheduler;
   public:

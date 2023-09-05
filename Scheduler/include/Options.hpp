@@ -4,5 +4,3 @@
 extern boost::program_options::variables_map & optionsMap;
 
 
-
-extern IGenerator * streamGenerator;

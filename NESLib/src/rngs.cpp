@@ -32,6 +32,7 @@
  * ------------------------------------------------------------------------- 
  */
 
+#include <memory>
 #include <stdio.h>
 #include <time.h>
 #include "rngs.hpp"
@@ -145,4 +146,20 @@ RandomStream &RandomStream::Global()
 {
   static RandomStream instance{};
   return instance;
+}
+
+std::unique_ptr<VariableStream> RandomStream::GetStream(std::function<double(RandomStream&)> lambda) {
+  return std::make_unique<VariableStream>(VariableStream(generatedStreams++,lambda));   
+}
+
+VariableStream::VariableStream(int stream,std::function<double(RandomStream&)> lambda)
+    : stream(stream),
+      _lambda(lambda)
+{
+    
+}
+
+double VariableStream::operator()() {
+    RandomStream::Global().SelectStream(stream);
+    return _lambda(RandomStream::Global());
 }
