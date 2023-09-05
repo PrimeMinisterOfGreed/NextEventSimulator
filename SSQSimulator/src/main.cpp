@@ -1,7 +1,7 @@
 #include "DataProvider.hpp"
 #include "LogEngine.hpp"
 #include "NESssqv2.hpp"
-#include "rngs.h"
+#include "rngs.hpp"
 #include <boost/program_options.hpp>
 #include <string>
 #include <vector>
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     }
     
     NESssq *simulator;
-    PlantSeeds(vm.at("-seed").as<int>());
+    RandomStream::Global().PlantSeeds(vm.at("-seed").as<int>());
     endTime = vm.at("-end").as<int>();
     ConsoleLogEngine::CreateInstance(vm.at("-verbosity").as<int>(), vm.at("-output").as<std::string>());
     if (vm.count("-file"))

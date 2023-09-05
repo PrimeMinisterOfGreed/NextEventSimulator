@@ -20,7 +20,7 @@ struct StationStatistic
     double meanCustomInQueue;
     double meanCustomerInService;
     double meanCustomerInSystem;
-    std::string &ToString() const;
+    std::string ToString() const;
 };
 
 
@@ -41,16 +41,16 @@ class Station
     double _areaS;
     double _oldclock = 0.0;
     double _clock = 0.0;
-    virtual void ProcessArrival(Event *evt);
-    virtual void ProcessDeparture(Event *evt);
-    virtual void ProcessEnd(Event *evt);
-    virtual void ProcessProbe(Event *evt);
-    virtual void ProcessMaintenance(Event *evt);
+    virtual void ProcessArrival(Event& evt);
+    virtual void ProcessDeparture(Event& evt);
+    virtual void ProcessEnd(Event& evt);
+    virtual void ProcessProbe(Event& evt);
+    virtual void ProcessMaintenance(Event& evt);
     ILogEngine *_logger;
   public:
-    void Process(Event *event);
+    void Process(Event &event);
     virtual void Initialize();
-    virtual std::string &ToString();
+    virtual std::string ToString();
     StationStatistic GetStatistics();
     virtual void Reset();
     Station(ILogEngine *logger, int station);

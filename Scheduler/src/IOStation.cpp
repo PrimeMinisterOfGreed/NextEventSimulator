@@ -6,18 +6,18 @@
 #include "rvgs.h"
 
 
-void IOStation::ProcessArrival(Event *evt)
+void IOStation::ProcessArrival(Event&evt)
 {
-    evt->ServiceTime = (*_serviceTime)();
+    evt.ServiceTime = (*_serviceTime)();
     FCFSStation::ProcessArrival(evt);
 }
 
-void IOStation::ProcessDeparture(Event *evt)
+void IOStation::ProcessDeparture(Event&evt)
 {
     FCFSStation::ProcessDeparture(evt);
-    evt->Station = Stations::CPU;
-    evt->OccurTime = _clock;
-    evt->Type = EventType::ARRIVAL;
+    evt.Station = Stations::CPU;
+    evt.OccurTime = _clock;
+    evt.Type = EventType::ARRIVAL;
     _scheduler->Schedule(evt);
 }
 

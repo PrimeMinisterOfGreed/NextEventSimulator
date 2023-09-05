@@ -23,7 +23,7 @@ private:
     SwapIn _swapIn;
     SwapOut _swapOut;
     EventList _eventQueue{};
-    void RouteToStation(Event * evt);
+    void RouteToStation(Event & evt);
     std::unique_ptr<VariableStream> _nextArrival;  
 protected:
     void Initialize() override;
@@ -34,5 +34,5 @@ protected:
     EventHandler<StationStatistic> OnEventProcess;
     EventHandler<StationStatistic> OnProcessFinished;
     OS(ILogEngine * logger, double cpuSliceTime, int multiProgrammingDegree);
-    void Schedule(Event *event) override;
+    void Schedule(Event event) override;
 };

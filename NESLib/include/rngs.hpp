@@ -33,7 +33,7 @@ class RandomStream
     int initialized = 0;            /* test for stream initialization */
     int generatedStreams = 0;
 public:
-    RandomStream();
+    RandomStream(){}
     double Random(void);
     void PlantSeeds(long x);
     void GetSeed(long *x);

@@ -5,46 +5,46 @@
 #include "LogEngine.hpp"
 #include <sstream>
 
-void Station::ProcessArrival(Event *evt)
+void Station::ProcessArrival(Event &evt)
 {
-    _logger->TraceInformation("Processing Arrival of event:{}", evt->Name);
+    _logger->TraceInformation("Processing Arrival of event:{}", evt.Name);
     _arrivals++;
     _sysClients++;
-    _lastArrival = evt->ArrivalTime;
+    _lastArrival = evt.ArrivalTime;
     if (_sysClients > _maxClients)
         _maxClients = _sysClients;
 }
 
-void Station::ProcessDeparture(Event *evt)
+void Station::ProcessDeparture(Event &evt)
 {
-    _logger->TraceInformation("Processing Departure of event:{}", evt->Name);
+    _logger->TraceInformation("Processing Departure of event:{}", evt.Name);
     _sysClients--;
     _completions++;
 }
 
-void Station::ProcessEnd(Event *evt)
+void Station::ProcessEnd(Event &evt)
 {
     _observationPeriod = _oldclock;
 }
 
-void Station::ProcessProbe(Event *evt)
+void Station::ProcessProbe(Event &evt)
 {
 }
 
-void Station::Process(Event *event)
+void Station::Process(Event &event)
 {
-    _clock = event->OccurTime;
-    _logger->TraceInformation("Station:{}, Processing event:{} with occur time: {}", _name, event->Name,
-                              event->OccurTime);
+    _clock = event.OccurTime;
+    _logger->TraceInformation("Station:{}, Processing event:{} with occur time: {}", _name, event.Name,
+                              event.OccurTime);
     double interval = _clock - _oldclock;
-    _oldclock = event->OccurTime;
+    _oldclock = event.OccurTime;
     if (_sysClients > 0)
     {
         _busyTime += interval;
         _areaN += _sysClients * interval;
         _areaS += (_sysClients - 1) * interval;
     }
-    switch (event->Type)
+    switch (event.Type)
     {
     case EventType::ARRIVAL:
         ProcessArrival(event);
@@ -65,16 +65,16 @@ void Station::Process(Event *event)
     }
 }
 
-std::string &Station::ToString()
+std::string Station::ToString()
 {
     std::stringstream buffer{};
     buffer << makeformat("Statistics of station:{}\n", _name) << makeformat("Arrivals:{}\n", _arrivals)
            << makeformat("Clock:{}\n", _clock) << makeformat("Last Arrival:{}\n", _lastArrival)
            << makeformat("Completions:{}\n", _completions) << GetStatistics().ToString();
-    return *new std::string(buffer.str());
+    return buffer.str();
 }
 
-void Station::ProcessMaintenance(Event *evt)
+void Station::ProcessMaintenance(Event &evt)
 {
 }
 
@@ -120,7 +120,7 @@ void Station::Initialize()
 {
 }
 
-std::string &StationStatistic::ToString() const
+std::string StationStatistic::ToString() const
 {
     std::stringstream buf{};
     buf << makeformat("\n   Average inter_arrival time ...................... = {}", avgInterArrival)
@@ -135,5 +135,5 @@ std::string &StationStatistic::ToString() const
         << makeformat("\n   Average number at server ........................ = {}", meanCustomerInSystem)
         << makeformat("\n   Average number in queue ......................... = {}", meanCustomInQueue)
         << makeformat("\n   Average number in service ....................... = {}", meanCustomerInService);
-    return *new std::string(buf.str());
+    return buf.str();
 }

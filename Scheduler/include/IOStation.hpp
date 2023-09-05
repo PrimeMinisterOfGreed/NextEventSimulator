@@ -9,8 +9,8 @@ private:
     std::unique_ptr<VariableStream>  _serviceTime;
 public:
     IOStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex);
-    void ProcessArrival(Event *evt) override;
-    void ProcessDeparture(Event *evt) override;
+    void ProcessArrival(Event&evt) override;
+    void ProcessDeparture(Event&evt) override;
 
 
 };

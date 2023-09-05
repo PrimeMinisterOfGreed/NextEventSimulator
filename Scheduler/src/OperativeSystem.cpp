@@ -12,21 +12,22 @@ void OS::Execute()
 	Initialize();
 	while (!_end)
 	{
-		auto nextEvt = &_eventQueue.Dequeue();
-		ISimulator::_clock = nextEvt->OccurTime;
+		auto& nextEvt = _eventQueue.Dequeue();
+		ISimulator::_clock = nextEvt.OccurTime;
 		OnEventProcess.Invoke(GetStatistics());
-		if (nextEvt->Station == Stations::RESERVE_STATION && nextEvt->Type == EventType::ARRIVAL)
+		if (nextEvt.Station == Stations::RESERVE_STATION && nextEvt.Type == EventType::ARRIVAL)
 		{
 			double nextArrival = (*_nextArrival)() + ISimulator::_clock;
-			auto evt = new Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION),
+			auto evt = Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION),
 				EventType::ARRIVAL,
 				Station::_clock, nextArrival, 0, nextArrival, Stations::RESERVE_STATION);
 			Schedule(evt);
-			Process(evt);
+			// was here before, need investigation
+			//Process(evt); 
 		}
-		else if (nextEvt->Type == EventType::END)
+		else if (nextEvt.Type == EventType::END)
 			_end = true;
-		else if (nextEvt->Station == Stations::SWAP_OUT && nextEvt->Type == EventType::DEPARTURE)
+		else if (nextEvt.Station == Stations::SWAP_OUT && nextEvt.Type == EventType::DEPARTURE)
 		{
 			Process(nextEvt);
 			OnProcessFinished.Invoke(GetStatistics());
@@ -71,16 +72,16 @@ void OS::Reset()
 	_eventQueue.Clear();
 }
 
-void OS::RouteToStation(Event* evt)
+void OS::RouteToStation(Event& evt)
 {
-	if (evt->Station == -1)
+	if (evt.Station == -1)
 	{
 		Process(evt);
 		return;
 	}
 	for (auto station : _stations)
 	{
-		if (evt->Station == station->stationIndex())
+		if (evt.Station == station->stationIndex())
 		{
 			station->Process(evt);
 			return;
@@ -92,11 +93,11 @@ void OS::RouteToStation(Event* evt)
 void OS::Initialize()
 {
 
-	Schedule(new Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
+	Schedule(Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
 		Station::_clock, 0, 0, 0, Stations::RESERVE_STATION));
 }
 
-void OS::Schedule(Event* event)
+void OS::Schedule(Event event)
 {
 	_eventQueue.Insert(event, [](const Event& a, const Event& b)
 		{

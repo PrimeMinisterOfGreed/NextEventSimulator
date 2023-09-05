@@ -10,9 +10,9 @@ class SwapIn : public FCFSStation
 public:
     SwapIn(ILogEngine *logger, IScheduler *scheduler);
 
-    void ProcessArrival(Event *evt) override;
+    void ProcessArrival(Event &evt) override;
 
-    void ProcessDeparture(Event *evt) override;
+    void ProcessDeparture(Event &evt) override;
 
 private:
     std::unique_ptr<VariableStream> _serviceTime;

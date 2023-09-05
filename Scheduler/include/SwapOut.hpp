@@ -17,7 +17,7 @@ public:
     SwapOut(ILogEngine *logger, IScheduler * scheduler );
 
 protected:
-    void ProcessArrival(Event *evt) override;
-    void ProcessDeparture(Event *evt) override;
+    void ProcessArrival(Event&evt) override;
+    void ProcessDeparture(Event&evt) override;
 
 };

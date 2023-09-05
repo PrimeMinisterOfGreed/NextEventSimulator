@@ -28,7 +28,7 @@ struct Event
     {
     }
     Event(std::string name, char type, double createTime, double occurTime, double serviceTime, double arrivalTime, int stationTarget = 0)
-        : Name{name}, Type{type}, CreateTime{CreateTime}, OccurTime{occurTime}, ServiceTime{serviceTime},
+        : Name{name}, Type{type}, CreateTime{createTime}, OccurTime{occurTime}, ServiceTime{serviceTime},
           ArrivalTime{arrivalTime},Station(stationTarget)
     {
         Event::GeneratedNodes++;
@@ -43,11 +43,8 @@ struct Event
         : CreateTime{e.CreateTime}, ArrivalTime{e.ArrivalTime},
           ServiceTime{e.ServiceTime}, Name{e.Name}, OccurTime{e.OccurTime}
     {
+        GeneratedNodes++;
     }
 
-    Event(Event &&e) : Event{e}
-    {
-        Event::DeletedNodes++;
-        delete &e;
-    }
+    bool operator==(Event& oth);
 };

@@ -24,5 +24,5 @@ class ISimulatorEsembler : public ISimulator
 class IScheduler
 {
   public:
-    virtual void Schedule(Event *event) = 0;
+    virtual void Schedule(Event event) = 0;
 };

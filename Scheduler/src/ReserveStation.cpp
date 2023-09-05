@@ -3,20 +3,16 @@
 #include "Enums.hpp"
 
 
-void ReserveStation::ProcessDeparture(Event *evt)
+void ReserveStation::ProcessDeparture(Event &evt)
 {
     auto sysActive = dynamic_cast<Station *>(_scheduler)->sysClients();
     FCFSStation::ProcessDeparture(evt);
-    if (sysActive > _multiProgrammingDegree)
+    if (sysActive <= _multiProgrammingDegree)
     {
-        delete evt; //end of the line
-    }
-    else
-    {
-        evt->Type = ARRIVAL;
-        evt->OccurTime = _clock;
-        evt->ServiceTime = 0;
-        evt->Station= SWAP_IN;
+        evt.Type = ARRIVAL;
+        evt.OccurTime = _clock;
+        evt.ServiceTime = 0;
+        evt.Station= SWAP_IN;
         _scheduler->Schedule(evt);
     }
 }
@@ -28,7 +24,7 @@ ReserveStation::ReserveStation(int multiProgrammingDegree, ILogEngine *logger, I
     _name = "RESERVE_STATION";
 }
 
-void ReserveStation::ProcessArrival(Event *evt)
+void ReserveStation::ProcessArrival(Event &evt)
 {
     FCFSStation::ProcessArrival(evt);
 }

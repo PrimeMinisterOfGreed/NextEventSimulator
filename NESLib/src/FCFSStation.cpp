@@ -5,16 +5,16 @@
 #include "Station.hpp"
 #include "ToString.hpp"
 
-void FCFSStation::ProcessArrival(Event *evt)
+void FCFSStation::ProcessArrival(Event &evt)
 {
     Station::ProcessArrival(evt);
-    if (_eventUnderProcess == nullptr)
+    if (!_eventUnderProcess.has_value())
     {
-        evt->CreateTime = _clock;
-        evt->ArrivalTime = _clock;
-        evt->OccurTime = _clock + evt->ServiceTime;
-        evt->Type = EventType::DEPARTURE;
-        _eventUnderProcess = evt;
+        evt.CreateTime = _clock;
+        evt.ArrivalTime = _clock;
+        evt.OccurTime = _clock + evt.ServiceTime;
+        evt.Type = EventType::DEPARTURE;
+        _eventUnderProcess.emplace(evt);
         _scheduler->Schedule(evt);
     }
     else
@@ -23,31 +23,31 @@ void FCFSStation::ProcessArrival(Event *evt)
     }
 }
 
-void FCFSStation::ProcessDeparture(Event *evt)
+void FCFSStation::ProcessDeparture(Event &evt)
 {
     Station::ProcessDeparture(evt);
-    if (evt != _eventUnderProcess)
+    if (evt != *_eventUnderProcess)
         throw std::runtime_error("The departure requested is not equal as the event under process");
     if (_sysClients > 0)
     {
-        _eventUnderProcess = &_eventQueue.Dequeue();
+        _eventUnderProcess.emplace(_eventQueue.Dequeue());
         _eventUnderProcess->ArrivalTime = _clock;
         _eventUnderProcess->CreateTime = _clock;
         _eventUnderProcess->OccurTime = _clock + _eventUnderProcess->ServiceTime;
         _eventUnderProcess->Type = EventType::DEPARTURE;
-        _scheduler->Schedule(_eventUnderProcess);
+        _scheduler->Schedule(_eventUnderProcess.value());
     }
     else
-        _eventUnderProcess = nullptr;
+        _eventUnderProcess.reset();
     _completions++;
 }
 
-void FCFSStation::ProcessEnd(Event *evt)
+void FCFSStation::ProcessEnd(Event &evt)
 {
     Station::ProcessEnd(evt);
 }
 
-void FCFSStation::ProcessProbe(Event *evt)
+void FCFSStation::ProcessProbe(Event &evt)
 {
     Station::ProcessProbe(evt);
 }
@@ -57,7 +57,7 @@ void FCFSStation::Reset()
 {
     Station::Reset();
     _eventQueue.Clear();
-    _eventUnderProcess = nullptr;
+    _eventUnderProcess.reset();
 }
 
 FCFSStation::FCFSStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex)

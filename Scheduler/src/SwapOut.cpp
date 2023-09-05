@@ -7,27 +7,23 @@
 #include "rngs.hpp"
 #include "rvgs.h"
 
-void SwapOut::ProcessArrival(Event *evt)
+void SwapOut::ProcessArrival(Event&evt)
 {
     Station::ProcessArrival(evt);
-    evt->OccurTime = _clock;
-    evt->ServiceTime = 0;
-    evt->Type = EventType::DEPARTURE;
+    evt.OccurTime = _clock;
+    evt.ServiceTime = 0;
+    evt.Type = EventType::DEPARTURE;
     _scheduler->Schedule(evt);
 }
 
-void SwapOut::ProcessDeparture(Event *evt)
+void SwapOut::ProcessDeparture(Event&evt)
 {
     Station::ProcessDeparture(evt);
-    if ((*_swap)() <= 0.4)
+    if ((*_swap)() > 0.4)
     {
-        delete evt;
-    }
-    else
-    {
-        evt->Type = EventType::ARRIVAL;
-        evt->OccurTime = _clock;
-        evt->Station = Stations::RESERVE_STATION;
+        evt.Type = EventType::ARRIVAL;
+        evt.OccurTime = _clock;
+        evt.Station = Stations::RESERVE_STATION;
         _scheduler->Schedule(evt);
     }
 }

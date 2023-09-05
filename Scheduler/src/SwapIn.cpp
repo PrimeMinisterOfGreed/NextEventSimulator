@@ -18,19 +18,19 @@ SwapIn::SwapIn(ILogEngine* logger, IScheduler* scheduler) : FCFSStation(logger, 
 	_name = "SWAPIN";
 }
 
-void SwapIn::ProcessArrival(Event* evt)
+void SwapIn::ProcessArrival(Event& evt)
 {
-	evt->ServiceTime = (*_serviceTime)();
+	evt.ServiceTime = (*_serviceTime)();
 	FCFSStation::ProcessArrival(evt);
 }
 
-void SwapIn::ProcessDeparture(Event* evt)
+void SwapIn::ProcessDeparture(Event& evt)
 {
 	FCFSStation::ProcessDeparture(evt);
-	evt->OccurTime = _clock;
-	evt->Station = Stations::CPU;
-	evt->ArrivalTime = _clock;
-	evt->Type = EventType::ARRIVAL;
+	evt.OccurTime = _clock;
+	evt.Station = Stations::CPU;
+	evt.ArrivalTime = _clock;
+	evt.Type = EventType::ARRIVAL;
 	_scheduler->Schedule(evt);
 }
 
