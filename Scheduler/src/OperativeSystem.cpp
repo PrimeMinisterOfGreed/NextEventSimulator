@@ -21,9 +21,8 @@ void OS::Execute()
 			auto evt = Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION),
 				EventType::ARRIVAL,
 				Station::_clock, nextArrival, 0, nextArrival, Stations::RESERVE_STATION);
-			Schedule(evt);
-			// was here before, need investigation
-			//Process(evt); 
+				Process(evt);
+				Schedule(evt);
 		}
 		else if (nextEvt.Type == EventType::END)
 			_end = true;

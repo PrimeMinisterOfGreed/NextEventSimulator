@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
         std::cout << descr << std::endl;
     }
     ConsoleLogEngine::CreateInstance(3,"simulation.txt");
-    OS& os = *new OS(ConsoleLogEngine::Instance(),2.7,10);
+    OS os = OS(ConsoleLogEngine::Instance(),2.7,10);
     os.Execute();
     os.Report();
 }

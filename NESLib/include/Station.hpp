@@ -29,18 +29,18 @@ class Station
 {
   protected:
     std::string _name;
-    int _stationIndex = 0;
-    int _arrivals;
-    int _completions;
-    int _sysClients;
-    int _maxClients;
-    double _busyTime;
-    double _observationPeriod;
-    double _lastArrival;
-    double _areaN;
-    double _areaS;
-    double _oldclock = 0.0;
-    double _clock = 0.0;
+    int _stationIndex{};
+    int _arrivals{};
+    int _completions{};
+    int _sysClients{};
+    int _maxClients{};
+    double _busyTime{};
+    double _observationPeriod{};
+    double _lastArrival{};
+    double _areaN{};
+    double _areaS{};
+    double _oldclock{};
+    double _clock{};
     virtual void ProcessArrival(Event& evt);
     virtual void ProcessDeparture(Event& evt);
     virtual void ProcessEnd(Event& evt);

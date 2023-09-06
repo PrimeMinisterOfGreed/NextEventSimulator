@@ -71,11 +71,6 @@ void Cpu::ProcessDeparture(Event &evt) {
     }
     _scheduler->Schedule(evt);
   }
-  if (_sysClients > 0) {
-    auto nextEvt = _eventQueue.Dequeue();
-    ManageProcess(nextEvt, (*burst)());
-    _scheduler->Schedule(nextEvt);
-  }
 }
 
 void Cpu::ManageProcess(Event &evt, double burst) {
