@@ -1,5 +1,6 @@
 
-template<class T>
+#include <concepts>
+template<class T> requires std::equality_comparable<T>
     class DoubleLinkedList;
 
 template<typename T>

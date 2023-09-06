@@ -9,7 +9,9 @@
 #include <sstream>
 #include "Node.hpp"
 
-template <class T> class DoubleLinkedList {
+
+
+template <class T> requires std::equality_comparable<T> class DoubleLinkedList {
 private:
   Node<T> *_begin;
   Node<T> *_end;
@@ -22,33 +24,26 @@ public:
 
   inline size_t Count() const { return _count; }
 
-  void Push(T *val);
-
-  void Push(T val) { Push(&val); }
+  void Push(T val);
 
   T &Pull();
 
-  void Enqueue(T *val);
+  void Enqueue(T val);
 
-  void Enqueue(T val) { Enqueue(&val); }
 
   T &Dequeue();
 
-  void Insert(T *val, int index);
+  void Insert(T val, int index);
 
-  void Insert(T val, int index) { Insert(&val, index); }
 
-  void Insert(T *val, std::function<bool(const T &, const T &)> comparer);
+  void Insert(T val, std::function<bool(const T &, const T &)> comparer);
 
-  void Insert(T val, std::function<bool(const T &, const T &)> comparer) {
-    Insert(&val, comparer);
-  }
 
   void Clear();
 
-  int IndexOf(T *val);
+  int IndexOf(T val);
 
-  bool Contains(T *val);
+  bool Contains(T val);
 
   std::string ToString();
 };
@@ -96,7 +91,7 @@ template <class T> T &DoubleLinkedList<T>::Pull() {
   res->_next = nullptr;
   res->_previous = nullptr;
   res->_val = nullptr;
-  return *val;
+  return val;
 }
 
 template <class T> inline void DoubleLinkedList<T>::Enqueue(T *val) {
