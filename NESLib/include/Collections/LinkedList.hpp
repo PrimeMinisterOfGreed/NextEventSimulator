@@ -11,7 +11,7 @@
 
 
 
-template <class T> requires std::equality_comparable<T> class DoubleLinkedList {
+template<class T> requires Comparable<T> class DoubleLinkedList {
 private:
   Node<T> *_begin;
   Node<T> *_end;
@@ -26,17 +26,17 @@ public:
 
   void Push(T val);
 
-  T &Pull();
+  T Pull();
 
   void Enqueue(T val);
 
 
-  T &Dequeue();
+  T Dequeue();
 
   void Insert(T val, int index);
 
 
-  void Insert(T val, std::function<bool(const T &, const T &)> comparer);
+  void Insert(T val, std::function<bool(const T&,const T&)> comparer);
 
 
   void Clear();
@@ -48,11 +48,12 @@ public:
   std::string ToString();
 };
 
-template <class T> bool DoubleLinkedList<T>::Contains(T *val) {
+
+template<class T> requires Comparable<T> bool DoubleLinkedList<T>::Contains(T val) {
   return IndexOf(val) != -1;
 }
 
-template <class T> int DoubleLinkedList<T>::IndexOf(T *val) {
+template<class T> requires Comparable<T> int DoubleLinkedList<T>::IndexOf(T val) {
   auto itr = begin();
   int p = 0;
   while (itr != end()) {
@@ -63,7 +64,7 @@ template <class T> int DoubleLinkedList<T>::IndexOf(T *val) {
   return -1;
 }
 
-template <class T> void DoubleLinkedList<T>::Push(T *val) {
+template<class T> requires Comparable<T> void DoubleLinkedList<T>::Push(T val) {
   Node<T> *new_node = new Node<T>(val);
   if (_begin != nullptr)
     *_begin << *new_node;
@@ -73,7 +74,7 @@ template <class T> void DoubleLinkedList<T>::Push(T *val) {
   _count++;
 }
 
-template <class T> T &DoubleLinkedList<T>::Pull() {
+template<class T> requires Comparable<T> T DoubleLinkedList<T>::Pull() {
   if (_begin == nullptr)
     throw new std::invalid_argument(
         "Trying to pull from the list but is empty");
@@ -90,11 +91,11 @@ template <class T> T &DoubleLinkedList<T>::Pull() {
   _count--;
   res->_next = nullptr;
   res->_previous = nullptr;
-  res->_val = nullptr;
+  delete res;
   return val;
 }
 
-template <class T> inline void DoubleLinkedList<T>::Enqueue(T *val) {
+template<class T> requires Comparable<T> inline void DoubleLinkedList<T>::Enqueue(T val) {
   Node<T> *newNode = new Node<T>(val);
   if (_begin == nullptr) {
     _begin = newNode;
@@ -108,9 +109,9 @@ template <class T> inline void DoubleLinkedList<T>::Enqueue(T *val) {
   _count++;
 }
 
-template <class T> inline T &DoubleLinkedList<T>::Dequeue() { return Pull(); }
+template<class T> requires Comparable<T> inline T DoubleLinkedList<T>::Dequeue() { return Pull(); }
 
-template <class T> void DoubleLinkedList<T>::Insert(T *val, int index) {
+template<class T> requires Comparable<T> void DoubleLinkedList<T>::Insert(T val, int index) {
   if (index > _count)
     throw new std::invalid_argument("Index out of bounds");
   if (index == 0)
@@ -118,7 +119,7 @@ template <class T> void DoubleLinkedList<T>::Insert(T *val, int index) {
   else if (index == _count)
     Enqueue(val);
   else {
-    Node<T> &newNode = *new Node<T>(val);
+    Node<T> *newNode = new Node<T>(val);
     auto itr = (begin() + index);
     auto ptr = itr();
     Node<T> &prev = (itr--)();
@@ -128,39 +129,38 @@ template <class T> void DoubleLinkedList<T>::Insert(T *val, int index) {
   }
 }
 
-template <class T>
+template<class T> requires Comparable<T>
 void DoubleLinkedList<T>::Insert(
-    T *val, std::function<bool(const T &, const T &)> comparer) {
-  Node<T> &newNode = *new Node<T>(val);
+    T val, std::function<bool(const T&,const T&)> comparer) {
+  Node<T> *newNode = new Node<T>(val);
   auto itr = begin();
-  if (_begin == nullptr || comparer(*itr, *newNode))
+  if (_begin == nullptr || comparer(*itr, newNode->Value()))
     Push(val);
   else {
-    while (itr != end() && !comparer(*itr, *newNode))
+    while (itr != end() && !comparer(*itr, newNode->Value()))
       itr++;
 
-    if (itr == end() && !comparer(*itr, *newNode))
+    if (itr == end() && !comparer(*itr, newNode->Value()))
       Enqueue(val);
     else {
-      Node<T> &prev = *itr().Previous();
-      prev >> newNode;
-      itr() << newNode;
+      Node<T> *prev = itr()->Previous();
+      *prev >> *newNode;
+      *itr() << *newNode;
       _count++;
     }
   }
 }
 
-template <class T> inline void DoubleLinkedList<T>::Clear() {
+template<class T> requires Comparable<T> inline void DoubleLinkedList<T>::Clear() {
   if (_count == 0)
     return;
   auto itr = begin();
   while (itr != end()) {
-    auto prev = &itr();
+    Node<T>* prev = itr();
     itr++;
-    if (prev->Value() != nullptr) {
-      delete prev;
-    }
+    delete prev;
   }
+  delete _end;
   _begin = nullptr;
   _end = nullptr;
   _count = 0;

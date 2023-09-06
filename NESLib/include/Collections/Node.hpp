@@ -1,6 +1,12 @@
 
+#include <algorithm>
 #include <concepts>
-template<class T> requires std::equality_comparable<T>
+
+template<typename T> concept Comparable = requires(T a){
+    {a == a};
+};
+
+template<class T> requires Comparable<T>
     class DoubleLinkedList;
 
 template<typename T>
@@ -19,8 +25,6 @@ template<typename T>
 
         Node(T value);
 
-        Node(T &value);
-
         Node(Node &&);
 
         Node(Node &);
@@ -31,9 +35,9 @@ template<typename T>
 
         void operator<<(Node &previous);
 
-        T &Value() const;
+        T &Value() ;
 
-        T &operator*() const
+        T &operator*() 
         {
             return Value();
         }
@@ -55,11 +59,6 @@ template<typename T>
     {
     }
 
-template<typename T>
-    inline Node<T>::Node(T &value)
-    {
-        _val = value;
-    }
 
 template<typename T>
     inline Node<T>::Node(Node &&n) : _val{n._val}
@@ -75,10 +74,10 @@ template<typename T>
 template<typename T>
     inline Node<T>::~Node()
     {
-        if (_val != nullptr)
-        {
-            delete _val;
-        }
+        if(_next != nullptr)
+            _next->_previous = nullptr;
+        if(_previous != nullptr)
+            _previous->_next = nullptr;
         _next = nullptr;
         _previous = nullptr;
     }
@@ -100,7 +99,7 @@ template<typename T>
     }
 
 template<typename T>
-    inline T &Node<T>::Value() const
+    inline T &Node<T>::Value()
     {
         return _val;
     }
@@ -139,14 +138,14 @@ template<typename T>
             return *this;
         }
 
-        T &operator*()
+        T operator*()
         {
-            return *_currentNode->Value();
+            return _currentNode->Value();
         }
 
-        Node<T> &operator()()
+        Node<T> *operator()()
         {
-            return *_currentNode;
+            return _currentNode;
         }
 
         NodeIterator(Node<T> *reference) : _currentNode{reference}
@@ -155,7 +154,7 @@ template<typename T>
 
         inline bool operator==(NodeIterator &itr)
         {
-            return _currentNode == &itr();
+            return _currentNode == itr();
         }
 
         inline bool operator!=(NodeIterator &itr)

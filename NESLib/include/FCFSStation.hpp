@@ -1,7 +1,7 @@
 #pragma once
 #include "DataProvider.hpp"
 #include "Event.hpp"
-#include "LinkedList.hpp"
+#include "Collections/LinkedList.hpp"
 #include "LogEngine.hpp"
 #include "Station.hpp"
 #include "ISimulator.hpp"

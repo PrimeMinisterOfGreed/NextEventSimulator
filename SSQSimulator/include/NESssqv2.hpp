@@ -2,7 +2,7 @@
 #include "DataProvider.hpp"
 #include "LogEngine.hpp"
 #include "Event.hpp"
-#include "LinkedList.hpp"
+#include "Collections/LinkedList.hpp"
 #include "ssq1.hpp"
 #include <iostream>
 

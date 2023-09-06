@@ -1,5 +1,5 @@
 #include "ToString.hpp"
-#include "LinkedList.hpp"
+#include "Collections/LinkedList.hpp"
 #include <string>
 
 
@@ -7,8 +7,8 @@
 template <> std::string EventList::ToString()
 {
     std::stringstream buffer{};
-    auto ptr = begin();
-    while (ptr != end() && &ptr() != nullptr)
+    NodeIterator<Event> ptr = begin();
+    while (ptr != end())
     {
         buffer << "|Job:" << (*ptr).Name << ",TA:" << std::to_string((*ptr).ArrivalTime)
                << " ,TS:" << std::to_string((*ptr).ServiceTime) << ", Type:" << (char)(*ptr).Type

@@ -12,7 +12,7 @@ void OS::Execute()
 	Initialize();
 	while (!_end)
 	{
-		auto& nextEvt = _eventQueue.Dequeue();
+		auto nextEvt = _eventQueue.Dequeue();
 		ISimulator::_clock = nextEvt.OccurTime;
 		OnEventProcess.Invoke(GetStatistics());
 		if (nextEvt.Station == Stations::RESERVE_STATION && nextEvt.Type == EventType::ARRIVAL)

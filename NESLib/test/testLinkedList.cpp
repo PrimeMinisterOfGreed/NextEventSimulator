@@ -1,4 +1,4 @@
-#include "LinkedList.hpp"
+#include "Collections/LinkedList.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
 #include <cassert>
@@ -9,9 +9,9 @@
 TEST(test_linked_list, test_enqueue)
 {
     DoubleLinkedList<int> linkedList{};
-    linkedList.Enqueue(new int(1));
-    linkedList.Enqueue(new int(2));
-    linkedList.Enqueue(new int(3));
+    linkedList.Enqueue(1);
+    linkedList.Enqueue(2);
+    linkedList.Enqueue(3);
 
     auto itr = linkedList.begin();
     itr++;
@@ -26,9 +26,9 @@ TEST(test_linked_list, test_enqueue)
 TEST(test_linked_list, test_push)
 {
     DoubleLinkedList<int> linkedList{};
-    linkedList.Push(new int(1));
-    linkedList.Push(new int(2));
-    linkedList.Push(new int(3));
+    linkedList.Push(1);
+    linkedList.Push(2);
+    linkedList.Push(3);
 
     auto itr = linkedList.begin();
     itr++;
@@ -44,11 +44,11 @@ TEST(test_linked_list, test_insertion)
 {
     DoubleLinkedList<int> linkedList{};
     std::function<bool(int, int)> comparator = [](int a, int b) { return a > b; };
-    linkedList.Insert(new int(2), comparator);
-    linkedList.Insert(new int(3), comparator);
-    linkedList.Insert(new int(1), comparator);
-    linkedList.Insert(new int(5), comparator);
-    linkedList.Insert(new int(4), comparator);
+    linkedList.Insert(2, comparator);
+    linkedList.Insert(3, comparator);
+    linkedList.Insert(1, comparator);
+    linkedList.Insert(5, comparator);
+    linkedList.Insert(4, comparator);
 
     auto itr = linkedList.begin();
     itr++;
@@ -109,7 +109,7 @@ TEST(test_linked_list, test_random_enqueuement)
     }
 }
 
-TEST(test_linked_list, TestClearance)
+TEST(test_linked_list, test_clean)
 {
     DoubleLinkedList<double> linkedList{};
     std::queue<double> queue{};
@@ -117,7 +117,7 @@ TEST(test_linked_list, TestClearance)
     {
         double val = Exponential(1 / 20);
         queue.emplace(val);
-        linkedList.Enqueue(new double(val));
+        linkedList.Enqueue(val);
     }
     linkedList.Clear();
     assert(linkedList.Count() == 0);

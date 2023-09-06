@@ -8,6 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(./include)
 
 add_subdirectory(NESLib)
-add_subdirectory(SSQSimulator)
+#add_subdirectory(SSQSimulator)
 #add_subdirectory(MachineRepairman)
 add_subdirectory(Scheduler)

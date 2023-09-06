@@ -39,12 +39,7 @@ struct Event
         DeletedNodes++;
     }
 
-    Event(const Event &e)
-        : CreateTime{e.CreateTime}, ArrivalTime{e.ArrivalTime},
-          ServiceTime{e.ServiceTime}, Name{e.Name}, OccurTime{e.OccurTime}
-    {
-        GeneratedNodes++;
-    }
+    Event(const Event&) = default;
 
     bool operator==(Event& oth);
 };
