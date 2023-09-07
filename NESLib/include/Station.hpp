@@ -1,12 +1,11 @@
 #pragma once
+#include "DataProvider.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
-#include "DataProvider.hpp"
-
-
 
 struct StationStatistic
 {
+    double timestamp;
     double avgInterArrival;
     double avgServiceTime;
     double avgDelay;
@@ -22,8 +21,6 @@ struct StationStatistic
     double meanCustomerInSystem;
     std::string ToString() const;
 };
-
-
 
 class Station
 {
@@ -41,12 +38,13 @@ class Station
     double _areaS{};
     double _oldclock{};
     double _clock{};
-    virtual void ProcessArrival(Event& evt);
-    virtual void ProcessDeparture(Event& evt);
-    virtual void ProcessEnd(Event& evt);
-    virtual void ProcessProbe(Event& evt);
-    virtual void ProcessMaintenance(Event& evt);
+    virtual void ProcessArrival(Event &evt);
+    virtual void ProcessDeparture(Event &evt);
+    virtual void ProcessEnd(Event &evt);
+    virtual void ProcessProbe(Event &evt);
+    virtual void ProcessMaintenance(Event &evt);
     ILogEngine *_logger;
+
   public:
     void Process(Event &event);
     virtual void Initialize();
@@ -55,17 +53,26 @@ class Station
     virtual void Reset();
     Station(ILogEngine *logger, int station);
 
-    int stationIndex() const { return _stationIndex; }
+    int stationIndex() const
+    {
+        return _stationIndex;
+    }
 
-    int arrivals() const { return _arrivals; }
+    int arrivals() const
+    {
+        return _arrivals;
+    }
 
-    int completions() const { return _completions; }
+    int completions() const
+    {
+        return _completions;
+    }
 
-    int sysClients() const { return _sysClients; }
-    
-
+    int sysClients() const
+    {
+        return _sysClients;
+    }
 };
-
 
 class DelayStation
 {
@@ -73,8 +80,8 @@ class DelayStation
     std::string _name;
     double _thinkTime;
     int _numClients;
-    
+
   public:
-    Event& Process();
+    Event &Process();
     DelayStation(double thinkTime, int numClients);
 };

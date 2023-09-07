@@ -41,7 +41,7 @@ std::map<std::string, Measure<double>> DataCollector::GetAccumulators()
     map["meanCustomerInQueue"] = _meanCustomerInQueue;
     map["meanCustomerInService"] = _meanCustomerInService;
     map["meanCustomerInSystem"] = _meanCustomerInSystem;
-    return map;
+    return std::move(map);
 }
 
 Interval GetValueConfidence(int samples, double confidence, Measure<double> acc)
@@ -96,6 +96,7 @@ DataCollector::DataCollector(std::string stationName) : _stationName(stationName
 {
     if (DataWriter::Instance().header == "")
     {
-        // TODO set header
+        DataWriter::Instance().header =
+            "TimeStamp;MeasureName;StationName;Value;Mean(Acc);Variance(Acc);IntevalLowerBound;IntervalMaxBound";
     }
 }

@@ -81,6 +81,7 @@ void Station::ProcessMaintenance(Event &evt)
 StationStatistic Station::GetStatistics()
 {
     StationStatistic result{};
+    result.timestamp = _clock;
     result.avgInterArrival = _oldclock / _arrivals;                /* Average inter-arrival time */
     result.avgServiceTime = _busyTime / _completions;              /* Average service time */
     result.avgDelay = _areaS / _completions;                       /* Average delay time */
