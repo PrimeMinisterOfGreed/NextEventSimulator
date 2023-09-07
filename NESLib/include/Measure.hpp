@@ -105,7 +105,6 @@ template<typename T = double, int Moments = 2>
 
         T covariation() const
         {
-
         }
 
     };

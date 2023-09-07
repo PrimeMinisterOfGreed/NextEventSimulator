@@ -7,8 +7,9 @@
 template <> std::string EventList::ToString()
 {
     std::stringstream buffer{};
-    NodeIterator<Event> ptr = begin();
-    while (ptr != end())
+    auto ptr = begin();
+    auto en = end();
+    while (ptr != en)
     {
         buffer << "|Job:" << (*ptr).Name << ",TA:" << std::to_string((*ptr).ArrivalTime)
                << " ,TS:" << std::to_string((*ptr).ServiceTime) << ", Type:" << (char)(*ptr).Type

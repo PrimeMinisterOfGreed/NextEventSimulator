@@ -62,5 +62,8 @@
             "filesystem": "cpp",
             "map": "cpp",
             "set": "cpp"
+      },
+      "yaml.schemas": {
+            "https://json.schemastore.org/clangd.json": "file:///mnt/c/Users/matteo.ielacqua/OneDrive%20-%20INPECO%20SPA/Desktop/Personal/NextEventSimulator/.clangd"
       }
 }

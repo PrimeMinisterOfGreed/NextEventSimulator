@@ -159,6 +159,6 @@ template<typename T>
 
         inline bool operator!=(NodeIterator &itr)
         {
-            return _currentNode != &itr();
+            return _currentNode != itr();
         }
     };
