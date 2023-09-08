@@ -65,24 +65,36 @@ void Station::Process(Event &event)
     }
 }
 
-std::string Station::ToString()
-{
-    std::stringstream buffer{};
-    buffer << makeformat("Statistics of station:{}\n", _name) << makeformat("Arrivals:{}\n", _arrivals)
-           << makeformat("Clock:{}\n", _clock) << makeformat("Last Arrival:{}\n", _lastArrival)
-           << makeformat("Completions:{}\n", _completions) << GetStatistics().ToString();
-    return buffer.str();
-}
-
 void Station::ProcessMaintenance(Event &evt)
 {
+}
+
+std::vector<Measure<double>> Station::GetMeasures()
+{
+
+    result.timestamp = _clock;
+    result.avgInterArrival = _oldclock / _arrivals;                /* Average inter-arrival time */
+    result.avgServiceTime = _busyTime / _completions;              /* Average service time */
+    result.avgDelay = _areaS / _completions;                       /* Average delay time */
+    result.avgWaiting = _areaN / _completions;                     /* Average wait time */
+    result.utilization = _busyTime / _observationPeriod;           /* Utilization */
+    result.throughput = _completions / _observationPeriod;         /* Throughput */
+    result.inputRate = _arrivals / _oldclock;                      /* Input rate */
+    result.arrivalRate = _arrivals / _observationPeriod;           /* Arriva rate */
+    result.serviceRate = _completions / _busyTime;                 /* Service rate */
+    result.traffic = _busyTime / _lastArrival;                     /* Traffic intensity */
+    result.meanCustomInQueue = _areaS / _observationPeriod;        /* Mean number of customers in queue */
+    result.meanCustomerInService = _busyTime / _observationPeriod; /* Mean number of customers in service */
+    result.meanCustomerInSystem = _areaS / _observationPeriod;     /* Mean number of customers in system */
+    return result;
 }
 
 StationStatistic Station::GetStatistics()
 {
     StationStatistic result{};
     result.timestamp = _clock;
-    result.avgInterArrival = _oldclock / _arrivals;                /* Average inter-arrival time */
+    result.avgInterArrival = _oldclock / _arrivals; /* Average inter-arrival time */
+
     result.avgServiceTime = _busyTime / _completions;              /* Average service time */
     result.avgDelay = _areaS / _completions;                       /* Average delay time */
     result.avgWaiting = _areaN / _completions;                     /* Average wait time */
@@ -113,28 +125,10 @@ void Station::Reset()
     _clock = 0.0;
 }
 
-Station::Station(ILogEngine *logger, int station) : _logger(logger), _stationIndex(station)
+Station::Station(std::string name, int station) : _name(name), _stationIndex(station), collector{name}
 {
 }
 
 void Station::Initialize()
 {
-}
-
-std::string StationStatistic::ToString() const
-{
-    std::stringstream buf{};
-    buf << makeformat("\n   Average inter_arrival time ...................... = {}", avgInterArrival)
-        << makeformat("\n   Average service time ............................ = {}", avgServiceTime)
-        << makeformat("\n   Average delay time .............................. = {}", avgDelay)
-        << makeformat("\n   Average Waiting Time in the Server .............. = {}", avgWaiting)
-        << makeformat("\n   Input rate ...................................... = {}", inputRate)
-        << makeformat("\n   Service rate .................................... = {}", serviceRate)
-        << makeformat("\n   Traffic intensity ............................... = {}", traffic)
-        << makeformat("\n   Throughput ...................................... = {}", throughput)
-        << makeformat("\n   Server Utilization .............................. = {}", utilization)
-        << makeformat("\n   Average number at server ........................ = {}", meanCustomerInSystem)
-        << makeformat("\n   Average number in queue ......................... = {}", meanCustomInQueue)
-        << makeformat("\n   Average number in service ....................... = {}", meanCustomerInService);
-    return buf.str();
 }

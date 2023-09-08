@@ -6,8 +6,6 @@
 
 using Interval = std::pair<double, double>;
 
-struct DataSnapshot;
-
 class DataCollector
 {
   private:
@@ -18,24 +16,23 @@ class DataCollector
 
   private:
     std::string _stationName;
-    Measure<double> _avgInterArrival{};
-    Measure<double> _avgServiceTime{};
-    Measure<double> _avgDelay{};
-    Measure<double> _avgWaiting{};
-    Measure<double> _utilization{};
-    Measure<double> _throughput{};
-    Measure<double> _inputRate{};
-    Measure<double> _arrivalRate{};
-    Measure<double> _serviceRate{};
-    Measure<double> _traffic{};
-    Measure<double> _meanCustomerInQueue{};
-    Measure<double> _meanCustomerInService{};
-    Measure<double> _meanCustomerInSystem{};
+    Measure<double> _avgInterArrival{"avgInterval", "ms"};
+    Measure<double> _avgServiceTime{"avgServiceTime", "ms"};
+    Measure<double> _avgDelay{"avgDelay", "ms"};
+    Measure<double> _avgWaiting{"avgWaiting", "ms"};
+    Measure<double> _utilization{"utilization", ""};
+    Measure<double> _throughput{"throughput", "job/ms"};
+    Measure<double> _inputRate{"inputRate", ""};
+    Measure<double> _arrivalRate{"arrivalRate", ""};
+    Measure<double> _serviceRate{"serviceRate", ""};
+    Measure<double> _traffic{"traffic", ""};
+    Measure<double> _meanCustomerInQueue{"meanCustomerInQueue", "unit"};
+    Measure<double> _meanCustomerInService{"meanCustomerInService", ""};
+    Measure<double> _meanCustomerInSystem{"meanCustomerInSystem", ""};
 
   public:
     std::map<std::string, Measure<double>> GetAccumulators();
     std::map<std::string, Interval> GetConfidenceIntervals(double confidence);
-    void Accumulate(const StationStatistic &stat);
     std::string ToString();
     DataCollector(std::string stationName);
 };

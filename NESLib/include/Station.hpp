@@ -1,26 +1,10 @@
 #pragma once
+#include "DataCollector.hpp"
 #include "DataProvider.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
-
-struct StationStatistic
-{
-    double timestamp;
-    double avgInterArrival;
-    double avgServiceTime;
-    double avgDelay;
-    double avgWaiting;
-    double utilization;
-    double throughput;
-    double inputRate;
-    double arrivalRate;
-    double serviceRate;
-    double traffic;
-    double meanCustomInQueue;
-    double meanCustomerInService;
-    double meanCustomerInSystem;
-    std::string ToString() const;
-};
+#include "Measure.hpp"
+#include <vector>
 
 class Station
 {
@@ -38,6 +22,7 @@ class Station
     double _areaS{};
     double _oldclock{};
     double _clock{};
+    DataCollector collector;
     virtual void ProcessArrival(Event &evt);
     virtual void ProcessDeparture(Event &evt);
     virtual void ProcessEnd(Event &evt);
@@ -48,10 +33,9 @@ class Station
   public:
     void Process(Event &event);
     virtual void Initialize();
-    virtual std::string ToString();
-    StationStatistic GetStatistics();
+    std::vector<Measure<double>> GetMeasures();
     virtual void Reset();
-    Station(ILogEngine *logger, int station);
+    Station(std::string name, int station);
 
     int stationIndex() const
     {
