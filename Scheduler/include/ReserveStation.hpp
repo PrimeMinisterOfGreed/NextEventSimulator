@@ -1,8 +1,6 @@
 #pragma once
 #include "FCFSStation.hpp"
 
-
-
 class ReserveStation : public FCFSStation
 {
   protected:
@@ -13,5 +11,5 @@ class ReserveStation : public FCFSStation
 
     void ProcessArrival(Event &evt) override;
 
-    ReserveStation(int multiProgrammingDegree, ILogEngine * logger, IScheduler * scheduler);
+    ReserveStation(int multiProgrammingDegree, IScheduler *scheduler);
 };

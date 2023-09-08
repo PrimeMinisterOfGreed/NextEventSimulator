@@ -52,7 +52,6 @@ void FCFSStation::ProcessProbe(Event &evt)
     Station::ProcessProbe(evt);
 }
 
-
 void FCFSStation::Reset()
 {
     Station::Reset();
@@ -60,7 +59,7 @@ void FCFSStation::Reset()
     _eventUnderProcess.reset();
 }
 
-FCFSStation::FCFSStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex)
-    : Station(logger, stationIndex), _scheduler(scheduler)
+FCFSStation::FCFSStation(IScheduler *scheduler, std::string name, int stationIndex)
+    : Station(name, stationIndex), _scheduler(scheduler)
 {
 }

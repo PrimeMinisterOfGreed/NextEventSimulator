@@ -6,13 +6,19 @@ class ISimulator
   protected:
     int _clientsInSystem = 0;
     double _clock = 0.0;
-public:
 
-public:
+  public:
+  public:
     virtual void Execute() = 0;
-    virtual void Report() = 0;
-    int clientsInSystem() const { return _clientsInSystem; }
-    void setClientsInSystem(int clientsInSystem) { _clientsInSystem = clientsInSystem; }
+
+    int clientsInSystem() const
+    {
+        return _clientsInSystem;
+    }
+    void setClientsInSystem(int clientsInSystem)
+    {
+        _clientsInSystem = clientsInSystem;
+    }
 };
 
 class ISimulatorEsembler : public ISimulator

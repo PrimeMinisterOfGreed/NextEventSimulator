@@ -5,12 +5,11 @@
 
 class IOStation : public FCFSStation
 {
-private:
-    std::unique_ptr<VariableStream>  _serviceTime;
-public:
-    IOStation(ILogEngine *logger, IScheduler *scheduler, int stationIndex);
-    void ProcessArrival(Event&evt) override;
-    void ProcessDeparture(Event&evt) override;
+  private:
+    std::unique_ptr<VariableStream> _serviceTime;
 
-
+  public:
+    IOStation(IScheduler *scheduler, int stationIndex);
+    void ProcessArrival(Event &evt) override;
+    void ProcessDeparture(Event &evt) override;
 };

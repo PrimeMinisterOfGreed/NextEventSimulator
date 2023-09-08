@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
 #include "EventHandler.hpp"
+#include "Measure.hpp"
 #include "rngs.hpp"
+#include <future>
+#include <gtest/gtest.h>
 #include <mutex>
 #include <thread>
-#include <future>
-#include "Measure.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -16,12 +16,11 @@ TEST(TestEventHandler, test_handling)
 {
     std::mutex mutex;
     EventHandler handler;
-    handler += new FunctionHandler<>([&mutex]()
-                                     { mutex.unlock(); });
-    auto ret = std::async([&]()
-                          {
-                              sleep(1);
-                              handler.Invoke(); });
+    handler += new FunctionHandler<>([&mutex]() { mutex.unlock(); });
+    auto ret = std::async([&]() {
+        sleep(1);
+        handler.Invoke();
+    });
     mutex.lock();
 }
 
@@ -34,8 +33,7 @@ TEST(TestEventHandler, test_handler_deletion)
 {
     bool a = false;
     EventHandler<bool *> handler;
-    FunctionHandler<bool *> fnc([](bool *a)
-                                { *a = false; });
+    FunctionHandler<bool *> fnc([](bool *a) { *a = false; });
     handler += &fnc;
     handler -= &fnc;
     handler.Invoke(&a);
@@ -44,7 +42,7 @@ TEST(TestEventHandler, test_handler_deletion)
 
 TEST(TestMeasure, test_measure_add)
 {
-    Measure<> measure{};
+    Measure<> measure{"dummy", ""};
 
     for (int i = 0; i <= 100; i++)
     {
@@ -66,11 +64,11 @@ TEST(TestRandom, test_random_generator)
     stream.PutSeed(1);      /* and set the state to 1    */
     for (i = 0; i < 10000; i++)
         u = stream.Random();
-    stream.GetSeed(&x);       /* get the new state value   */
-    ok = (x == CHECK); /* and check for correctness */
+    stream.GetSeed(&x); /* get the new state value   */
+    ok = (x == CHECK);  /* and check for correctness */
 
-    stream.SelectStream(1);        /* select stream 1                 */
-    stream.PlantSeeds(1);          /* set the state of all streams    */
-    stream.GetSeed(&x);            /* get the state of stream 1       */
+    stream.SelectStream(1);              /* select stream 1                 */
+    stream.PlantSeeds(1);                /* set the state of all streams    */
+    stream.GetSeed(&x);                  /* get the state of stream 1       */
     ASSERT_TRUE(ok = ok && (x == A256)); /* x should be the jump multiplier */
 }

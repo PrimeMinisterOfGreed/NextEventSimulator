@@ -7,36 +7,34 @@
 #include <streambuf>
 #include <string>
 
+LogEngine *LogEngine::_instance = nullptr;
 
-
-ConsoleLogEngine *ConsoleLogEngine::_instance = nullptr;
-
-std::string &LogTypeToString(LogType logType)
+std::string LogTypeToString(LogType logType)
 {
     switch (logType)
     {
     case LogType::EXCEPTION:
-        return *new std::string("[Exception]");
+        return std::move(std::string("[Exception]"));
     case LogType::RESULT:
-        return *new std::string("[Result]");
+        return std::move(std::string("[Result]"));
     case LogType::INFORMATION:
-        return *new std::string("[Information]");
+        return std::move(std::string("[Information]"));
     case LogType::TRANSFER:
-        return *new std::string("[Transfer]");
+        return std::move(std::string("[Transfer]"));
     case LogType::DEBUG:
-        return *new std::string("[Debug]");
+        return std::move(std::string("[Debug]"));
     }
 }
 
-void writeBuffer(std::istream * buffer, std::ostream * save)
+void writeBuffer(std::istream *buffer, std::ostream *save)
 {
     using namespace std;
     std::string line;
     while (std::getline(*buffer, line))
     {
         char statBuf[line.size() + 1];
-        sprintf(statBuf, "%s\n",line.c_str());
-        save->write(statBuf,line.size()+1);
+        sprintf(statBuf, "%s\n", line.c_str());
+        save->write(statBuf, line.size() + 1);
     }
 }
 
@@ -45,25 +43,22 @@ void writeBuffer(std::istream * buffer, std::ostream * save)
  * @note   used RTTI on fstream  to save the log file so at the end of the function the stream will be closed
  * @retval None
  */
-void ConsoleLogEngine::Finalize()
+void LogEngine::Finalize()
 {
     using namespace std;
     fstream logFile(_logFile, ios_base::app);
     writeBuffer(&_buffer, &logFile);
-    
 }
 
-
-
-void ConsoleLogEngine::Trace(LogType type, std::string &message)
+void LogEngine::Trace(LogType type, std::string message)
 {
     using namespace std;
     if (_verbosity >= (int)type)
     {
         std::string log = LogTypeToString(type) + message;
         char buffer[log.size() + 1];
-        sprintf(buffer, "%s\n",log.c_str());
-        printf("%s\n",log.c_str());
-        _buffer.write(buffer, log.size()+1);
+        sprintf(buffer, "%s\n", log.c_str());
+        printf("%s\n", log.c_str());
+        _buffer.write(buffer, log.size() + 1);
     }
 }

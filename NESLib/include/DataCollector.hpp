@@ -1,13 +1,17 @@
 #pragma once
 
 #include "Measure.hpp"
-#include "Station.hpp"
 #include <map>
+#include <string>
+#include <vector>
 
 using Interval = std::pair<double, double>;
 
+class Station;
 class DataCollector
 {
+    friend class Station;
+
   private:
     int _samples = 0;
 
@@ -16,23 +20,19 @@ class DataCollector
 
   private:
     std::string _stationName;
-    Measure<double> _avgInterArrival{"avgInterval", "ms"};
-    Measure<double> _avgServiceTime{"avgServiceTime", "ms"};
-    Measure<double> _avgDelay{"avgDelay", "ms"};
-    Measure<double> _avgWaiting{"avgWaiting", "ms"};
-    Measure<double> _utilization{"utilization", ""};
-    Measure<double> _throughput{"throughput", "job/ms"};
-    Measure<double> _inputRate{"inputRate", ""};
-    Measure<double> _arrivalRate{"arrivalRate", ""};
-    Measure<double> _serviceRate{"serviceRate", ""};
-    Measure<double> _traffic{"traffic", ""};
-    Measure<double> _meanCustomerInQueue{"meanCustomerInQueue", "unit"};
-    Measure<double> _meanCustomerInService{"meanCustomerInService", ""};
-    Measure<double> _meanCustomerInSystem{"meanCustomerInSystem", ""};
+    std::vector<Measure<double>> _measures;
+    double lastTimeStamp;
 
   public:
-    std::map<std::string, Measure<double>> GetAccumulators();
-    std::map<std::string, Interval> GetConfidenceIntervals(double confidence);
-    std::string ToString();
+    std::vector<Measure<double>> GetAccumulators() const;
+
+    inline double TimeStamp() const
+    {
+        return lastTimeStamp;
+    }
+    void AddMeasure(Measure<double> measure);
+
+    std::string Header();
+    std::string Csv();
     DataCollector(std::string stationName);
 };

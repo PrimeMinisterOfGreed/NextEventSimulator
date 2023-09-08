@@ -43,6 +43,20 @@ template <typename T = double, int Moments = 2> class Measure
     {
     }
 
+    std::string Name() const
+    {
+        return _name;
+    }
+
+    std::string Unit() const
+    {
+        return _unit;
+    }
+
+    T LastValue() const
+    {
+        return _lastAccumulatedValue;
+    }
     void Accumulate(T value)
     {
         _lastAccumulatedValue = value;

@@ -33,7 +33,7 @@ class Station
   public:
     void Process(Event &event);
     virtual void Initialize();
-    std::vector<Measure<double>> GetMeasures();
+    DataCollector Data();
     virtual void Reset();
     Station(std::string name, int station);
 

@@ -1,14 +1,14 @@
+#include "OperativeSystem.hpp"
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/type_traits/promote.hpp>
 #include <iostream>
-#include "OperativeSystem.hpp"
 
-boost::program_options::variables_map & optionsMap = *new boost::program_options::variables_map();
+boost::program_options::variables_map &optionsMap = *new boost::program_options::variables_map();
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
     using namespace boost::program_options;
     options_description descr("Allowed options");
@@ -20,8 +20,7 @@ int main(int argc, char ** argv)
     {
         std::cout << descr << std::endl;
     }
-    ConsoleLogEngine::CreateInstance(3,"simulation.txt");
-    OS os = OS(ConsoleLogEngine::Instance(),2.7,10);
+    LogEngine::CreateInstance(3, "simulation.txt");
+    OS os = OS(2.7, 10);
     os.Execute();
-    os.Report();
 }

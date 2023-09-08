@@ -4,18 +4,17 @@
 #include "rngs.hpp"
 #include <memory>
 
-
 class SwapIn : public FCFSStation
 {
-public:
-    SwapIn(ILogEngine *logger, IScheduler *scheduler);
+  public:
+    SwapIn(IScheduler *scheduler);
 
     void ProcessArrival(Event &evt) override;
 
     void ProcessDeparture(Event &evt) override;
 
-private:
+  private:
     std::unique_ptr<VariableStream> _serviceTime;
-public:
 
+  public:
 };
