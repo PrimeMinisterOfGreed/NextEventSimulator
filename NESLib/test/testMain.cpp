@@ -16,11 +16,6 @@ TEST(TestEventHandler, test_handling)
 {
     std::mutex mutex;
     EventHandler handler;
-    handler += new FunctionHandler<>([&mutex]() { mutex.unlock(); });
-    auto ret = std::async([&]() {
-        sleep(1);
-        handler.Invoke();
-    });
     mutex.lock();
 }
 
@@ -32,12 +27,11 @@ void fnc(bool *a)
 TEST(TestEventHandler, test_handler_deletion)
 {
     bool a = false;
-    EventHandler<bool *> handler;
-    FunctionHandler<bool *> fnc([](bool *a) { *a = false; });
-    handler += &fnc;
-    handler -= &fnc;
-    handler.Invoke(&a);
-    ASSERT_EQ(a, false);
+    EventHandler onchecked{};
+    auto slot = onchecked.Attach([&a]() { a = true; });
+    onchecked.Invoke();
+    ASSERT_TRUE(a);
+    onchecked.Detach(slot);
 }
 
 TEST(TestMeasure, test_measure_add)

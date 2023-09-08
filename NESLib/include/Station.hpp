@@ -33,6 +33,7 @@ class Station
   public:
     void Process(Event &event);
     virtual void Initialize();
+    void Update();
     DataCollector Data();
     virtual void Reset();
     Station(std::string name, int station);

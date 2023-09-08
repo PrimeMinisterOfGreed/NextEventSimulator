@@ -1,4 +1,5 @@
 #include "Station.hpp"
+#include "DataCollector.hpp"
 #include "DataProvider.hpp"
 #include "Event.hpp"
 #include "FCFSStation.hpp"
@@ -124,7 +125,7 @@ void Station::Initialize()
 {
 }
 
-DataCollector Station::Data()
+void Station::Update()
 {
     collector.lastTimeStamp = _oldclock;
     collector._measures[avgInterArrival](_oldclock / _arrivals);           /* Average inter-arrival time */
@@ -141,4 +142,9 @@ DataCollector Station::Data()
     collector._measures[meanCustomerInService](_busyTime /
                                                _observationPeriod);         /* Mean number of customers in service */
     collector._measures[meanCustomerInSystem](_areaS / _observationPeriod); /* Mean number of customers in system */
+}
+
+DataCollector Station::Data()
+{
+    return collector;
 }

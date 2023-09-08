@@ -3,83 +3,65 @@
 //
 #pragma once
 
-#include <functional>
 #include <cstdint>
+#include <functional>
 
-template<typename ...Args>
-    class IHandler
+template <typename... Args> class EventHandler;
+
+template <typename... Args> struct Slot
+{
+    using EvtHandler = EventHandler<Args...>;
+    std::function<void(Args...)> _fncPtr;
+    EvtHandler *_handler;
+    int *slotPtr;
+    Slot(EvtHandler *handler, std::function<void(Args...)> fncptr)
+        : _handler(handler), _fncPtr(fncptr), slotPtr((int *)&_fncPtr)
     {
-    public:
-        virtual void operator()(Args...) = 0;
-        virtual bool compare(const IHandler<Args...>& oth) = 0;
-    };
-
-template<typename ...Args>
-    class FunctionHandler : public IHandler<Args...>
+    }
+    ~Slot()
     {
-    private:
-        std::function<void(Args...)> _handler;
-        static size_t _generated;
-        size_t _ordType = -1;
-    public:
-        FunctionHandler(std::function<void(Args...)> handler): _handler(handler){
-            _ordType = _generated;
-            _generated++;
-            _generated %= INT64_MAX; // i don't think you'll need this, but i agree that people that do this jobs are mad mans so just in case....
-        }
-
-         void operator()(Args... args) override
-        {
-            _handler(args...);
-        }
-
-        bool compare(const IHandler<Args...>& oth) override
-        {
-            const auto* othH= dynamic_cast<const FunctionHandler<Args...>*>(&oth);
-            return othH != nullptr && othH->_ordType == _ordType;
-        }
-
-
-    };
-
-template<typename ...Args>
-    size_t FunctionHandler<Args...>::_generated = 0;
+    }
+};
 
 /**
  * EventHandler in C# style, use FunctionHandler to implement lambda type handlers
  * @tparam Args
  * @example with lambda EventHandler handler += new FunctionHandler<>([](){});
  */
-template<typename ...Args>
-    class EventHandler
+template <typename... Args> class EventHandler
+{
+  private:
+    std::vector<Slot<Args...>> _handlers;
+
+  public:
+    void Invoke(Args... args)
     {
-    private:
-        std::vector<IHandler<Args...>*> _handlers;
-
-    public:
-
-
-        void operator+=(IHandler<Args...>* handler)
+        for (auto handler : _handlers)
         {
-            _handlers.push_back(handler);
+            handler._fncPtr(args...);
         }
+    }
 
+    Slot<Args...> Attach(std::function<void(Args...)> function)
+    {
+        auto slot = Slot<Args...>(this, function);
+        _handlers.push_back(slot);
+        return std::move(slot);
+    }
 
-        void operator-=(IHandler<Args...>* handler)
+    void Detach(Slot<Args...> slot)
+    {
+        for (int i = 0; i < _handlers.size(); i++)
         {
-
-            std::remove_if(_handlers.begin(),_handlers.end(),
-                           [handler](IHandler<Args...>* h){ return h->compare(*handler);});
-        }
-
-
-        void Invoke(Args... args)
-        {
-            for (auto handler: _handlers)
+            if (_handlers[i].slotPtr == slot.slotPtr)
             {
-                (*handler)(args...);
+                _handlers.erase(_handlers.begin() + i);
             }
         }
+    }
 
-        virtual ~EventHandler() = default;
-    };
+    virtual ~EventHandler()
+    {
+        _handlers.clear();
+    }
+};

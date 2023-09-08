@@ -18,7 +18,7 @@ void DataCollector::AddMeasure(Measure<double> measure)
 std::string DataCollector::Header()
 {
     std::string head = "";
-    head += "TimeStamp;";
+    head += "TimeStamp;StationName;";
     for (auto measure : _measures)
     {
         head += makeformat("{};", measure.Name());
@@ -33,7 +33,7 @@ std::string DataCollector::Header()
 std::string DataCollector::Csv()
 {
     std::string csv = "";
-    csv += makeformat("{};", lastTimeStamp);
+    csv += makeformat("{};{};", lastTimeStamp, _stationName);
     for (auto measure : _measures)
     {
         csv += makeformat("{};", measure.LastValue());
