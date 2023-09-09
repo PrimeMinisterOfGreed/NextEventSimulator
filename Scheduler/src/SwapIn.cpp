@@ -9,7 +9,7 @@
 
 SwapIn::SwapIn(IScheduler *scheduler) : FCFSStation(scheduler, "SWAP_IN", Stations::SWAP_IN)
 {
-    _serviceTime = RandomStream::Global().GetStream([](auto &rng) { return Exponential(4.761904762); });
+    _serviceTime = RandomStream::Global().GetStream([](auto &rng) { return Exponential(0.21); });
     _name = "SWAPIN";
 }
 
