@@ -1,5 +1,6 @@
 #include "DataCollector.hpp"
 #include "DataWriter.hpp"
+#include "Event.hpp"
 #include "EventHandler.hpp"
 #include "LogEngine.hpp"
 #include "OperativeSystem.hpp"
@@ -27,19 +28,25 @@ int main(int argc, char **argv)
     }
     LogEngine::CreateInstance(3, "simulation.txt");
     OS os = OS(2.7, 10);
+    os.Schedule(Event("END", EventType::END, 0, 1000, 0, 0, 0));
     DataWriter::Instance().header = os.Data().Header();
     auto handler = [&os](auto s) {
+        if (os.arrivals() == 0)
+            return;
         os.Update();
-        DataWriter::Instance().Write(makeformat("{}\n", os.Data().Csv()));
+        DataWriter::Instance().WriteLine(os.Data().Csv());
 
         for (Station *station : s)
         {
             station->Update();
-            DataWriter::Instance().Write(makeformat("{}\n", station->Data().Csv()));
+            if (station->arrivals() > 0)
+                DataWriter::Instance().WriteLine(station->Data().Csv());
         }
     };
-    os.OnProcessFinished.Attach(handler);
-    os.OnProcessFinished.Attach(handler);
+    os.OnProcessFinished = FunctionPointer<void, std::vector<Station *>>(handler);
+    os.OnEventProcess = FunctionPointer<void, std::vector<Station *>>(handler);
+
     os.Execute();
     DataWriter::Instance().Flush();
+    LogEngine::Instance()->Finalize();
 }

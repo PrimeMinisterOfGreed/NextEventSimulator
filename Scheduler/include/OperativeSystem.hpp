@@ -2,13 +2,13 @@
 #include "CPU.hpp"
 #include "DataCollector.hpp"
 #include "EventHandler.hpp"
+#include "FunctionPointer.hpp"
 #include "IOStation.hpp"
 #include "ISimulator.hpp"
 #include "ReserveStation.hpp"
 #include "Station.hpp"
 #include "SwapIn.hpp"
 #include "SwapOut.hpp"
-
 #include "rngs.hpp"
 #include <map>
 #include <memory>
@@ -34,8 +34,8 @@ class OS : public ISimulatorEsembler, public IScheduler, public Station
   public:
     void Execute() override;
     void Reset() override;
-    EventHandler<std::vector<Station *>> OnEventProcess;
-    EventHandler<std::vector<Station *>> OnProcessFinished;
+    FunctionPointer<void, std::vector<Station *>> OnEventProcess;
+    FunctionPointer<void, std::vector<Station *>> OnProcessFinished;
     OS(double cpuSliceTime, int multiProgrammingDegree);
     void Schedule(Event event) override;
 };

@@ -3,7 +3,7 @@
 #include "DataProvider.hpp"
 #include "Event.hpp"
 #include "FCFSStation.hpp"
-#include "Lazy.hpp"
+
 #include "LogEngine.hpp"
 #include <sstream>
 
@@ -142,6 +142,7 @@ void Station::Update()
     collector._measures[meanCustomerInService](_busyTime /
                                                _observationPeriod);         /* Mean number of customers in service */
     collector._measures[meanCustomerInSystem](_areaS / _observationPeriod); /* Mean number of customers in system */
+    collector._samples++;
 }
 
 DataCollector Station::Data()

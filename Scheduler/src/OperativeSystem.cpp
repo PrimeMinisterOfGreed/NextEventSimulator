@@ -14,9 +14,9 @@ void OS::Execute()
     {
         auto nextEvt = _eventQueue.Dequeue();
         ISimulator::_clock = nextEvt.OccurTime;
-        OnEventProcess.Invoke(_stations);
         if (nextEvt.Station == Stations::RESERVE_STATION && nextEvt.Type == EventType::ARRIVAL)
         {
+            OnEventProcess(_stations);
             double nextArrival = (*_nextArrival)() + ISimulator::_clock;
             auto evt =
                 Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
@@ -29,7 +29,7 @@ void OS::Execute()
         else if (nextEvt.Station == Stations::SWAP_OUT && nextEvt.Type == EventType::DEPARTURE)
         {
             Process(nextEvt);
-            OnProcessFinished.Invoke(_stations);
+            OnProcessFinished(_stations);
         }
         RouteToStation(nextEvt);
     }

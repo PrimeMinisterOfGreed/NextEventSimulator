@@ -13,6 +13,6 @@ class DataWriter
   public:
     std::string header;
     static DataWriter &Instance();
-    void Write(std::string data);
+    void WriteLine(std::string data);
     void Flush();
 };

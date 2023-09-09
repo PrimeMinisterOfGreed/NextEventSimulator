@@ -10,14 +10,13 @@ DataWriter &DataWriter::Instance()
     return instance;
 }
 
-void DataWriter::Write(std::string data)
+void DataWriter::WriteLine(std::string data)
 {
     using namespace std::filesystem;
     _lines[_currentIndex++] = data;
     if (_currentIndex == 1000)
     {
         Flush();
-        _currentIndex = 0;
     }
 }
 
@@ -25,7 +24,7 @@ void DataWriter::Flush()
 {
     std::ofstream file{};
     auto path = std::filesystem::path{"data.csv"};
-    if (exists(path))
+    if (!exists(path))
     {
         file.open("data.csv", std::ios_base::out);
         file << fmt::format("{}\n", header);
@@ -34,8 +33,11 @@ void DataWriter::Flush()
     {
         file.open("data.csv", std::ios_base::app);
     }
-    for (auto line : _lines)
+    for (int i = 0; i < _currentIndex; i++)
     {
-        file << fmt::format("{}\n", line);
+        file << fmt::format("{}\n", _lines[i]);
+        _lines[i].clear();
     }
+
+    _currentIndex = 0;
 }
