@@ -2,6 +2,7 @@
 #include "Enums.hpp"
 #include "FCFSStation.hpp"
 #include "Options.hpp"
+#include "SystemParameters.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
 
@@ -22,7 +23,9 @@ void IOStation::ProcessDeparture(Event &evt)
 
 IOStation::IOStation(IScheduler *scheduler, int stationIndex) : FCFSStation(scheduler, "", stationIndex)
 {
-    _serviceTime = RandomStream::Global().GetStream(
-        [this](auto &rng) { return Exponential(_stationIndex == 4 ? 25 : 5.555555556); });
+    _serviceTime = RandomStream::Global().GetStream([this](auto &rng) {
+        return Exponential(_stationIndex == 4 ? SystemParameters::Parameters().averageIO1
+                                              : SystemParameters::Parameters().averageIO2);
+    });
     _name = _stationIndex == 4 ? "IO1" : "IO2";
 }

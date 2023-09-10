@@ -11,5 +11,5 @@ class ReserveStation : public FCFSStation
 
     void ProcessArrival(Event &evt) override;
 
-    ReserveStation(int multiProgrammingDegree, IScheduler *scheduler);
+    ReserveStation(IScheduler *scheduler);
 };

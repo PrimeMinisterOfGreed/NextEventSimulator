@@ -24,7 +24,7 @@ class Cpu : public Station
     double Burst(double alpha, double beta, double u1, double u2);
 
   public:
-    Cpu(IScheduler *scheduler, double timeSlice);
+    Cpu(IScheduler *scheduler);
 
     void ProcessArrival(Event &evt) override;
 

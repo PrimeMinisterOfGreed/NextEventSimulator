@@ -1,9 +1,9 @@
 #include "Station.hpp"
 #include "DataCollector.hpp"
 #include "DataProvider.hpp"
+#include "DataWriter.hpp"
 #include "Event.hpp"
 #include "FCFSStation.hpp"
-
 #include "LogEngine.hpp"
 #include <sstream>
 
@@ -48,6 +48,9 @@ void Station::ProcessEnd(Event &evt)
 
 void Station::ProcessProbe(Event &evt)
 {
+
+    Update();
+    DataWriter::Instance().WriteLine(collector.Csv());
 }
 
 void Station::Process(Event &event)

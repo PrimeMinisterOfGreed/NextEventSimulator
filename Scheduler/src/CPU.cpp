@@ -1,20 +1,22 @@
 #include "CPU.hpp"
 #include "Enums.hpp"
+#include "Event.hpp"
 #include "OperativeSystem.hpp"
 #include "Options.hpp"
+#include "SystemParameters.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
 
-Cpu::Cpu(IScheduler *scheduler, double timeSlice)
-    : Station("CPU", Stations::CPU), _timeSlice(timeSlice), _scheduler(scheduler)
+Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
 {
 
     burst = RandomStream::Global().GetStream([this](RandomStream &gen) -> double {
         auto x = RandomStream::Global().Random();
         return alpha * (1 / u1) * exp(-x / u1) + beta * (1 / u2) * exp(-x / u2);
     });
-
-    serviceTime = RandomStream::Global().GetStream([this](auto &gen) { return Exponential(1 / (_timeSlice / 1000)); });
+    _timeSlice = SystemParameters::Parameters().cpuQuantum;
+    serviceTime = RandomStream::Global().GetStream(
+        [this](auto &gen) { return Exponential(SystemParameters::Parameters().averageCpuTime); });
     _name = "CPU";
 }
 
@@ -46,11 +48,14 @@ void Cpu::ProcessDeparture(Event &evt)
         evt.OccurTime = _clock;
         if (_sysClients > 1)
         {
+            auto newEvt = _eventQueue.Dequeue();
+            ManageProcess(newEvt, (*burst)());
+            _eventUnderProcess.emplace(newEvt);
             _eventQueue.Enqueue(evt);
+            _scheduler->Schedule(newEvt);
         }
         else
         {
-
             _scheduler->Schedule(evt);
         }
     }
@@ -89,10 +94,15 @@ void Cpu::ManageProcess(Event &evt, double burst)
     evt.ArrivalTime = _clock;
     evt.CreateTime = _clock;
     if (burst < evt.ServiceTime)
+    {
         evt.OccurTime = _clock + burst;
+        evt.ServiceTime -= burst;
+    }
     else
+    {
         evt.OccurTime = _clock + evt.ServiceTime;
-    evt.ServiceTime -= burst;
+        evt.ServiceTime = 0;
+    }
     evt.Type = EventType::DEPARTURE;
 }
 

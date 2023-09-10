@@ -4,12 +4,14 @@
 #include "SwapIn.hpp"
 #include "Enums.hpp"
 #include "Options.hpp"
+#include "SystemParameters.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
 
 SwapIn::SwapIn(IScheduler *scheduler) : FCFSStation(scheduler, "SWAP_IN", Stations::SWAP_IN)
 {
-    _serviceTime = RandomStream::Global().GetStream([](auto &rng) { return Exponential(0.21); });
+    _serviceTime = RandomStream::Global().GetStream(
+        [](auto &rng) { return Exponential(SystemParameters::Parameters().averageSwapIn); });
     _name = "SWAPIN";
 }
 

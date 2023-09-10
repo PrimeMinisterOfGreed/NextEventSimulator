@@ -5,6 +5,7 @@
 #include "LogEngine.hpp"
 #include "OperativeSystem.hpp"
 #include "Station.hpp"
+#include "SystemParameters.hpp"
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -27,25 +28,14 @@ int main(int argc, char **argv)
         std::cout << descr << std::endl;
     }
     LogEngine::CreateInstance(3, "simulation.txt");
-    OS os = OS(2.7, 10);
-    os.Schedule(Event("END", EventType::END, 0, 1000, 0, 0, 0));
-    DataWriter::Instance().header = os.Data().Header();
-    auto handler = [&os](auto s) {
-        if (os.arrivals() == 0)
-            return;
-        os.Update();
-        DataWriter::Instance().WriteLine(os.Data().Csv());
-
-        for (Station *station : s)
-        {
-            station->Update();
-            if (station->arrivals() > 0)
-                DataWriter::Instance().WriteLine(station->Data().Csv());
-        }
-    };
-    os.OnProcessFinished = FunctionPointer<void, std::vector<Station *>>(handler);
-    os.OnEventProcess = FunctionPointer<void, std::vector<Station *>>(handler);
-
+    OS os = OS();
+    auto endTime = SystemParameters::Parameters().endTime;
+    auto probeTime = SystemParameters::Parameters().probeInterval;
+    os.Schedule(Event("END", EventType::END, 0, SystemParameters::Parameters().endTime, 0, 0, 0));
+    for (int i = 0; i < (endTime / probeTime); i++)
+    {
+        os.Schedule(Event("PROBE", EventType::PROBE, 0, (i + 1) * probeTime, 0, i * probeTime));
+    }
     os.Execute();
     DataWriter::Instance().Flush();
     LogEngine::Instance()->Finalize();

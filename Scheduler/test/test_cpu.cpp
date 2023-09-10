@@ -38,7 +38,7 @@ class CpuTest : public ::testing::Test
     {
         LogEngine::CreateInstance(3, "testLog.txt");
         mockScheduler = new MockScheduler();
-        cpu = new Cpu(mockScheduler, 2.7);
+        cpu = new Cpu(mockScheduler);
     }
 };
 

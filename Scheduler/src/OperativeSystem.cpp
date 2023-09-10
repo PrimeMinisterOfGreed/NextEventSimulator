@@ -1,9 +1,12 @@
 #include "OperativeSystem.hpp"
 #include "CPU.hpp"
+#include "DataWriter.hpp"
 #include "Enums.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
 #include "Options.hpp"
+#include "Station.hpp"
+#include "SystemParameters.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
 
@@ -35,14 +38,15 @@ void OS::Execute()
     }
 }
 
-OS::OS(double cpuTimeSlice, int multiProgrammingDegree)
+OS::OS()
     : Station("OS", 0),
 
-      _cpu{Cpu(this, cpuTimeSlice)}, _reserveStation{ReserveStation(multiProgrammingDegree, this)},
-      _io1{IOStation(this, Stations::IO_1)}, _io2{IOStation(this, Stations::IO_2)}, _swapOut{SwapOut(this)},
-      _swapIn{SwapIn(this)}
+      _cpu{Cpu(this)}, _reserveStation{ReserveStation(this)}, _io1{IOStation(this, Stations::IO_1)},
+      _io2{IOStation(this, Stations::IO_2)}, _swapOut{SwapOut(this)}, _swapIn{SwapIn(this)}
 {
-    _nextArrival = RandomStream::Global().GetStream([](auto &rng) { return Exponential(0.2); });
+    DataWriter::Instance().header = collector.Header();
+    _nextArrival = RandomStream::Global().GetStream(
+        [](auto &rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); });
     _stations = std::vector<Station *>({this, &_cpu, &_reserveStation, &_io1, &_io2, &_swapIn, &_swapOut});
 }
 
@@ -59,7 +63,7 @@ void OS::Reset()
 
 void OS::RouteToStation(Event &evt)
 {
-    if (evt.Station == -1)
+    if (evt.Station == 0)
     {
         Process(evt);
         return;
@@ -82,7 +86,18 @@ void OS::Initialize()
                    Station::_clock, 0, 0, 0, Stations::RESERVE_STATION));
 }
 
+void OS::ProcessProbe(Event &evt)
+{
+    Station::ProcessProbe(evt);
+    for (auto station : _stations)
+    {
+        if (station->stationIndex() != this->stationIndex())
+            station->Process(evt);
+    }
+}
+
 void OS::Schedule(Event event)
 {
+    _logger->TraceTransfer("Scheduling event for station {} at time {}", event.Station, event.OccurTime);
     _eventQueue.Insert(event, [](const Event &a, const Event &b) { return a.OccurTime > b.OccurTime; });
 }

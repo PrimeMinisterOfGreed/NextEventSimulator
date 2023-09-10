@@ -121,5 +121,27 @@ TEST(test_linked_list, test_clean)
     }
     linkedList.Clear();
     assert(linkedList.Count() == 0);
-   
+}
+
+TEST(test_linked_list, test_last)
+{
+    DoubleLinkedList<double> linkedList{};
+    linkedList.Enqueue(1.0);
+    linkedList.Enqueue(2.0);
+    linkedList.Enqueue(3.0);
+    linkedList.Enqueue(4.0);
+    auto itr = linkedList.begin().Last([](auto &e) { return e == 3.0; });
+    ASSERT_EQ(*itr, 3.0);
+}
+
+TEST(test_linked_list, test_next)
+{
+
+    DoubleLinkedList<double> linkedList{};
+    linkedList.Enqueue(1.0);
+    linkedList.Enqueue(2.0);
+    linkedList.Enqueue(3.0);
+    linkedList.Enqueue(4.0);
+    auto itr = linkedList.begin().Next([](auto e) { return e > 3.0; });
+    ASSERT_EQ(*itr, 4.0);
 }

@@ -1,12 +1,13 @@
 #include "ReserveStation.hpp"
 #include "Enums.hpp"
 #include "FCFSStation.hpp"
+#include "SystemParameters.hpp"
 
 void ReserveStation::ProcessDeparture(Event &evt)
 {
     auto sysActive = dynamic_cast<Station *>(_scheduler)->sysClients();
     FCFSStation::ProcessDeparture(evt);
-    if (sysActive <= _multiProgrammingDegree)
+    if (sysActive <= SystemParameters::Parameters().multiProgrammingDegree)
     {
         evt.Type = ARRIVAL;
         evt.OccurTime = _clock;
@@ -16,9 +17,8 @@ void ReserveStation::ProcessDeparture(Event &evt)
     }
 }
 
-ReserveStation::ReserveStation(int multiProgrammingDegree, IScheduler *scheduler)
-    : _multiProgrammingDegree(multiProgrammingDegree),
-      FCFSStation(scheduler, "RESERVE_STATION", Stations::RESERVE_STATION)
+ReserveStation::ReserveStation(IScheduler *scheduler)
+    : FCFSStation(scheduler, "RESERVE_STATION", Stations::RESERVE_STATION)
 {
 }
 

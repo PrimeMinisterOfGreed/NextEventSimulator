@@ -31,12 +31,13 @@ class OS : public ISimulatorEsembler, public IScheduler, public Station
 
   protected:
     void Initialize() override;
+    void ProcessProbe(Event &evt) override;
 
   public:
     void Execute() override;
     void Reset() override;
     FunctionPointer<void, std::vector<Station *>> OnEventProcess;
     FunctionPointer<void, std::vector<Station *>> OnProcessFinished;
-    OS(double cpuSliceTime, int multiProgrammingDegree);
+    OS();
     void Schedule(Event event) override;
 };
