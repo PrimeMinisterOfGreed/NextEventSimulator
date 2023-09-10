@@ -1,10 +1,12 @@
 #include "IOStation.hpp"
+#include "DataCollector.hpp"
 #include "Enums.hpp"
 #include "FCFSStation.hpp"
 #include "Options.hpp"
 #include "SystemParameters.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
+#include <regex>
 
 void IOStation::ProcessArrival(Event &evt)
 {
@@ -21,7 +23,8 @@ void IOStation::ProcessDeparture(Event &evt)
     _scheduler->Schedule(evt);
 }
 
-IOStation::IOStation(IScheduler *scheduler, int stationIndex) : FCFSStation(scheduler, "", stationIndex)
+IOStation::IOStation(IScheduler *scheduler, int stationIndex)
+    : FCFSStation(scheduler, stationIndex == 4 ? "IO1" : "IO2", stationIndex)
 {
     _serviceTime = RandomStream::Global().GetStream([this](auto &rng) {
         return Exponential(_stationIndex == 4 ? SystemParameters::Parameters().averageIO1

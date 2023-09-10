@@ -33,6 +33,7 @@ void Cpu::ProcessArrival(Event &evt)
     {
         ManageProcess(evt, (*burst)());
         _scheduler->Schedule(evt);
+        _eventUnderProcess.emplace(evt);
     }
     else
     {
