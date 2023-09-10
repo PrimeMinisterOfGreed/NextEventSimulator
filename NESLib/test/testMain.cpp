@@ -36,7 +36,7 @@ TEST(TestEventHandler, test_handler_deletion)
 
 TEST(TestMeasure, test_measure_add)
 {
-    Measure<> measure{"dummy", ""};
+    Accumulator<> measure{"dummy", ""};
 
     for (int i = 0; i <= 100; i++)
     {
@@ -44,7 +44,7 @@ TEST(TestMeasure, test_measure_add)
     }
     ASSERT_EQ(50, measure.mean());
     ASSERT_EQ(850, measure.variance());
-    ASSERT_EQ(101, measure.count());
+    ASSERT_EQ(101, measure.Count());
 }
 
 TEST(TestRandom, test_random_generator)

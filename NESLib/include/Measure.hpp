@@ -5,20 +5,73 @@
 #pragma once
 
 #include "EventHandler.hpp"
+#include "LogEngine.hpp"
 #include "rvms.h"
 #include <cmath>
+#include <cstddef>
 #include <stdexcept>
 #include <string>
 
 using Interval = std::pair<double, double>;
+template <typename T> class Measure
+{
+  private:
+    std::string _name;
+    std::string _unit;
+    T _lastAccumulatedValue;
+    size_t _count;
 
-template <typename T = double, int Moments = 2> class Measure
+  public:
+    Measure(std::string name, std::string unit) : _name(name), _unit(unit), _count(0)
+    {
+    }
+
+    virtual void Accumulate(T value)
+    {
+        _lastAccumulatedValue = value;
+        _count++;
+    }
+
+    T Current() const
+    {
+        return _lastAccumulatedValue;
+    }
+    std::string Name() const
+    {
+        return _name;
+    }
+
+    size_t Count() const
+    {
+        return _count;
+    }
+
+    std::string Unit() const
+    {
+        return _unit;
+    }
+
+    virtual std::string Heading()
+    {
+        return makeformat("{}({})", Name(), Unit());
+    }
+
+    virtual std::string Csv()
+    {
+        return makeformat("{}", _lastAccumulatedValue);
+    }
+
+    void operator()(T value)
+    {
+        Accumulate(value);
+    }
+};
+
+template <typename T = double, int Moments = 2> class Accumulator : public Measure<T>
 {
 
   private:
     T _sum[Moments];
-    T _lastAccumulatedValue;
-    size_t _count;
 
     T get(int moment) const
     {
@@ -33,41 +86,40 @@ template <typename T = double, int Moments = 2> class Measure
             operation(_sum[i], i + 1);
     }
 
-    std::string _name;
-    std::string _unit;
-
   public:
     EventHandler<T> OnCatch;
 
-    Measure(std::string name, std::string unit) : _count(0), _name(name), _unit(unit)
+    Accumulator(std::string name, std::string unit) : Measure<T>(name, unit)
     {
     }
 
-    std::string Name() const
+    void Accumulate(T value) override
     {
-        return _name;
-    }
-
-    std::string Unit() const
-    {
-        return _unit;
-    }
-
-    T LastValue() const
-    {
-        return _lastAccumulatedValue;
-    }
-    void Accumulate(T value)
-    {
-        _lastAccumulatedValue = value;
+        Measure<T>::Accumulate(value);
         ForMoment([value](T &val, int moment) { val += pow(value, moment); });
-        _count++;
+
         OnCatch.Invoke(value);
     }
 
-    inline void operator()(T value)
+    std::string Heading() override
     {
-        Accumulate(value);
+        std::string head = makeformat("{};", Measure<T>::Heading());
+        auto name = Measure<T>::Name();
+        head += makeformat("meanOf{};", name);
+        head += makeformat("varianceOf{};", name);
+        head += makeformat("lowerBoundOf{};", name);
+        head += makeformat("upperBoundOf{}", name);
+        return head;
+    }
+
+    std::string Csv() override
+    {
+        std::string csv = makeformat("{};", Measure<T>::Csv());
+        csv += makeformat("{};", mean());
+        csv += makeformat("{};", variance());
+        csv += makeformat("{};", confidence().first);
+        csv += makeformat("{}", confidence().second);
+        return csv;
     }
 
     void Reset()
@@ -75,14 +127,9 @@ template <typename T = double, int Moments = 2> class Measure
         ForMoment([](T &val, int moment) { val = 0; });
     }
 
-    inline int count() const
-    {
-        return _count;
-    }
-
     inline T mean(int moment = 0) const
     {
-        return get(moment) / _count;
+        return get(moment) / this->Count();
     }
 
     inline T variance() const
@@ -100,7 +147,8 @@ template <typename T = double, int Moments = 2> class Measure
         double u = mean(0);
         double sigma = variance();
         double alpha = 1 - 0.95;
-        double delta = idfStudent(_count - 1, 1 - (alpha / 2)) * (sigma / sqrt(_count - 1));
+        auto count = this->Count();
+        double delta = idfStudent(count - 1, 1 - (alpha / 2)) * (sigma / sqrt(count - 1));
         return {u - delta, u + delta};
     }
 };
@@ -109,16 +157,16 @@ template <typename T = double, int Moments = 2> class CovariatedMeasure
 {
   private:
     T _acc[Moments];
-    Measure<T, Moments> &_m1;
-    Measure<T, Moments> &_m2;
+    Accumulator<T, Moments> &_m1;
+    Accumulator<T, Moments> &_m2;
     size_t _count = 0;
 
   public:
-    CovariatedMeasure(Measure<T, Moments> &m1, Measure<T, Moments> &m2) : _m1{m1}, _m2(m2)
+    CovariatedMeasure(Accumulator<T, Moments> &m1, Accumulator<T, Moments> &m2) : _m1{m1}, _m2(m2)
     {
     }
 
-    CovariatedMeasure() : _m1{*new Measure<T, Moments>{}}, _m2{*new Measure<T, Moments>{}}
+    CovariatedMeasure() : _m1{*new Accumulator<T, Moments>{}}, _m2{*new Accumulator<T, Moments>{}}
     {
     }
 

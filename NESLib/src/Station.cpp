@@ -5,10 +5,15 @@
 #include "Event.hpp"
 #include "FCFSStation.hpp"
 #include "LogEngine.hpp"
+#include "Measure.hpp"
 #include <sstream>
 
 enum Measures
 {
+    Completions,
+    Arrivals,
+    sysclients,
+    maxclients,
     avgInterArrival,
     avgServiceTime,
     avgDelay,
@@ -109,19 +114,23 @@ void Station::Reset()
 Station::Station(std::string name, int station) : _name(name), _stationIndex(station), collector{name}
 {
     _logger = LogEngine::Instance();
-    collector.AddMeasure(Measure<double>{"avgInterArrival", "ms"});
-    collector.AddMeasure(Measure<double>{"avgServiceTime", "ms"});
-    collector.AddMeasure(Measure<double>{"avgDelay", "ms"});
-    collector.AddMeasure(Measure<double>{"avgWaiting", "ms"});
-    collector.AddMeasure(Measure<double>{"utilization", ""});
-    collector.AddMeasure(Measure<double>{"throughput", "job/ms"});
-    collector.AddMeasure(Measure<double>{"inputRate", ""});
-    collector.AddMeasure(Measure<double>{"arrivalRate", ""});
-    collector.AddMeasure(Measure<double>{"serviceRate", ""});
-    collector.AddMeasure(Measure<double>{"traffic", ""});
-    collector.AddMeasure(Measure<double>{"meanCustomerInQueue", "unit"});
-    collector.AddMeasure(Measure<double>{"meanCustomerInService", ""});
-    collector.AddMeasure(Measure<double>{"meanCustomerInSystem", ""});
+    collector.AddMeasure(new Measure<double>{"completitions", "unit"});
+    collector.AddMeasure(new Measure<double>{"arrivals", "unit"});
+    collector.AddMeasure(new Measure<double>{"sysClients", "unit"});
+    collector.AddMeasure(new Measure<double>{"maxClients", "unit"});
+    collector.AddMeasure(new Accumulator<double>{"avgInterArrival", "ms"});
+    collector.AddMeasure(new Accumulator<double>{"avgServiceTime", "ms"});
+    collector.AddMeasure(new Accumulator<double>{"avgDelay", "ms"});
+    collector.AddMeasure(new Accumulator<double>{"avgWaiting", "ms"});
+    collector.AddMeasure(new Accumulator<double>{"utilization", ""});
+    collector.AddMeasure(new Accumulator<double>{"throughput", "job/ms"});
+    collector.AddMeasure(new Accumulator<double>{"inputRate", ""});
+    collector.AddMeasure(new Accumulator<double>{"arrivalRate", ""});
+    collector.AddMeasure(new Accumulator<double>{"serviceRate", ""});
+    collector.AddMeasure(new Accumulator<double>{"traffic", ""});
+    collector.AddMeasure(new Accumulator<double>{"meanCustomerInQueue", "unit"});
+    collector.AddMeasure(new Accumulator<double>{"meanCustomerInService", ""});
+    collector.AddMeasure(new Accumulator<double>{"meanCustomerInSystem", ""});
 }
 
 void Station::Initialize()
@@ -131,20 +140,23 @@ void Station::Initialize()
 void Station::Update()
 {
     collector.lastTimeStamp = _oldclock;
-    collector._measures[avgInterArrival](_oldclock / _arrivals);           /* Average inter-arrival time */
-    collector._measures[avgServiceTime](_busyTime / _completions);         /* Average service time */
-    collector._measures[avgDelay](_areaS / _completions);                  /* Average delay time */
-    collector._measures[avgWaiting](_areaN / _completions);                /* Average wait time */
-    collector._measures[utilization](_busyTime / _observationPeriod);      /* Utilization */
-    collector._measures[throughput](_completions / _observationPeriod);    /* Throughput */
-    collector._measures[inputRate](_arrivals / _oldclock);                 /* Input rate */
-    collector._measures[arrivalRate](_arrivals / _observationPeriod);      /* Arriva rate */
-    collector._measures[serviceRate](_completions / _busyTime);            /* Service rate */
-    collector._measures[traffic](_busyTime / _lastArrival);                /* Traffic intensity */
-    collector._measures[meanCustomerInQueue](_areaS / _observationPeriod); /* Mean number of customers in queue */
-    collector._measures[meanCustomerInService](_busyTime /
-                                               _observationPeriod);         /* Mean number of customers in service */
-    collector._measures[meanCustomerInSystem](_areaS / _observationPeriod); /* Mean number of customers in system */
+    collector[Completions](_completions);
+    collector[Arrivals](_arrivals);
+    collector[sysclients](_sysClients);
+    collector[maxclients](_maxClients);
+    collector[avgInterArrival](_oldclock / _arrivals);                /* Average inter-arrival time */
+    collector[avgServiceTime](_busyTime / _completions);              /* Average service time */
+    collector[avgDelay](_areaS / _completions);                       /* Average delay time */
+    collector[avgWaiting](_areaN / _completions);                     /* Average wait time */
+    collector[utilization](_busyTime / _observationPeriod);           /* Utilization */
+    collector[throughput](_completions / _observationPeriod);         /* Throughput */
+    collector[inputRate](_arrivals / _oldclock);                      /* Input rate */
+    collector[arrivalRate](_arrivals / _observationPeriod);           /* Arriva rate */
+    collector[serviceRate](_completions / _busyTime);                 /* Service rate */
+    collector[traffic](_busyTime / _lastArrival);                     /* Traffic intensity */
+    collector[meanCustomerInQueue](_areaS / _observationPeriod);      /* Mean number of customers in queue */
+    collector[meanCustomerInService](_busyTime / _observationPeriod); /* Mean number of customers in service */
+    collector[meanCustomerInSystem](_areaS / _observationPeriod);     /* Mean number of customers in system */
     collector._samples++;
 }
 

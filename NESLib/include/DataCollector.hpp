@@ -20,19 +20,22 @@ class DataCollector
 
   private:
     std::string _stationName;
-    std::vector<Measure<double>> _measures;
+    std::vector<Measure<double> *> _measures;
     double lastTimeStamp;
 
   public:
-    std::vector<Measure<double>> GetAccumulators() const;
-
+    std::vector<Measure<double> *> GetAccumulators() const;
+    Measure<double> &operator[](int index)
+    {
+        return *_measures[index];
+    }
     inline double TimeStamp() const
     {
         return lastTimeStamp;
     }
-    void AddMeasure(Measure<double> measure);
-
+    void AddMeasure(Measure<double> *measure);
     std::string Header();
     std::string Csv();
     DataCollector(std::string stationName);
+    ~DataCollector();
 };

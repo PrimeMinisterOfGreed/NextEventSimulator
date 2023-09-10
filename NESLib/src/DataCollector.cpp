@@ -5,12 +5,12 @@
 #include <fmt/format.h>
 #include <string>
 
-std::vector<Measure<double>> DataCollector::GetAccumulators() const
+std::vector<Measure<double> *> DataCollector::GetAccumulators() const
 {
     return _measures;
 }
 
-void DataCollector::AddMeasure(Measure<double> measure)
+void DataCollector::AddMeasure(Measure<double> *measure)
 {
     _measures.push_back(measure);
 }
@@ -21,12 +21,9 @@ std::string DataCollector::Header()
     head += "TimeStamp;StationName;";
     for (auto measure : _measures)
     {
-        head += makeformat("{};", measure.Name());
-        head += makeformat("meanOf{};", measure.Name());
-        head += makeformat("varianceOf{};", measure.Name());
-        head += makeformat("lowerBoundOf{};", measure.Name());
-        head += makeformat("upperBoundOf{};", measure.Name());
+        head += makeformat("{};", measure->Heading());
     }
+    head.erase(head.end() - 1);
     return head;
 }
 
@@ -36,15 +33,18 @@ std::string DataCollector::Csv()
     csv += makeformat("{};{};", lastTimeStamp, _stationName);
     for (auto measure : _measures)
     {
-        csv += makeformat("{};", measure.LastValue());
-        csv += makeformat("{};", measure.mean());
-        csv += makeformat("{};", measure.variance());
-        csv += makeformat("{};", measure.confidence().first);
-        csv += makeformat("{};", measure.confidence().second);
+        csv += makeformat("{};", measure->Csv());
     }
+    csv.erase(csv.end() - 1);
     return csv;
 }
 
 DataCollector::DataCollector(std::string stationName) : _stationName(stationName)
 {
+}
+
+DataCollector::~DataCollector()
+{
+    for (auto measure : _measures)
+        delete measure;
 }
