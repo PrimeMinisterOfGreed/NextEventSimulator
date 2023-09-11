@@ -31,7 +31,7 @@ void Cpu::ProcessArrival(Event &evt)
     }
     if (!_eventUnderProcess.has_value())
     {
-        ManageProcess(evt, (*burst)());
+        ManageProcess(evt);
         _scheduler->Schedule(evt);
         _eventUnderProcess.emplace(evt);
     }
@@ -50,7 +50,7 @@ void Cpu::ProcessDeparture(Event &evt)
         if (_sysClients > 1)
         {
             auto newEvt = _eventQueue.Dequeue();
-            ManageProcess(newEvt, (*burst)());
+            ManageProcess(newEvt);
             _eventUnderProcess.emplace(newEvt);
             _eventQueue.Enqueue(evt);
             _scheduler->Schedule(newEvt);
@@ -90,14 +90,14 @@ void Cpu::ProcessDeparture(Event &evt)
     }
 }
 
-void Cpu::ManageProcess(Event &evt, double burst)
+void Cpu::ManageProcess(Event &evt)
 {
     evt.ArrivalTime = _clock;
     evt.CreateTime = _clock;
-    if (burst < evt.ServiceTime)
+    if (_timeSlice < evt.ServiceTime)
     {
-        evt.OccurTime = _clock + burst;
-        evt.ServiceTime -= burst;
+        evt.OccurTime = _clock + _timeSlice;
+        evt.ServiceTime -= _timeSlice;
     }
     else
     {

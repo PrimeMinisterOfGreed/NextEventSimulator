@@ -20,7 +20,7 @@ class Cpu : public Station
     IScheduler *_scheduler;
     double _timeSlice;
     EventList _eventQueue{};
-    void ManageProcess(Event &evt, double burst);
+    void ManageProcess(Event &evt);
     double Burst(double alpha, double beta, double u1, double u2);
 
   public:
