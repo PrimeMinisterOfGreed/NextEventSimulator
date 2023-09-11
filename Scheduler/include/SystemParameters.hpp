@@ -22,7 +22,7 @@ struct SystemParameters
     double swapOutChoice[2] = {0.4, 0.6};
     int multiProgrammingDegree = 10;
     double probeInterval = 1;
-    double endTime = 100;
+    double endTime = 1000;
     static SystemParameters &Parameters()
     {
         static SystemParameters instance = SystemParameters{};

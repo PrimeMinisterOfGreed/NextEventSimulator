@@ -47,7 +47,7 @@ void Cpu::ProcessDeparture(Event &evt)
     {
         evt.Type = EventType::ARRIVAL;
         evt.OccurTime = _clock;
-        if (_sysClients > 1)
+        if (!_eventUnderProcess.has_value())
         {
             auto newEvt = _eventQueue.Dequeue();
             ManageProcess(newEvt);

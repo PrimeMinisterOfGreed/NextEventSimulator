@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     {
         std::cout << descr << std::endl;
     }
-    LogEngine::CreateInstance(3, "simulation.txt");
+    LogEngine::CreateInstance(2, "simulation.txt");
     OS os = OS();
     auto endTime = SystemParameters::Parameters().endTime;
     auto probeTime = SystemParameters::Parameters().probeInterval;

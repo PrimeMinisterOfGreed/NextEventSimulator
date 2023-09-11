@@ -31,7 +31,6 @@ enum Measures
 
 void Station::ProcessArrival(Event &evt)
 {
-    _logger->TraceInformation("Processing Arrival of event:{}", evt.Name);
     _arrivals++;
     _sysClients++;
     _lastArrival = evt.ArrivalTime;
@@ -41,7 +40,6 @@ void Station::ProcessArrival(Event &evt)
 
 void Station::ProcessDeparture(Event &evt)
 {
-    _logger->TraceInformation("Processing Departure of event:{}", evt.Name);
     _sysClients--;
     _completions++;
 }
@@ -61,8 +59,7 @@ void Station::ProcessProbe(Event &evt)
 void Station::Process(Event &event)
 {
     _clock = event.OccurTime;
-    _logger->TraceInformation("Station:{}, Processing event:{} with occur time: {}", _name, event.Name,
-                              event.OccurTime);
+    _logger->TraceTransfer("Station:{}, Processing event:{} with occur time: {}", _name, event.Name, event.OccurTime);
     double interval = _clock - _oldclock;
     _oldclock = event.OccurTime;
     if (_sysClients > 0)
@@ -75,9 +72,11 @@ void Station::Process(Event &event)
     {
     case EventType::ARRIVAL:
         ProcessArrival(event);
+        _logger->TraceInformation("Station:{}, Processing Arrival of event:{}", _name, event.Name);
         break;
     case EventType::DEPARTURE:
         ProcessDeparture(event);
+        _logger->TraceInformation("Station:{}, Processing Departure of event:{}", _name, event.Name);
         break;
     case EventType::NO_EVENT:
         break;
