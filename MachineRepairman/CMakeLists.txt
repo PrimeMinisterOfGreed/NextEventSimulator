@@ -1,5 +1,3 @@
-project(MachineRepairman)
-
 file(GLOB_RECURSE PRIV_SRC src/*.cpp)
 
 add_executable(machine_repairman ${PRIV_SRC})

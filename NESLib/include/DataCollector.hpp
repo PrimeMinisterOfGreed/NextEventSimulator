@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Measure.hpp"
+#include "Usings.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -20,20 +21,20 @@ class DataCollector
 
   private:
     std::string _stationName;
-    std::vector<Measure<double> *> _measures;
+    std::vector<sptr<Measure<double>>> _measures;
     double lastTimeStamp;
 
   public:
-    std::vector<Measure<double> *> GetAccumulators() const;
-    Measure<double> &operator[](int index)
+    std::vector<sptr<Measure<double>>> GetAccumulators() const;
+    sptr<Measure<double>> operator[](int index)
     {
-        return *_measures[index];
+        return _measures[index];
     }
     inline double TimeStamp() const
     {
         return lastTimeStamp;
     }
-    void AddMeasure(Measure<double> *measure);
+    void AddMeasure(sptr<Measure<double>>);
     std::string Header();
     std::string Csv();
     DataCollector(std::string stationName);

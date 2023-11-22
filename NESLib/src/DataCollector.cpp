@@ -1,16 +1,18 @@
 #include "DataCollector.hpp"
 #include "DataWriter.hpp"
 #include "LogEngine.hpp"
+#include "Measure.hpp"
+#include "Usings.hpp"
 #include "rvms.h"
 #include <fmt/format.h>
 #include <string>
 
-std::vector<Measure<double> *> DataCollector::GetAccumulators() const
+std::vector<sptr<Measure<double>>> DataCollector::GetAccumulators() const
 {
     return _measures;
 }
 
-void DataCollector::AddMeasure(Measure<double> *measure)
+void DataCollector::AddMeasure(sptr<Measure<double>> measure)
 {
     _measures.push_back(measure);
 }
@@ -45,6 +47,4 @@ DataCollector::DataCollector(std::string stationName) : _stationName(stationName
 
 DataCollector::~DataCollector()
 {
-    for (auto measure : _measures)
-        delete measure;
 }

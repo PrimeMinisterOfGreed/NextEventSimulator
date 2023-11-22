@@ -13,16 +13,43 @@
 #include <string>
 
 using Interval = std::pair<double, double>;
-template <typename T> class Measure
+
+class BaseMeasure
 {
-  private:
+  protected:
     std::string _name;
     std::string _unit;
-    T _lastAccumulatedValue;
     size_t _count;
 
   public:
-    Measure(std::string name, std::string unit) : _name(name), _unit(unit), _count(0)
+    BaseMeasure(std::string name, std::string unit) : _name(name), _unit(unit), _count(0)
+    {
+    }
+    std::string Name() const
+    {
+        return _name;
+    }
+    size_t Count() const
+    {
+        return _count;
+    }
+    std::string Unit() const
+    {
+        return _unit;
+    }
+    virtual std::string Heading()
+    {
+        return makeformat("{}({})", Name(), Unit());
+    }
+};
+
+template <typename T> class Measure : public BaseMeasure
+{
+  private:
+    T _lastAccumulatedValue;
+
+  public:
+    Measure(std::string name, std::string unit) : BaseMeasure(name, unit)
     {
     }
 
@@ -35,25 +62,6 @@ template <typename T> class Measure
     T Current() const
     {
         return _lastAccumulatedValue;
-    }
-    std::string Name() const
-    {
-        return _name;
-    }
-
-    size_t Count() const
-    {
-        return _count;
-    }
-
-    std::string Unit() const
-    {
-        return _unit;
-    }
-
-    virtual std::string Heading()
-    {
-        return makeformat("{}({})", Name(), Unit());
     }
 
     virtual std::string Csv()

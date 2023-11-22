@@ -16,14 +16,13 @@ void OS::Execute()
     while (!_end)
     {
         auto nextEvt = _eventQueue.Dequeue();
-        ISimulator::_clock = nextEvt.OccurTime;
+        _clock = nextEvt.OccurTime;
         if (nextEvt.Station == Stations::RESERVE_STATION && nextEvt.Type == EventType::ARRIVAL)
         {
             OnEventProcess(_stations);
-            double nextArrival = (*_nextArrival)() + ISimulator::_clock;
-            auto evt =
-                Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
-                      Station::_clock, nextArrival, 0, nextArrival, Stations::RESERVE_STATION);
+            double nextArrival = (*_nextArrival)() + _clock;
+            auto evt = Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION),
+                             EventType::ARRIVAL, _clock, nextArrival, 0, nextArrival, Stations::RESERVE_STATION);
             Process(evt);
             Schedule(evt);
         }

@@ -1,6 +1,5 @@
 #pragma once
 #include "DataCollector.hpp"
-#include "DataProvider.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Measure.hpp"
@@ -37,7 +36,10 @@ class Station
     DataCollector Data();
     virtual void Reset();
     Station(std::string name, int station);
-
+    std::string Name() const
+    {
+        return _name;
+    }
     int stationIndex() const
     {
         return _stationIndex;
