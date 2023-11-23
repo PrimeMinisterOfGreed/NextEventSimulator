@@ -1,4 +1,3 @@
-#include "DataProvider.hpp"
 #include "LogEngine.hpp"
 #include "NESssqv2.hpp"
 #include "rngs.hpp"
@@ -24,8 +23,8 @@ int main(int argc, char *argv[])
         "if specified write the log to a specific file instead of default log.txt")(
         "-probe", value<std::vector<int>>(), "if specified decides when launch the probe event (or multiple times)")(
         "-end", value<int>()->default_value(20000),
-        "if specified writes the final event to a certain value instead of default (20000)")
-        ("-verbosity", value<int>()->default_value(1), "set the verbosity level (default 1)");
+        "if specified writes the final event to a certain value instead of default (20000)")(
+        "-verbosity", value<int>()->default_value(1), "set the verbosity level (default 1)");
 
     variables_map vm;
     try
@@ -38,16 +37,18 @@ int main(int argc, char *argv[])
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-    
+
     NESssq *simulator;
     RandomStream::Global().PlantSeeds(vm.at("-seed").as<int>());
     endTime = vm.at("-end").as<int>();
     ConsoleLogEngine::CreateInstance(vm.at("-verbosity").as<int>(), vm.at("-output").as<std::string>());
     if (vm.count("-file"))
-        simulator = new NESssq(new TraceDrivenDataProvider(vm.at("-file").as<std::string>(), true), ConsoleLogEngine::Instance());
+        simulator = new NESssq(new TraceDrivenDataProvider(vm.at("-file").as<std::string>(), true),
+                               ConsoleLogEngine::Instance());
     else
     {
-        simulator = new NESssq(new DoubleStreamNegExpRandomDataProvider(endTime,0.14,0.10), ConsoleLogEngine::Instance());
+        simulator =
+            new NESssq(new DoubleStreamNegExpRandomDataProvider(endTime, 0.14, 0.10), ConsoleLogEngine::Instance());
     }
     simulator->Execute();
     simulator->Report();

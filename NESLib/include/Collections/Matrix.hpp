@@ -1,8 +1,14 @@
 #pragma once
 
 #include "DataCollector.hpp"
+#include "LogEngine.hpp"
+#include <cstdarg>
 #include <cstddef>
+#include <functional>
 #include <initializer_list>
+#include <optional>
+#include <sstream>
+#include <string>
 #include <vector>
 template <typename T>
 concept IsAdd = requires(T a) {
@@ -17,6 +23,22 @@ concept IsMul = requires(T a) {
         a *a
     };
 };
+
+template <typename T>
+    requires(IsAdd<T> && IsMul<T>)
+static T operator*(std::vector<T> a, std::vector<T> b)
+{
+    if (a.size() != b.size())
+    {
+        throw "matrix of different sizes";
+    }
+    T sum{};
+    for (int i = 0; i < a.size(); i++)
+    {
+        sum += a[i] * b[i];
+    }
+    return sum;
+}
 
 template <typename T>
     requires(IsAdd<T> && IsMul<T>)
@@ -38,7 +60,7 @@ struct Matrix
     {
     }
 
-    Matrix(std::vector<std::vector<T>> data) : _data(data)
+    Matrix(std::vector<std::vector<T>> &&data) : _data(data)
     {
     }
 
@@ -50,6 +72,21 @@ struct Matrix
     size_t Rows() const
     {
         return _data.size();
+    }
+
+    std::vector<T> Col(int index) const
+    {
+        std::vector<T> col{};
+        for (auto &vec : _data)
+        {
+            col.push_back(vec.at(index));
+        }
+        return col;
+    }
+
+    std::vector<T> Row(int index) const
+    {
+        return _data.at(index);
     }
 
     bool AddRow(std::vector<T> row)
@@ -95,7 +132,63 @@ struct Matrix
     {
         return _data.at(row).at(col);
     }
+
+    Matrix<T> operator*(const Matrix<T> &oth)
+    {
+        std::vector<std::vector<T>> newdata{};
+        for (int i = 0; i < _data.size(); i++)
+        {
+            auto row = Row(i);
+            std::vector<T> newrow{};
+            for (int k = 0; k < oth.Columns(); k++)
+            {
+                newrow.push_back(row * oth.Col(k));
+            }
+            newdata.push_back(newrow);
+        }
+        return newdata;
+    }
+
+    Matrix<T> operator+(const Matrix<T> &oth)
+    {
+    }
+
+    Matrix<T> operator*(T value)
+    {
+    }
+
+    std::string ToString()
+    {
+        std::string buf{};
+        for (auto &row : _data)
+        {
+            for (auto &e : row)
+            {
+                buf += makeformat(" {} ,", e);
+            }
+
+            buf[buf.size() - 1] = '\n';
+        }
+        return buf;
+    }
 };
+
+template <typename T>
+    requires(IsAdd<T> && IsMul<T>)
+static std::vector<T> operator*(std::vector<T> &v, Matrix<T> &mat)
+{
+    std::vector<T> res{};
+    for (int i = 0; i < v.size(); i++)
+    {
+        T sum{};
+        for (int k = 0; k < mat.Columns(); k++)
+        {
+            sum += v[i] * mat.Col(i)[k];
+        }
+        res.push_back(sum);
+    }
+    return res;
+}
 
 template <typename T>
     requires(IsAdd<T> && IsMul<T>)
@@ -144,3 +237,15 @@ struct DTMCMatrix : public Matrix<T>
         return Result::OK;
     }
 };
+
+template <typename T>
+    requires(IsAdd<T>)
+static std::vector<T> operator-(std::vector<T> &a, std::vector<T> &b)
+{
+    std::vector<T> res{};
+    for (int i = 0; i < a.size(); i++)
+    {
+        res.push_back(a[i] - b[i]);
+    }
+    return res;
+}
