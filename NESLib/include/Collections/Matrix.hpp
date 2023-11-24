@@ -60,7 +60,7 @@ struct Matrix
     {
     }
 
-    Matrix(std::vector<std::vector<T>> &&data) : _data(data)
+    Matrix(std::vector<std::vector<T>> data) : _data(data)
     {
     }
 
@@ -87,6 +87,19 @@ struct Matrix
     std::vector<T> Row(int index) const
     {
         return _data.at(index);
+    }
+
+    void operator()(int row, std::vector<T> newRow)
+    {
+        _data.at(row) = newRow;
+    }
+
+    void operator()(std::vector<T> newcolumn, int col)
+    {
+        for (int i = 0; i < newcolumn.size(); i++)
+        {
+            (*this)(i, col) = newcolumn[i];
+        }
     }
 
     bool AddRow(std::vector<T> row)
@@ -171,6 +184,13 @@ struct Matrix
         }
         return buf;
     }
+
+    template <typename F> void Traverse(F &&fnc)
+    {
+        for (auto &row : _data)
+            for (auto &col : row)
+                fnc(col);
+    }
 };
 
 template <typename T>
@@ -183,60 +203,12 @@ static std::vector<T> operator*(std::vector<T> &v, Matrix<T> &mat)
         T sum{};
         for (int k = 0; k < mat.Columns(); k++)
         {
-            sum += v[i] * mat.Col(i)[k];
+            sum += v[k] * mat.Col(i)[k];
         }
         res.push_back(sum);
     }
     return res;
 }
-
-template <typename T>
-    requires(IsAdd<T> && IsMul<T>)
-struct DTMCMatrix : public Matrix<T>
-{
-    using Base = Matrix<T>;
-    enum class Result
-    {
-        NO_SQUARE,
-        INVALID_SUM,
-        ABSORBING_STATES,
-        OK
-    };
-
-    Result Validate()
-    {
-        auto &data = Base::_data;
-        if (data.size() != data[0].size())
-        {
-            return Result::NO_SQUARE;
-        }
-
-        for (auto &row : data)
-        {
-            T sum{};
-            for (auto &elem : row)
-            {
-                sum += elem;
-            }
-            if (sum != 1.0)
-                return Result::INVALID_SUM;
-        }
-
-        for (int i = 0; i < data.size(); i++)
-        {
-            auto &vec = data[i];
-            bool fail = true;
-            for (int j = 0; j < vec.size(); j++)
-            {
-                if (i != j && vec[i] > 0.0)
-                    fail = false;
-            }
-            if (fail)
-                return Result::ABSORBING_STATES;
-        }
-        return Result::OK;
-    }
-};
 
 template <typename T>
     requires(IsAdd<T>)
@@ -246,6 +218,19 @@ static std::vector<T> operator-(std::vector<T> &a, std::vector<T> &b)
     for (int i = 0; i < a.size(); i++)
     {
         res.push_back(a[i] - b[i]);
+    }
+    return res;
+}
+
+template <typename T, typename F>
+    requires(IsAdd<T>)
+static bool All(std::vector<T> &&t, F &&fnc)
+{
+    bool res = true;
+    for (auto &a : t)
+    {
+        if (!fnc(a))
+            res = false;
     }
     return res;
 }
