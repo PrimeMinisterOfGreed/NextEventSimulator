@@ -41,6 +41,11 @@ class BaseMeasure
     {
         return makeformat("{}({})", Name(), Unit());
     }
+
+    virtual void Reset()
+    {
+        _count = 0;
+    }
 };
 
 template <typename T> class Measure : public BaseMeasure
@@ -72,6 +77,12 @@ template <typename T> class Measure : public BaseMeasure
     void operator()(T value)
     {
         Accumulate(value);
+    }
+
+    void Reset() override
+    {
+        BaseMeasure::Reset();
+        _lastAccumulatedValue = T{};
     }
 };
 
@@ -130,8 +141,9 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         return csv;
     }
 
-    void Reset()
+    virtual void Reset()
     {
+        Measure<T>::Reset();
         ForMoment([](T &val, int moment) { val = 0; });
     }
 
@@ -158,38 +170,5 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         auto count = this->Count();
         double delta = idfStudent(count - 1, 1 - (alpha / 2)) * (sigma / sqrt(count - 1));
         return {u - delta, u + delta};
-    }
-};
-
-template <typename T = double, int Moments = 2> class CovariatedMeasure
-{
-  private:
-    T _acc[Moments];
-    Accumulator<T, Moments> &_m1;
-    Accumulator<T, Moments> &_m2;
-    size_t _count = 0;
-
-  public:
-    CovariatedMeasure(Accumulator<T, Moments> &m1, Accumulator<T, Moments> &m2) : _m1{m1}, _m2(m2)
-    {
-    }
-
-    CovariatedMeasure() : _m1{*new Accumulator<T, Moments>{}}, _m2{*new Accumulator<T, Moments>{}}
-    {
-    }
-
-    void Accumulate(T v1, T v2)
-    {
-        _m1(v1);
-        _m2(v2);
-    }
-
-    void operator()(T v1, T v2)
-    {
-        Accumulate(v1, v2);
-    }
-
-    T covariation() const
-    {
     }
 };

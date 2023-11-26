@@ -19,6 +19,5 @@ class Scheduler : public IScheduler, public Station
     Scheduler(std::string name) : Station(name, 0)
     {
     }
-
     virtual Event Create(double interArrival, double serviceTime, int stationTarget = 0, EventType type = ARRIVAL);
 };

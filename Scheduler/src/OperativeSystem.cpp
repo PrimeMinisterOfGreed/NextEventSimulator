@@ -97,6 +97,6 @@ void OS::ProcessProbe(Event &evt)
 
 void OS::Schedule(Event event)
 {
-    _logger->TraceTransfer("Scheduling event for station {} at time {}", event.Station, event.OccurTime);
+    _logger->Transfer("Scheduling event for station {} at time {}", event.Station, event.OccurTime);
     _eventQueue.Insert(event, [](const Event &a, const Event &b) { return a.OccurTime > b.OccurTime; });
 }

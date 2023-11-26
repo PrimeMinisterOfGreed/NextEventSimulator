@@ -1,43 +1,49 @@
 #include "DataWriter.hpp"
+#include "LogEngine.hpp"
 #include <filesystem>
 #include <fmt/core.h>
 #include <fstream>
 #include <ios>
 
-DataWriter &DataWriter::Instance()
+void DataWriter::WriteFile(const DataFile &dataFile)
 {
-    static DataWriter instance{};
-    return instance;
+    std::fstream stream{dataFile.fileName, std::ios::out | std::ios::app};
+    if (stream.tellp() == 0)
+    {
+        auto ref = dataFile.collectors.at(0);
+        stream.write(ref->Header().c_str(), ref->Header().size());
+    }
+    for (auto &ref : dataFile.collectors)
+    {
+        auto res = ref->Csv();
+        stream.write(res.c_str(), res.size());
+    }
 }
 
-void DataWriter::WriteLine(std::string data)
+void DataWriter::Register(DataCollector *collector)
 {
-    using namespace std::filesystem;
-    _lines[_currentIndex++] = data;
-    if (_currentIndex == 1000)
+    if (_dataFiles.size() == 0)
     {
-        Flush();
+        auto data = DataFile{.fileName = "data.csv"};
+        _dataFiles.push_back(data);
     }
+    for (auto &category : _dataFiles)
+    {
+        if (category.isInCategory(*collector))
+        {
+            category.collectors.push_back(collector);
+            return;
+        }
+    }
+    auto data = DataFile{.fileName = makeformat("data{}.csv", _dataFiles.size())};
+    data.collectors.push_back(collector);
+    _dataFiles.push_back(data);
 }
 
-void DataWriter::Flush()
+void DataWriter::SnapShot()
 {
-    std::ofstream file{};
-    auto path = std::filesystem::path{"data.csv"};
-    if (!exists(path))
+    for (auto &file : _dataFiles)
     {
-        file.open("data.csv", std::ios_base::out);
-        file << fmt::format("{}\n", header);
+        WriteFile(file);
     }
-    else
-    {
-        file.open("data.csv", std::ios_base::app);
-    }
-    for (int i = 0; i < _currentIndex; i++)
-    {
-        file << fmt::format("{}\n", _lines[i]);
-        _lines[i].clear();
-    }
-
-    _currentIndex = 0;
 }

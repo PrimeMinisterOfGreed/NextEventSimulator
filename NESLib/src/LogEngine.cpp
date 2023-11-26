@@ -24,6 +24,7 @@ std::string LogTypeToString(LogType logType)
     case LogType::DEBUG:
         return std::move(std::string("[Debug]"));
     }
+    return "";
 }
 
 void writeBuffer(std::istream *buffer, std::ostream *save)
@@ -53,12 +54,10 @@ void LogEngine::Finalize()
 void LogEngine::Trace(LogType type, std::string message)
 {
     using namespace std;
-    if (_verbosity >= (int)type)
-    {
-        std::string log = LogTypeToString(type) + message;
-        char buffer[log.size() + 1];
-        sprintf(buffer, "%s\n", log.c_str());
-        printf("%s\n", log.c_str());
-        _buffer.write(buffer, log.size() + 1);
-    }
+
+    std::string log = LogTypeToString(type) + message;
+    char buffer[log.size() + 1];
+    sprintf(buffer, "%s\n", log.c_str());
+    printf("%s\n", log.c_str());
+    _buffer.write(buffer, log.size() + 1);
 }

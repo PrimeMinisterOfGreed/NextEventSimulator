@@ -52,13 +52,17 @@ void Station::ProcessProbe(Event &evt)
 {
 
     Update();
-    DataWriter::Instance().WriteLine(collector.Csv());
 }
 
 void Station::Process(Event &event)
 {
+    if (event.Type == END)
+    {
+        ProcessEnd(event);
+        return;
+    }
     _clock = event.OccurTime;
-    _logger->TraceTransfer("Station:{}, Processing event:{} with occur time: {}", _name, event.Name, event.OccurTime);
+    _logger.Transfer("Station:{}, Processing event:{} with occur time: {}", _name, event.Name, event.OccurTime);
     double interval = _clock - _oldclock;
     _oldclock = event.OccurTime;
     if (_sysClients > 0)
@@ -71,11 +75,11 @@ void Station::Process(Event &event)
     {
     case EventType::ARRIVAL:
         ProcessArrival(event);
-        _logger->TraceInformation("Station:{}, Processing Arrival of event:{}", _name, event.Name);
+        _logger.Information("Station:{}, Processing Arrival of event:{}", _name, event.Name);
         break;
     case EventType::DEPARTURE:
         ProcessDeparture(event);
-        _logger->TraceInformation("Station:{}, Processing Departure of event:{}", _name, event.Name);
+        _logger.Information("Station:{}, Processing Departure of event:{}", _name, event.Name);
         break;
     case EventType::NO_EVENT:
         break;
@@ -107,9 +111,8 @@ void Station::Reset()
     _areaS = 0.0;
 }
 
-Station::Station(std::string name, int station) : _name(name), _stationIndex(station), collector{name}
+Station::Station(std::string name, int station) : _name(name), _stationIndex(station), collector{name}, _logger{name}
 {
-    _logger = LogEngine::Instance();
     collector.AddMeasure(sptr<Measure<double>>(new Measure<double>{"completitions", "unit"}));
     collector.AddMeasure(sptr<Measure<double>>(new Measure<double>{"arrivals", "unit"}));
     collector.AddMeasure(sptr<Measure<double>>(new Measure<double>{"sysClients", "unit"}));

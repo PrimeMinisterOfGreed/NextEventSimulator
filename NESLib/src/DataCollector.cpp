@@ -17,7 +17,7 @@ void DataCollector::AddMeasure(sptr<Measure<double>> measure)
     _measures.push_back(measure);
 }
 
-std::string DataCollector::Header()
+std::string DataCollector::Header() const
 {
     std::string head = "";
     head += "TimeStamp;StationName;";
@@ -43,6 +43,7 @@ std::string DataCollector::Csv()
 
 DataCollector::DataCollector(std::string stationName) : _stationName(stationName)
 {
+    DataWriter::Instance().Register(this);
 }
 
 DataCollector::~DataCollector()

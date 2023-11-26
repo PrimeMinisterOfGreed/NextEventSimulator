@@ -27,7 +27,7 @@ class Station
     virtual void ProcessEnd(Event &evt);
     virtual void ProcessProbe(Event &evt);
     virtual void ProcessMaintenance(Event &evt);
-    ILogEngine *_logger;
+    TraceSource _logger;
 
   public:
     void Process(Event &event);
@@ -58,6 +58,10 @@ class Station
     int sysClients() const
     {
         return _sysClients;
+    }
+    double observation() const
+    {
+        return _observationPeriod;
     }
 };
 

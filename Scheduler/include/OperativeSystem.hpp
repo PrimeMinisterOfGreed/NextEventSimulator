@@ -2,7 +2,6 @@
 #include "CPU.hpp"
 #include "DataCollector.hpp"
 #include "EventHandler.hpp"
-#include "FunctionPointer.hpp"
 #include "IOStation.hpp"
 #include "ISimulator.hpp"
 #include "ReserveStation.hpp"
@@ -36,8 +35,8 @@ class OS : public ISimulator, public IScheduler, public Station
   public:
     void Execute() override;
     void Reset() override;
-    FunctionPointer<void, std::vector<Station *>> OnEventProcess;
-    FunctionPointer<void, std::vector<Station *>> OnProcessFinished;
+    std::function<void(sptr<Station>)> OnEventProcess;
+    std::function<void(sptr<Station>)> OnProcessFinished;
     OS();
     void Schedule(Event event) override;
 };

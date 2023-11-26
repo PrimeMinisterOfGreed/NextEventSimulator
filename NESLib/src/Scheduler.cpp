@@ -1,6 +1,7 @@
 #include "Scheduler.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
+#include "Station.hpp"
 
 bool Scheduler::Route(Event evt)
 {

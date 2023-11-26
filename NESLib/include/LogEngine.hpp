@@ -25,44 +25,21 @@ class ILogEngine
   public:
     virtual void Finalize() = 0;
     virtual void Trace(LogType type, std::string message) = 0;
-
-    template <typename... Args> void TraceException(const char *format, Args... args)
-    {
-        Trace(LogType::EXCEPTION, makeformat(format, args...));
-    }
-
-    template <typename... Args> void TraceInformation(const char *format, Args... args)
-    {
-        Trace(LogType::INFORMATION, makeformat(format, args...));
-    }
-
-    template <typename... Args> void TraceTransfer(const char *format, Args... args)
-    {
-        Trace(LogType::TRANSFER, makeformat(format, args...));
-    }
-
-    template <typename... Args> void TraceResult(const char *format, Args... args)
-    {
-        Trace(LogType::RESULT, makeformat(format, args...));
-    }
-
-    template <typename... Args> void TraceDebug(const char *format, Args... args)
-    {
-        Trace(LogType::DEBUG, makeformat(format, args...));
-    }
 };
 
+struct TraceSource;
 class LogEngine : public ILogEngine
 {
+    friend struct TraceSource;
+
   private:
-    int _verbosity = 1;
     std::stringstream _buffer;
     std::string _logFile;
     static LogEngine *_instance;
     LogEngine()
     {
     }
-    LogEngine(int verbosity, std::string logFile) : _verbosity{verbosity}, _logFile{logFile}
+    LogEngine(std::string logFile) : _logFile{logFile}
     {
     }
 
@@ -70,20 +47,52 @@ class LogEngine : public ILogEngine
     virtual void Finalize() override;
     virtual void Trace(LogType type, std::string message) override;
 
-    static void CreateInstance(int verbosity, std::string logFile)
+    static void CreateInstance(std::string logFile)
     {
-        _instance = new LogEngine(verbosity, logFile);
-    }
-    static LogEngine *Instance()
-    {
-        return _instance;
+        _instance = new LogEngine(logFile);
     }
 };
 
-template <char Divisor> constexpr const char *PrintDivisor()
+struct TraceSource
 {
-    char *buffer = new char[24];
-    for (int i = 0; i < 24; i++)
-        buffer[i] = Divisor;
-    return buffer;
-}
+    std::string sourceName;
+    ILogEngine *engine;
+    int verbosity;
+    TraceSource(std::string sourceName, int verbosity = 4) : sourceName(sourceName), verbosity(verbosity)
+    {
+        engine = LogEngine::_instance;
+    }
+
+    void Trace(LogType type, std::string message)
+    {
+        if (verbosity >= (int)type)
+        {
+            engine->Trace(type, makeformat("({}){}", sourceName, message));
+        }
+    }
+
+    template <typename... Args> void Exception(const char *format, Args... args)
+    {
+        Trace(LogType::EXCEPTION, makeformat(format, args...));
+    }
+
+    template <typename... Args> void Information(const char *format, Args... args)
+    {
+        Trace(LogType::INFORMATION, makeformat(format, args...));
+    }
+
+    template <typename... Args> void Transfer(const char *format, Args... args)
+    {
+        Trace(LogType::TRANSFER, makeformat(format, args...));
+    }
+
+    template <typename... Args> void Result(const char *format, Args... args)
+    {
+        Trace(LogType::RESULT, makeformat(format, args...));
+    }
+
+    template <typename... Args> void Debug(const char *format, Args... args)
+    {
+        Trace(LogType::DEBUG, makeformat(format, args...));
+    }
+};

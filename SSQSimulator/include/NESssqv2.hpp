@@ -22,5 +22,13 @@ class NESssq : public Scheduler, public ISimulator
     void Initialize() override;
     void Execute() override;
     void Reset() override;
+
+    NESssq &EndTime(double endTime)
+    {
+        auto evt = Event{"END", END, 0, endTime, 0, endTime, 0};
+        Schedule(evt);
+        return *this;
+    }
+    virtual void ProcessEnd(Event &evt) override;
     NESssq();
 };

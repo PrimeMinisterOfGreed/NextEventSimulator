@@ -35,7 +35,7 @@ class DataCollector
         return lastTimeStamp;
     }
     void AddMeasure(sptr<Measure<double>>);
-    std::string Header();
+    std::string Header() const;
     std::string Csv();
     DataCollector(std::string stationName);
     ~DataCollector();

@@ -2,6 +2,7 @@
 #include "NESssqv2.hpp"
 #include "rngs.hpp"
 #include <boost/program_options.hpp>
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,7 @@ int targetTime = 100;
 int main(int argc, char *argv[])
 {
     using namespace boost::program_options;
-
+    TraceSource mainSource{"Main"};
     // Declare the supported command line options
     options_description desc("Allowed options");
 
@@ -38,18 +39,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    NESssq *simulator;
     RandomStream::Global().PlantSeeds(vm.at("-seed").as<int>());
     endTime = vm.at("-end").as<int>();
-    ConsoleLogEngine::CreateInstance(vm.at("-verbosity").as<int>(), vm.at("-output").as<std::string>());
-    if (vm.count("-file"))
-        simulator = new NESssq(new TraceDrivenDataProvider(vm.at("-file").as<std::string>(), true),
-                               ConsoleLogEngine::Instance());
-    else
-    {
-        simulator =
-            new NESssq(new DoubleStreamNegExpRandomDataProvider(endTime, 0.14, 0.10), ConsoleLogEngine::Instance());
-    }
-    simulator->Execute();
-    simulator->Report();
+    LogEngine::CreateInstance(vm.at("-output").as<std::string>());
+    NESssq simulator{};
+    simulator.EndTime(80).Execute();
 }
