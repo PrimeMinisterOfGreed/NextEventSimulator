@@ -3,6 +3,8 @@
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Measure.hpp"
+#include <functional>
+#include <optional>
 #include <vector>
 
 class Station
@@ -28,6 +30,9 @@ class Station
     virtual void ProcessProbe(Event &evt);
     virtual void ProcessMaintenance(Event &evt);
     TraceSource _logger;
+
+    std::optional<std::function<void(Station *)>> _onArrival;
+    std::optional<std::function<void(Station *)>> _onDeparture;
 
   public:
     void Process(Event &event);
@@ -62,6 +67,16 @@ class Station
     double observation() const
     {
         return _observationPeriod;
+    }
+
+    template <typename F> void OnDeparture(F &&fnc)
+    {
+        _onDeparture = fnc;
+    }
+
+    template <typename F> void OnArrival(F &&fnc)
+    {
+        _onArrival = fnc;
     }
 };
 

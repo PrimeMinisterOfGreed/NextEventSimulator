@@ -1,7 +1,9 @@
 #include "Collections/LinkedList.hpp"
+#include "LogEngine.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
 #include <cassert>
+#include <cstdio>
 #include <functional>
 #include <gtest/gtest.h>
 #include <queue>
@@ -144,4 +146,15 @@ TEST(test_linked_list, test_next)
     linkedList.Enqueue(4.0);
     auto itr = linkedList.begin().Next([](auto e) { return e > 3.0; });
     ASSERT_EQ(*itr, 4.0);
+}
+
+TEST(test_linked_list, test_format)
+{
+    DoubleLinkedList<double> linkedList{};
+    linkedList.Enqueue(1.0);
+    linkedList.Enqueue(2.0);
+    linkedList.Enqueue(3.0);
+    linkedList.Enqueue(4.0);
+    auto str = makeformat("{fmt=fat}", linkedList);
+    printf("%s", str.c_str());
 }

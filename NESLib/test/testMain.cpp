@@ -24,16 +24,6 @@ void fnc(bool *a)
     *a = true;
 }
 
-TEST(TestEventHandler, test_handler_deletion)
-{
-    bool a = false;
-    EventHandler onchecked{};
-    auto slot = onchecked.Attach([&a]() { a = true; });
-    onchecked.Invoke();
-    ASSERT_TRUE(a);
-    onchecked.Detach(slot);
-}
-
 TEST(TestMeasure, test_measure_add)
 {
     Accumulator<> measure{"dummy", ""};

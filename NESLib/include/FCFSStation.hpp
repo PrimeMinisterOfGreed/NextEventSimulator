@@ -23,4 +23,8 @@ class FCFSStation : public Station
     void ProcessProbe(Event &evt) override;
     void Reset() override;
     FCFSStation(IScheduler *scheduler, std::string name, int stationIndex);
+    EventList EventQueue() const
+    {
+        return _eventQueue;
+    }
 };

@@ -19,5 +19,17 @@ class Scheduler : public IScheduler, public Station
     Scheduler(std::string name) : Station(name, 0)
     {
     }
+    std::optional<sptr<Station>> operator[](std::string name)
+    {
+        for (auto &st : _stations)
+        {
+            if (st->Name() == name)
+            {
+                return st;
+            }
+        }
+        return {};
+    }
+
     virtual Event Create(double interArrival, double serviceTime, int stationTarget = 0, EventType type = ARRIVAL);
 };

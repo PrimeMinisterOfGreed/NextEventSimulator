@@ -3,7 +3,10 @@
 #include "Node.hpp"
 #include <concepts>
 #include <cstddef>
+#include <cstdio>
 #include <exception>
+#include <fmt/core.h>
+#include <fmt/format.h>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -223,3 +226,26 @@ inline DoubleLinkedList<T> DoubleLinkedList<T>::Take(std::function<bool(const T 
     }
     return list;
 }
+
+template <typename T> struct fmt::formatter<DoubleLinkedList<T>>
+{
+    std::string fmt = "";
+
+    // Parses format specifications of the form ['f' | 'e'].
+    constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
+    {
+        for (auto &spec : ctx)
+        {
+            fmt += spec;
+        }
+        return ctx.end();
+    }
+
+    // Formats the point p using the parsed format specification (presentation)
+    // stored in this formatter.
+    auto format(const DoubleLinkedList<T> &p, format_context &ctx) const -> format_context::iterator
+    {
+        printf("%s", fmt.c_str());
+        return fmt::format_to(ctx.out(), "{}", fmt);
+    }
+};

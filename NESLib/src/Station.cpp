@@ -50,7 +50,6 @@ void Station::ProcessEnd(Event &evt)
 
 void Station::ProcessProbe(Event &evt)
 {
-
     Update();
 }
 

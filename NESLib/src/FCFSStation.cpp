@@ -27,10 +27,10 @@ void FCFSStation::ProcessArrival(Event &evt)
 
 void FCFSStation::ProcessDeparture(Event &evt)
 {
-    _logger.Information("Processing departure of {}", evt.Name);
-    Station::ProcessDeparture(evt);
+    _logger.Information("Processing departure of {}", _eventUnderProcess->Name);
     if (evt != *_eventUnderProcess)
         throw std::runtime_error("The departure requested is not equal as the event under process");
+    Station::ProcessDeparture(_eventUnderProcess.value());
     if (_sysClients > 0)
     {
         _eventUnderProcess.emplace(_eventQueue.Dequeue());

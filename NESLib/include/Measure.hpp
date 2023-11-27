@@ -116,8 +116,6 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
     {
         Measure<T>::Accumulate(value);
         ForMoment([value](T &val, int moment) { val += pow(value, moment); });
-
-        OnCatch.Invoke(value);
     }
 
     std::string Heading() override

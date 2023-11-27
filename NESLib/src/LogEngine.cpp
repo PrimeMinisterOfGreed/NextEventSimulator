@@ -1,5 +1,9 @@
 #include "LogEngine.hpp"
 #include <cstdio>
+#include <fmt/args.h>
+#include <fmt/color.h>
+#include <fmt/core.h>
+#include <fmt/format.h>
 #include <fstream>
 #include <ios>
 #include <istream>
@@ -9,7 +13,7 @@
 
 LogEngine *LogEngine::_instance = nullptr;
 
-std::string LogTypeToString(LogType logType)
+constexpr std::string LogTypeToString(LogType logType)
 {
     switch (logType)
     {
@@ -25,6 +29,25 @@ std::string LogTypeToString(LogType logType)
         return std::move(std::string("[Debug]"));
     }
     return "";
+}
+
+constexpr fmt::color LogTypeToColor(LogType type)
+{
+    using fmt::color;
+    switch (type)
+    {
+    case LogType::EXCEPTION:
+        return fmt::color::red;
+    case LogType::RESULT:
+        return fmt::v8::color::green;
+    case LogType::INFORMATION:
+        return fmt::v8::color::blue;
+    case LogType::TRANSFER:
+        return fmt::v8::color::aqua;
+    case LogType::DEBUG:
+        return fmt::v8::color::yellow;
+    }
+    return fmt::v8::color::white;
 }
 
 void writeBuffer(std::istream *buffer, std::ostream *save)
@@ -55,9 +78,9 @@ void LogEngine::Trace(LogType type, std::string message)
 {
     using namespace std;
 
-    std::string log = LogTypeToString(type) + message;
+    std::string log = LogTypeToString(type) + message + "\n";
     char buffer[log.size() + 1];
     sprintf(buffer, "%s\n", log.c_str());
-    printf("%s\n", log.c_str());
+    fmt::print(fmt::fg(LogTypeToColor(type)), log);
     _buffer.write(buffer, log.size() + 1);
 }

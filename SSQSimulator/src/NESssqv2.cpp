@@ -27,6 +27,7 @@ void NESssq::Execute()
 {
     while (!_end)
     {
+        auto ref = (*this)["server"].value();
         auto nextEvt = Create(_interArrivals(), _serviceTimes());
         _logger.Information("Created next event {} occur time {}", nextEvt.Name, nextEvt.OccurTime);
         Schedule(nextEvt);
