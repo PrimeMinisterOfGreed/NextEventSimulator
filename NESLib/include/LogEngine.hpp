@@ -15,6 +15,7 @@ enum class LogType
     DEBUG
 };
 
+// use for dynamic format, else use fmt::format
 template <typename... Args> std::string makeformat(const char *format, Args... args)
 {
     return std::move(std::string(fmt::vformat(std::string(format), fmt::make_format_args(args...))));

@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <fmt/core.h>
 #include <iostream>
 
 enum EventType : char
@@ -27,9 +28,10 @@ struct Event
     Event()
     {
     }
-    Event(std::string name, char type, double createTime, double occurTime, double serviceTime, double arrivalTime, int stationTarget = 0)
+    Event(std::string name, char type, double createTime, double occurTime, double serviceTime, double arrivalTime,
+          int stationTarget = 0)
         : Name{name}, Type{type}, CreateTime{createTime}, OccurTime{occurTime}, ServiceTime{serviceTime},
-          ArrivalTime{arrivalTime},Station(stationTarget)
+          ArrivalTime{arrivalTime}, Station(stationTarget)
     {
         Event::GeneratedNodes++;
     }
@@ -39,7 +41,26 @@ struct Event
         DeletedNodes++;
     }
 
-    Event(const Event&) = default;
+    Event(const Event &) = default;
 
-    bool operator==(Event& oth);
+    bool operator==(Event &oth);
+};
+
+template <> struct fmt::formatter<Event>
+{
+    std::string fmt = "";
+    constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
+    {
+        for (auto &c : ctx)
+        {
+            fmt += c;
+        }
+        fmt.erase(fmt.size() - 1);
+        return ctx.end();
+    }
+
+    auto format(const Event &list, format_context &ctx) -> format_context::iterator
+    {
+        return fmt::format_to(ctx.out(), "{}", fmt);
+    }
 };

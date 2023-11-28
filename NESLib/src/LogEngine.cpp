@@ -39,15 +39,15 @@ constexpr fmt::color LogTypeToColor(LogType type)
     case LogType::EXCEPTION:
         return fmt::color::red;
     case LogType::RESULT:
-        return fmt::v8::color::green;
+        return fmt::color::green;
     case LogType::INFORMATION:
-        return fmt::v8::color::blue;
+        return fmt::color::blue;
     case LogType::TRANSFER:
-        return fmt::v8::color::aqua;
+        return fmt::color::aqua;
     case LogType::DEBUG:
-        return fmt::v8::color::yellow;
+        return fmt::color::yellow;
     }
-    return fmt::v8::color::white;
+    return fmt::color::white;
 }
 
 void writeBuffer(std::istream *buffer, std::ostream *save)
