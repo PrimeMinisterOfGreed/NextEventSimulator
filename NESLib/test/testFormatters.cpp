@@ -7,7 +7,7 @@
 TEST(TestFormatter, test_event_format)
 {
     Event e{"A", END, 10, 100, 20, 20, 0};
-    auto str = makeformat("{1}", e);
+    auto str = makeformat("{}", e);
     fmt::print("{}", str);
 }
 
@@ -18,6 +18,6 @@ TEST(TestFormatter, test_list_format)
     linkedList.Enqueue(2.0);
     linkedList.Enqueue(3.0);
     linkedList.Enqueue(4.0);
-    auto str = makeformat("{:f}", linkedList);
+    auto str = makeformat("{}", linkedList);
     fmt::print("{}", str);
 }

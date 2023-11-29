@@ -3,11 +3,11 @@
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Node.hpp"
+#include <FormatParser.hpp>
 #include <concepts>
 #include <cstddef>
 #include <cstdio>
 #include <exception>
-#include <fmt/core.h>
 #include <fmt/format.h>
 #include <functional>
 #include <iostream>
@@ -23,6 +23,7 @@ class DoubleLinkedList
     Node<T> *_begin;
     Node<T> *_end;
     size_t _count = 0;
+    static int _refcount;
 
   public:
     NodeIterator<T> begin() const
@@ -38,6 +39,19 @@ class DoubleLinkedList
     inline size_t Count() const
     {
         return _count;
+    }
+
+    DoubleLinkedList()
+    {
+        _refcount++;
+    }
+
+    DoubleLinkedList(const DoubleLinkedList &ref)
+    {
+        _refcount++;
+        this->_begin = ref._begin;
+        this->_end = ref._end;
+        this->_count = ref.Count();
     }
 
     void Push(T val);
@@ -210,9 +224,15 @@ inline void DoubleLinkedList<T>::Clear()
 
 template <typename T>
     requires Comparable<T>
+int DoubleLinkedList<T>::_refcount = 0;
+
+template <typename T>
+    requires Comparable<T>
 inline DoubleLinkedList<T>::~DoubleLinkedList()
 {
-    Clear();
+    _refcount--;
+    if (_refcount == 0)
+        Clear();
 }
 
 template <typename T>
@@ -232,21 +252,27 @@ inline DoubleLinkedList<T> DoubleLinkedList<T>::Take(std::function<bool(const T 
 
 template <typename T> struct fmt::formatter<DoubleLinkedList<T>>
 {
-    std::string fmt = "";
-    std::string innerfmt = "{}";
+    FormatParser p{};
     constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
     {
-        for (auto &c : ctx)
-        {
-            fmt += c;
-        }
-        fmt.erase(fmt.size() - 1);
-        return ctx.end();
+        return p.parse(ctx);
     }
 
     auto format(const DoubleLinkedList<T> &list, format_context &ctx) -> format_context::iterator
     {
-        auto str = makeformat(innerfmt.c_str(), fmt);
-        fmt::format_to(ctx.out(), "{}", str);
+        std::string result = "";
+        if (list.Count() == 0)
+        {
+            return fmt::format_to(ctx.out(), "[EMPTY]");
+        }
+        auto itr = list.begin();
+        while (itr != list.end())
+        {
+            if (itr != list.end())
+                result += fmt::format("[{}]->", *itr);
+            itr++;
+        }
+        result += fmt::format("[{}]", *itr);
+        return fmt::format_to(ctx.out(), "{}", result);
     }
 };

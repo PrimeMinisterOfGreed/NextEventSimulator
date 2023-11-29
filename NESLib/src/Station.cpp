@@ -61,7 +61,7 @@ void Station::Process(Event &event)
         return;
     }
     _clock = event.OccurTime;
-    _logger.Transfer("Station:{}, Processing event:{} with occur time: {}", _name, event.Name, event.OccurTime);
+    _logger.Transfer("Processing:{}", event);
     double interval = _clock - _oldclock;
     _oldclock = event.OccurTime;
     if (_sysClients > 0)
@@ -74,18 +74,20 @@ void Station::Process(Event &event)
     {
     case EventType::ARRIVAL:
         ProcessArrival(event);
-        _logger.Information("Station:{}, Processing Arrival of event:{}", _name, event.Name);
+        _logger.Information("Arrival:{}", event);
         break;
     case EventType::DEPARTURE:
         ProcessDeparture(event);
-        _logger.Information("Station:{}, Processing Departure of event:{}", _name, event.Name);
+        _logger.Information("Departure:{}", event);
         break;
     case EventType::NO_EVENT:
         break;
     case EventType::END:
+        _logger.Information("End:{}", event);
         ProcessEnd(event);
         break;
     case EventType::PROBE:
+        _logger.Information("Probe:{}", event);
         ProcessProbe(event);
     case EventType::MAINTENANCE:
         ProcessMaintenance(event);

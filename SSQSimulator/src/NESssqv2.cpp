@@ -1,6 +1,7 @@
 #include "NESssqv2.hpp"
 #include "DataWriter.hpp"
 #include "Event.hpp"
+#include "FCFSStation.hpp"
 #include "LogEngine.hpp"
 #include "Scheduler.hpp"
 #include "Station.hpp"
@@ -8,6 +9,7 @@
 #include "rvgs.h"
 #include "rvms.h"
 #include <cstdint>
+#include <memory>
 #include <ostream>
 #include <string>
 
@@ -25,16 +27,24 @@ void NESssq::Initialize()
 
 void NESssq::Execute()
 {
+    auto nextEvt = Create(_interArrivals(), _serviceTimes());
+    _logger.Information("Created:{}", nextEvt);
+    Schedule(nextEvt);
     while (!_end)
     {
         auto ref = (*this)["server"].value();
-        auto nextEvt = Create(_interArrivals(), _serviceTimes());
-        _logger.Information("Created next event {} occur time {}", nextEvt.Name, nextEvt.OccurTime);
-        Schedule(nextEvt);
+        _logger.Transfer("Schedule Queue:{}", _eventList);
+        _logger.Transfer("Server Queue:{}", std::static_pointer_cast<FCFSStation>(ref)->EventQueue());
         auto inProcess = _eventList.Dequeue();
         Process(inProcess);
-        if (_end)
+
+        // replace with end
+        if (_clock >= 80)
+        {
+            ProcessEnd(inProcess);
             return;
+        }
+
         inProcess.Station = 1;
         _clock = inProcess.OccurTime;
         Route(inProcess);
@@ -56,4 +66,12 @@ void NESssq::ProcessEnd(Event &evt)
     _logger.Result("End of simulation time {}", _clock);
     _logger.Result("Arrived customers:{}", _stations.at(0)->arrivals());
     _logger.Result("Departures:{}", _stations.at(0)->completions());
+}
+
+void NESssq::ProcessArrival(Event &evt)
+{
+    Scheduler::ProcessArrival(evt);
+    auto nextEvt = Create(_interArrivals(), _serviceTimes());
+    _logger.Information("Created:{}", nextEvt);
+    Schedule(nextEvt);
 }

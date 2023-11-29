@@ -7,7 +7,6 @@
 
 void FCFSStation::ProcessArrival(Event &evt)
 {
-    _logger.Transfer("Processing arrival of {}", evt.Name);
     Station::ProcessArrival(evt);
     if (!_eventUnderProcess.has_value())
     {
@@ -15,7 +14,6 @@ void FCFSStation::ProcessArrival(Event &evt)
         evt.ArrivalTime = _clock;
         evt.OccurTime = _clock + evt.ServiceTime;
         evt.Type = EventType::DEPARTURE;
-        _logger.Transfer("Scheduling departure of {} at {}", evt.Name, evt.OccurTime);
         _eventUnderProcess.emplace(evt);
         _scheduler->Schedule(evt);
     }
@@ -27,7 +25,7 @@ void FCFSStation::ProcessArrival(Event &evt)
 
 void FCFSStation::ProcessDeparture(Event &evt)
 {
-    _logger.Information("Processing departure of {}", _eventUnderProcess->Name);
+
     if (evt != *_eventUnderProcess)
         throw std::runtime_error("The departure requested is not equal as the event under process");
     Station::ProcessDeparture(_eventUnderProcess.value());
@@ -42,7 +40,6 @@ void FCFSStation::ProcessDeparture(Event &evt)
     }
     else
         _eventUnderProcess.reset();
-    _completions++;
 }
 
 void FCFSStation::ProcessEnd(Event &evt)

@@ -30,5 +30,6 @@ class NESssq : public Scheduler, public ISimulator
         return *this;
     }
     virtual void ProcessEnd(Event &evt) override;
+    virtual void ProcessArrival(Event &evt) override;
     NESssq();
 };

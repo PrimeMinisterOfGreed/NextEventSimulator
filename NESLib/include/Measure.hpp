@@ -9,6 +9,7 @@
 #include "rvms.h"
 #include <cmath>
 #include <cstddef>
+#include <fmt/core.h>
 #include <stdexcept>
 #include <string>
 
@@ -39,7 +40,7 @@ class BaseMeasure
     }
     virtual std::string Heading()
     {
-        return makeformat("{}({})", Name(), Unit());
+        return fmt::format("{}({})", Name(), Unit());
     }
 
     virtual void Reset()
@@ -71,7 +72,7 @@ template <typename T> class Measure : public BaseMeasure
 
     virtual std::string Csv()
     {
-        return makeformat("{}", _lastAccumulatedValue);
+        return fmt::format("{}", _lastAccumulatedValue);
     }
 
     void operator()(T value)
@@ -120,22 +121,22 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 
     std::string Heading() override
     {
-        std::string head = makeformat("{};", Measure<T>::Heading());
+        std::string head = fmt::format("{};", Measure<T>::Heading());
         auto name = Measure<T>::Name();
-        head += makeformat("meanOf{};", name);
-        head += makeformat("varianceOf{};", name);
-        head += makeformat("lowerBoundOf{};", name);
-        head += makeformat("upperBoundOf{}", name);
+        head += fmt::format("meanOf{};", name);
+        head += fmt::format("varianceOf{};", name);
+        head += fmt::format("lowerBoundOf{};", name);
+        head += fmt::format("upperBoundOf{}", name);
         return head;
     }
 
     std::string Csv() override
     {
-        std::string csv = makeformat("{};", Measure<T>::Csv());
-        csv += makeformat("{};", mean());
-        csv += makeformat("{};", variance());
-        csv += makeformat("{};", confidence().first);
-        csv += makeformat("{}", confidence().second);
+        std::string csv = fmt::format("{};", Measure<T>::Csv());
+        csv += fmt::format("{};", mean());
+        csv += fmt::format("{};", variance());
+        csv += fmt::format("{};", confidence().first);
+        csv += fmt::format("{}", confidence().second);
         return csv;
     }
 

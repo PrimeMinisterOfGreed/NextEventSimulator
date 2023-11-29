@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FormatParser.hpp"
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <iostream>
@@ -13,6 +14,32 @@ enum class LogType
     INFORMATION,
     TRANSFER,
     DEBUG
+};
+
+template <> struct fmt::formatter<LogType>
+{
+    FormatParser p{};
+    auto parse(format_parse_context &ctx)
+    {
+        return p.parse(ctx);
+    }
+    auto format(const LogType &type, format_context &ctx) -> format_context::iterator
+    {
+        switch (type)
+        {
+        case LogType::EXCEPTION:
+            return fmt::format_to(ctx.out(), "Exception");
+        case LogType::RESULT:
+            return fmt::format_to(ctx.out(), "Result");
+        case LogType::INFORMATION:
+            return fmt::format_to(ctx.out(), "Information");
+        case LogType::TRANSFER:
+            return fmt::format_to(ctx.out(), "Transfer");
+        case LogType::DEBUG:
+            return fmt::format_to(ctx.out(), "Debug");
+        }
+        return fmt::format_to(ctx.out(), "");
+    }
 };
 
 // use for dynamic format, else use fmt::format
@@ -68,7 +95,7 @@ struct TraceSource
     {
         if (verbosity >= (int)type)
         {
-            engine->Trace(type, makeformat("({}){}", sourceName, message));
+            engine->Trace(type, fmt::format("({}){}", sourceName, message));
         }
     }
 

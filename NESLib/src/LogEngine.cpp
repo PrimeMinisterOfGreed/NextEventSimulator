@@ -13,24 +13,6 @@
 
 LogEngine *LogEngine::_instance = nullptr;
 
-constexpr std::string LogTypeToString(LogType logType)
-{
-    switch (logType)
-    {
-    case LogType::EXCEPTION:
-        return std::move(std::string("[Exception]"));
-    case LogType::RESULT:
-        return std::move(std::string("[Result]"));
-    case LogType::INFORMATION:
-        return std::move(std::string("[Information]"));
-    case LogType::TRANSFER:
-        return std::move(std::string("[Transfer]"));
-    case LogType::DEBUG:
-        return std::move(std::string("[Debug]"));
-    }
-    return "";
-}
-
 constexpr fmt::color LogTypeToColor(LogType type)
 {
     using fmt::color;
@@ -78,7 +60,7 @@ void LogEngine::Trace(LogType type, std::string message)
 {
     using namespace std;
 
-    std::string log = LogTypeToString(type) + message + "\n";
+    std::string log = fmt::format("[{}]{}\n", type, message);
     char buffer[log.size() + 1];
     sprintf(buffer, "%s\n", log.c_str());
     fmt::print(fmt::fg(LogTypeToColor(type)), log);

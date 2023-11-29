@@ -1,6 +1,8 @@
 #pragma once
+#include "FormatParser.hpp"
 #include <cstddef>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <iostream>
 
 enum EventType : char
@@ -48,19 +50,14 @@ struct Event
 
 template <> struct fmt::formatter<Event>
 {
-    std::string fmt = "";
+    FormatParser p{};
     constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
     {
-        for (auto &c : ctx)
-        {
-            fmt += c;
-        }
-        fmt.erase(fmt.size() - 1);
-        return ctx.end();
+        return p.parse(ctx);
     }
 
-    auto format(const Event &list, format_context &ctx) -> format_context::iterator
+    auto format(const Event &evt, format_context &ctx) -> format_context::iterator
     {
-        return fmt::format_to(ctx.out(), "{}", fmt);
+        return fmt::format_to(ctx.out(), "J:{},OC:{:2f},Tp:{}", evt.Name, evt.OccurTime, evt.Type);
     }
 };

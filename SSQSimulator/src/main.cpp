@@ -43,5 +43,7 @@ int main(int argc, char *argv[])
     endTime = vm.at("-end").as<int>();
     LogEngine::CreateInstance(vm.at("-output").as<std::string>());
     NESssq simulator{};
-    simulator.EndTime(80).Execute();
+    simulator
+        //.EndTime(80)
+        .Execute();
 }
