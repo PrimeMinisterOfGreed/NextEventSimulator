@@ -3,50 +3,54 @@
 #include "DataWriter.hpp"
 #include "Enums.hpp"
 #include "Event.hpp"
+#include "IOStation.hpp"
 #include "ISimulator.hpp"
 #include "Options.hpp"
+#include "ReserveStation.hpp"
+#include "Scheduler.hpp"
 #include "Station.hpp"
+#include "SwapOut.hpp"
 #include "SystemParameters.hpp"
+#include "Usings.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
+#include <vector>
 
 void OS::Execute()
 {
     Initialize();
     while (!_end)
     {
-        auto nextEvt = _eventQueue.Dequeue();
+        auto nextEvt = _eventList.Dequeue();
         _clock = nextEvt.OccurTime;
-        if (nextEvt.Station == Stations::RESERVE_STATION && nextEvt.Type == EventType::ARRIVAL)
-        {
-            OnEventProcess(_stations);
-            double nextArrival = (*_nextArrival)() + _clock;
-            auto evt = Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION),
-                             EventType::ARRIVAL, _clock, nextArrival, 0, nextArrival, Stations::RESERVE_STATION);
-            Process(evt);
-            Schedule(evt);
-        }
-        else if (nextEvt.Type == EventType::END)
-            _end = true;
-        else if (nextEvt.Station == Stations::SWAP_OUT && nextEvt.Type == EventType::DEPARTURE)
-        {
-            Process(nextEvt);
-            OnProcessFinished(_stations);
-        }
-        RouteToStation(nextEvt);
+        Process(nextEvt);
+        Route(nextEvt);
     }
 }
 
 OS::OS()
-    : Station("OS", 0),
-
-      _cpu{Cpu(this)}, _reserveStation{ReserveStation(this)}, _io1{IOStation(this, Stations::IO_1)},
-      _io2{IOStation(this, Stations::IO_2)}, _swapOut{SwapOut(this)}, _swapIn{SwapIn(this)}
+    : Scheduler("OS"),
+      _interArrival(
+          VariableStream(1, [](auto &rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); }))
 {
     DataWriter::Instance().header = collector.Header();
-    _nextArrival = RandomStream::Global().GetStream(
-        [](auto &rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); });
-    _stations = std::vector<Station *>({this, &_cpu, &_reserveStation, &_io1, &_io2, &_swapIn, &_swapOut});
+    static Cpu cpu(this);
+    static ReserveStation rstation(this);
+    static IOStation io1(this, Stations::IO_1);
+    static IOStation io2(this, Stations::IO_2);
+    static SwapOut swapOut(this);
+    static SwapIn swapin(this);
+    _stations = std::vector<sptr<Station>>({sptr<Station>(&rstation), sptr<Station>(&io1), sptr<Station>(&io2),
+                                            sptr<Station>(&swapOut), sptr<Station>(&swapin)});
+}
+
+void OS::ProcessArrival(Event &evt)
+{
+    evt.Station = Stations::RESERVE_STATION;
+    Schedule(evt);
+    auto newEvt = Event(makeformat("J{}:S{}", Event::GeneratedNodes, 0), EventType::ARRIVAL, _clock,
+                        _interArrival() + _clock, 0, _interArrival() + _clock, 0);
+    Schedule(newEvt);
 }
 
 void OS::Reset()
@@ -57,25 +61,7 @@ void OS::Reset()
     {
         station->Reset();
     }
-    _eventQueue.Clear();
-}
-
-void OS::RouteToStation(Event &evt)
-{
-    if (evt.Station == 0)
-    {
-        Process(evt);
-        return;
-    }
-    for (auto station : _stations)
-    {
-        if (evt.Station == station->stationIndex())
-        {
-            station->Process(evt);
-            return;
-        }
-    }
-    throw std::invalid_argument("Cannot find a suitable station for the given argument");
+    _eventList.Clear();
 }
 
 void OS::Initialize()
@@ -93,10 +79,4 @@ void OS::ProcessProbe(Event &evt)
         if (station->stationIndex() != this->stationIndex())
             station->Process(evt);
     }
-}
-
-void OS::Schedule(Event event)
-{
-    _logger->Transfer("Scheduling event for station {} at time {}", event.Station, event.OccurTime);
-    _eventQueue.Insert(event, [](const Event &a, const Event &b) { return a.OccurTime > b.OccurTime; });
 }

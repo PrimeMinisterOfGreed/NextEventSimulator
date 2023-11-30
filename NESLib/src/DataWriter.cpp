@@ -40,6 +40,10 @@ void DataWriter::Register(DataCollector *collector)
     _dataFiles.push_back(data);
 }
 
+void DataWriter::Flush()
+{
+}
+
 void DataWriter::SnapShot()
 {
     for (auto &file : _dataFiles)

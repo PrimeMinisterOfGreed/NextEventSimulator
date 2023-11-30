@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     {
         std::cout << descr << std::endl;
     }
-    LogEngine::CreateInstance(2, "simulation.txt");
+    LogEngine::CreateInstance("simulation.txt");
     OS os = OS();
     auto endTime = SystemParameters::Parameters().endTime;
     auto probeTime = SystemParameters::Parameters().probeInterval;
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     {
         os.Schedule(Event("PROBE", EventType::PROBE, 0, (i + 1) * probeTime, 0, i * probeTime));
     }
+    os.Initialize();
     os.Execute();
     DataWriter::Instance().Flush();
-    LogEngine::Instance()->Finalize();
 }

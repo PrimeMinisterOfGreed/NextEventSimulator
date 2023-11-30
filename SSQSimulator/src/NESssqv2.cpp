@@ -23,13 +23,13 @@ NESssq::NESssq()
 void NESssq::Initialize()
 {
     RandomStream::Global().PlantSeeds(123456789);
+    auto nextEvt = Create(0.0, _serviceTimes());
+    _logger.Information("Created:{}", nextEvt);
+    Schedule(nextEvt);
 }
 
 void NESssq::Execute()
 {
-    auto nextEvt = Create(_interArrivals(), _serviceTimes());
-    _logger.Information("Created:{}", nextEvt);
-    Schedule(nextEvt);
     while (!_end)
     {
         auto ref = (*this)["server"].value();
@@ -38,19 +38,14 @@ void NESssq::Execute()
         auto inProcess = _eventList.Dequeue();
         Process(inProcess);
 
-        // replace with end
-        if (_clock >= 80)
-        {
-            ProcessEnd(inProcess);
-            return;
-        }
-
         inProcess.Station = 1;
         _clock = inProcess.OccurTime;
         Route(inProcess);
-        if ((int)_clock % 10000 == 0)
+
+        if (ref->arrivals() == ref->completions() && _clock > 1000)
         {
-            DataWriter::Instance().SnapShot();
+            ProcessEnd(inProcess);
+            return;
         }
     }
 }

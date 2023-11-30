@@ -45,5 +45,6 @@ int main(int argc, char *argv[])
     NESssq simulator{};
     simulator
         //.EndTime(80)
-        .Execute();
+        .Initialize();
+    simulator.Execute();
 }

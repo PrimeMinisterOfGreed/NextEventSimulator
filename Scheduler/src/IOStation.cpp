@@ -24,11 +24,11 @@ void IOStation::ProcessDeparture(Event &evt)
 }
 
 IOStation::IOStation(IScheduler *scheduler, int stationIndex)
-    : FCFSStation(scheduler, stationIndex == 4 ? "IO1" : "IO2", stationIndex)
+    : FCFSStation(scheduler, stationIndex == Stations::IO_1 ? "IO1" : "IO2", stationIndex)
 {
     _serviceTime = RandomStream::Global().GetStream([this](auto &rng) {
-        return Exponential(_stationIndex == 4 ? SystemParameters::Parameters().averageIO1
-                                              : SystemParameters::Parameters().averageIO2);
+        return Exponential(_stationIndex == Stations::IO_1 ? SystemParameters::Parameters().averageIO1
+                                                           : SystemParameters::Parameters().averageIO2);
     });
     _name = _stationIndex == 4 ? "IO1" : "IO2";
 }
