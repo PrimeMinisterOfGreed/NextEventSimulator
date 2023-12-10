@@ -52,6 +52,24 @@ void FCFSStation::ProcessProbe(Event &evt)
     Station::ProcessProbe(evt);
 }
 
+void FCFSStation::ProcessMaintenance(Event &evt)
+{
+    Station::ProcessMaintenance(evt);
+    if (!_eventUnderProcess.has_value())
+    {
+        evt.CreateTime = _clock;
+        evt.ArrivalTime = _clock;
+        evt.OccurTime = _clock + evt.ServiceTime;
+        evt.Type = EventType::DEPARTURE;
+        _eventUnderProcess.emplace(evt);
+        _scheduler->Schedule(evt);
+    }
+    else
+    {
+        _eventQueue.Enqueue(evt);
+    }
+}
+
 void FCFSStation::Reset()
 {
     Station::Reset();

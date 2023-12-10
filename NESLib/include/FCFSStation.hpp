@@ -21,6 +21,7 @@ class FCFSStation : public Station
     void ProcessDeparture(Event &evt) override;
     void ProcessEnd(Event &evt) override;
     void ProcessProbe(Event &evt) override;
+    void ProcessMaintenance(Event &evt) override;
     void Reset() override;
     FCFSStation(IScheduler *scheduler, std::string name, int stationIndex);
     EventList EventQueue() const
