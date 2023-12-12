@@ -1,8 +1,10 @@
 #pragma once
 #include "DataCollector.hpp"
 #include "Event.hpp"
+#include "ISimulator.hpp"
 #include "LogEngine.hpp"
 #include "Measure.hpp"
+#include "Usings.hpp"
 #include <functional>
 #include <optional>
 #include <vector>
@@ -84,10 +86,15 @@ class DelayStation
 {
   protected:
     std::string _name;
-    double _thinkTime;
     int _numClients;
+    TraceSource _logger;
+    IScheduler *_scheduler;
+    std::vector<sptr<Station>> _exitStations{};
+    int _generatedClients = 0;
 
   public:
     Event &Process();
-    DelayStation(double thinkTime, int numClients);
+    DelayStation(IScheduler *scheduler, int numclients, std::string name);
+    DelayStation &AddExitStation(sptr<Station> station);
+    void Init();
 };

@@ -14,7 +14,16 @@ class MachineRepairman : public Scheduler, public ISimulator
     VariableStream _serviceTimes;
     const int _nominalWorkshift = 480;
     const int _nominalRests = 960;
+    bool _end = false;
 
   public:
     MachineRepairman();
+
+    void Initialize() override;
+    void Execute() override;
+    void Reset() override;
+
+    void ProcessMaintenance(Event &evt) override;
+    void ProcessArrival(Event &evt) override;
+    void ProcessEnd(Event &evt) override;
 };

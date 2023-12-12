@@ -73,10 +73,18 @@ void Station::Process(Event &event)
     switch (event.Type)
     {
     case EventType::ARRIVAL:
+        if (_onArrival.has_value())
+        {
+            _onArrival.value()(this);
+        }
         ProcessArrival(event);
         _logger.Information("Arrival:{}", event);
         break;
     case EventType::DEPARTURE:
+        if (_onDeparture.has_value())
+        {
+            _onDeparture.value()(this);
+        }
         ProcessDeparture(event);
         _logger.Information("Departure:{}", event);
         break;
@@ -164,4 +172,16 @@ void Station::Update()
 DataCollector Station::Data()
 {
     return collector;
+}
+
+DelayStation::DelayStation(IScheduler *scheduler, int numClients, std::string name)
+    : _name(name), _numClients(numClients), _logger(TraceSource(name)), _scheduler(scheduler)
+{
+}
+
+DelayStation &DelayStation::AddExitStation(sptr<Station> station)
+{
+    station->OnDeparture([this](auto stat) {
+
+    });
 }

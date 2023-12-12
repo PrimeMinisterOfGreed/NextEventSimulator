@@ -4,6 +4,8 @@
 #include "ISimulator.hpp"
 #include "Station.hpp"
 #include "Usings.hpp"
+#include <memory>
+#include <optional>
 #include <vector>
 
 class Scheduler : public IScheduler, public Station
@@ -16,6 +18,12 @@ class Scheduler : public IScheduler, public Station
   public:
     virtual void Schedule(Event event) override;
     virtual void Initialize() override;
+    inline Scheduler &AddStation(Station station)
+    {
+        _stations.push_back(std::make_shared<Station>(station));
+        return *this;
+    };
+
     Scheduler(std::string name) : Station(name, 0)
     {
     }
@@ -29,6 +37,11 @@ class Scheduler : public IScheduler, public Station
             }
         }
         return {};
+    }
+
+    std::optional<sptr<Station>> operator[](int index)
+    {
+        return _stations[index];
     }
 
     virtual Event Create(double interArrival, double serviceTime, int stationTarget = 0, EventType type = ARRIVAL);
