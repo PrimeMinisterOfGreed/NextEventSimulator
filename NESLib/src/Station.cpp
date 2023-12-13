@@ -52,6 +52,7 @@ void Station::ProcessEnd(Event &evt)
 void Station::ProcessProbe(Event &evt)
 {
     Update();
+    _observationPeriod = _oldclock;
 }
 
 void Station::Process(Event &event)
@@ -153,20 +154,19 @@ void Station::Update()
     collector[Arrivals]->Accumulate(_arrivals);
     collector[sysclients]->Accumulate(_sysClients);
     collector[maxclients]->Accumulate(_maxClients);
-    collector[avgInterArrival]->Accumulate(_oldclock / _arrivals);           /* Average inter-arrival time */
-    collector[avgServiceTime]->Accumulate(_busyTime / _completions);         /* Average service time */
-    collector[avgDelay]->Accumulate(_areaS / _completions);                  /* Average delay time */
-    collector[avgWaiting]->Accumulate(_areaN / _completions);                /* Average wait time */
-    collector[utilization]->Accumulate(_busyTime / _observationPeriod);      /* Utilization */
-    collector[throughput]->Accumulate(_completions / _observationPeriod);    /* Throughput */
-    collector[inputRate]->Accumulate(_arrivals / _oldclock);                 /* Input rate */
-    collector[arrivalRate]->Accumulate(_arrivals / _observationPeriod);      /* Arriva rate */
-    collector[serviceRate]->Accumulate(_completions / _busyTime);            /* Service rate */
-    collector[traffic]->Accumulate(_busyTime / _lastArrival);                /* Traffic intensity */
-    collector[meanCustomerInQueue]->Accumulate(_areaS / _observationPeriod); /* Mean number of customers in queue */
-    collector[meanCustomerInService]->Accumulate(_busyTime /
-                                                 _observationPeriod);         /* Mean number of customers in service */
-    collector[meanCustomerInSystem]->Accumulate(_areaS / _observationPeriod); /* Mean number of customers in system */
+    collector[avgInterArrival]->Accumulate(_oldclock / _arrivals);       /* Average inter-arrival time */
+    collector[avgServiceTime]->Accumulate(_busyTime / _completions);     /* Average service time */
+    collector[avgDelay]->Accumulate(_areaS / _completions);              /* Average delay time */
+    collector[avgWaiting]->Accumulate(_areaN / _completions);            /* Average wait time */
+    collector[utilization]->Accumulate(_busyTime / _oldclock);           /* Utilization */
+    collector[throughput]->Accumulate(_completions / _oldclock);         /* Throughput */
+    collector[inputRate]->Accumulate(_arrivals / _oldclock);             /* Input rate */
+    collector[arrivalRate]->Accumulate(_arrivals / _oldclock);           /* Arriva rate */
+    collector[serviceRate]->Accumulate(_completions / _busyTime);        /* Service rate */
+    collector[traffic]->Accumulate(_busyTime / _lastArrival);            /* Traffic intensity */
+    collector[meanCustomerInQueue]->Accumulate(_areaS / _oldclock);      /* Mean number of customers in queue */
+    collector[meanCustomerInService]->Accumulate(_busyTime / _oldclock); /* Mean number of customers in service */
+    collector[meanCustomerInSystem]->Accumulate(_areaS / _oldclock);     /* Mean number of customers in system */
     collector._samples++;
 }
 
