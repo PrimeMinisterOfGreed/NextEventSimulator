@@ -51,7 +51,7 @@ template <typename... Args> std::string makeformat(const char *format, Args... a
 class ILogEngine
 {
   public:
-    virtual void Finalize() = 0;
+    virtual void Flush() = 0;
     virtual void Trace(LogType type, std::string message) = 0;
 };
 
@@ -72,12 +72,17 @@ class LogEngine : public ILogEngine
     }
 
   public:
-    virtual void Finalize() override;
+    virtual void Flush() override;
     virtual void Trace(LogType type, std::string message) override;
 
     static void CreateInstance(std::string logFile)
     {
         _instance = new LogEngine(logFile);
+    }
+
+    static ILogEngine *Instance()
+    {
+        return _instance;
     }
 };
 

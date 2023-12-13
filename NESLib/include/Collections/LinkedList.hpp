@@ -20,8 +20,8 @@ template <class T>
 class DoubleLinkedList
 {
   private:
-    Node<T> *_begin;
-    Node<T> *_end;
+    Node<T> *_begin = nullptr;
+    Node<T> *_end = nullptr;
     size_t _count = 0;
     static int _refcount;
 

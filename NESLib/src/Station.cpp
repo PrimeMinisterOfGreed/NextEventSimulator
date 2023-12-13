@@ -5,6 +5,7 @@
 #include "FCFSStation.hpp"
 #include "LogEngine.hpp"
 #include "Measure.hpp"
+#include "Scheduler.hpp"
 #include <sstream>
 
 enum Measures
@@ -172,16 +173,4 @@ void Station::Update()
 DataCollector Station::Data()
 {
     return collector;
-}
-
-DelayStation::DelayStation(IScheduler *scheduler, int numClients, std::string name)
-    : _name(name), _numClients(numClients), _logger(TraceSource(name)), _scheduler(scheduler)
-{
-}
-
-DelayStation &DelayStation::AddExitStation(sptr<Station> station)
-{
-    station->OnDeparture([this](auto stat) {
-
-    });
 }

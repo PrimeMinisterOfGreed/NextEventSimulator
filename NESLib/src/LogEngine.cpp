@@ -1,5 +1,6 @@
 #include "LogEngine.hpp"
 #include <cstdio>
+#include <filesystem>
 #include <fmt/args.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
@@ -32,15 +33,14 @@ constexpr fmt::color LogTypeToColor(LogType type)
     return fmt::color::white;
 }
 
-void writeBuffer(std::istream *buffer, std::ostream *save)
+void writeBuffer(std::istream &buffer, std::ostream &save)
 {
     using namespace std;
     std::string line;
-    while (std::getline(*buffer, line))
+    while (std::getline(buffer, line))
     {
-        char statBuf[line.size() + 1];
-        sprintf(statBuf, "%s\n", line.c_str());
-        save->write(statBuf, line.size() + 1);
+        auto formatted = fmt::format("{}\n", line);
+        save.write(formatted.c_str(), formatted.size());
     }
 }
 
@@ -49,20 +49,25 @@ void writeBuffer(std::istream *buffer, std::ostream *save)
  * @note   used RTTI on fstream  to save the log file so at the end of the function the stream will be closed
  * @retval None
  */
-void LogEngine::Finalize()
+void LogEngine::Flush()
 {
     using namespace std;
     fstream logFile(_logFile, ios_base::app);
-    writeBuffer(&_buffer, &logFile);
+    writeBuffer(_buffer, logFile);
+    _buffer.clear();
+    _buffer.seekp(0);
 }
 
 void LogEngine::Trace(LogType type, std::string message)
 {
     using namespace std;
-
     std::string log = fmt::format("[{}]{}\n", type, message);
     char buffer[log.size() + 1];
     sprintf(buffer, "%s\n", log.c_str());
     fmt::print(fmt::fg(LogTypeToColor(type)), log);
     _buffer.write(buffer, log.size() + 1);
+    if (_buffer.tellp() > 1024 * 1024)
+    {
+        Flush();
+    }
 }

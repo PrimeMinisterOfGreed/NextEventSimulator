@@ -47,4 +47,5 @@ int main(int argc, char *argv[])
         //.EndTime(80)
         .Initialize();
     simulator.Execute();
+    LogEngine::Instance()->Flush();
 }

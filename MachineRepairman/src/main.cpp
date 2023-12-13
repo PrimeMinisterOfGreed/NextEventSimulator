@@ -1,3 +1,5 @@
+#include "DataCollector.hpp"
+#include "DataWriter.hpp"
 #include "FCFSStation.hpp"
 #include "LogEngine.hpp"
 #include "MachineRepairman.hpp"
@@ -13,4 +15,6 @@ int main()
     MachineRepairman simulator{};
     simulator.Initialize();
     simulator.Execute();
+    LogEngine::Instance()->Flush();
+    DataWriter::Instance().SnapShot();
 }

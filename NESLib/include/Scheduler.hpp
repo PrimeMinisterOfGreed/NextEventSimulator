@@ -18,13 +18,14 @@ class Scheduler : public IScheduler, public Station
   public:
     virtual void Schedule(Event event) override;
     virtual void Initialize() override;
-    inline Scheduler &AddStation(Station station)
+
+    template <typename STAT> inline Scheduler &AddStation(STAT station)
     {
-        _stations.push_back(std::make_shared<Station>(station));
+        _stations.push_back(std::make_shared<STAT>(station));
         return *this;
     };
 
-    Scheduler(std::string name) : Station(name, 0)
+    Scheduler(std::string name) : Station(name, -1)
     {
     }
     std::optional<sptr<Station>> operator[](std::string name)
@@ -44,5 +45,5 @@ class Scheduler : public IScheduler, public Station
         return _stations[index];
     }
 
-    virtual Event Create(double interArrival, double serviceTime, int stationTarget = 0, EventType type = ARRIVAL);
+    virtual Event Create(double interArrival, double serviceTime, int stationTarget = -1, EventType type = ARRIVAL);
 };
