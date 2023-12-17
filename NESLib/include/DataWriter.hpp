@@ -7,34 +7,33 @@
 class DataWriter
 {
   private:
-    struct DataFile
-    {
-        std::string fileName{};
-        std::vector<DataCollector *> collectors{};
-        bool isInCategory(const DataCollector &collector)
-        {
-            if (collectors.size() == 0)
-                return true;
-            if (collectors.at(0)->Header() == collector.Header())
-                return true;
-            return false;
-        }
-    };
-    int _currentIndex = 0;
-    std::vector<DataFile> _dataFiles;
-
-  protected:
-    void WriteFile(const DataFile &dataFile);
+    std::vector<DataCollector *> _collectors;
 
   public:
-    std::string header;
     static DataWriter &Instance()
     {
         static DataWriter instance{};
         return instance;
     }
 
-    void Register(DataCollector *collector);
+    void Register(DataCollector *collector)
+    {
+        _collectors.push_back(collector);
+    }
+
+    void Unregister(DataCollector *collector)
+    {
+        auto itr = _collectors.begin();
+        while (itr != _collectors.end())
+        {
+            if (*itr == collector)
+            {
+                _collectors.erase(itr);
+                return;
+            }
+            itr++;
+        }
+    }
     void Flush();
     void SnapShot();
 };

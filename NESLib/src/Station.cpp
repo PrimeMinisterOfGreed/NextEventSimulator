@@ -6,6 +6,8 @@
 #include "LogEngine.hpp"
 #include "Measure.hpp"
 #include "Scheduler.hpp"
+#include <cassert>
+#include <iterator>
 #include <sstream>
 
 enum Measures
@@ -29,33 +31,43 @@ enum Measures
     meanCustomerInSystem,
 };
 
-void Station::ProcessArrival(Event &evt)
+void BaseStation::ProcessArrival(Event &evt)
 {
     _arrivals++;
     _sysClients++;
-    _lastArrival = evt.ArrivalTime;
+    _lastArrival = evt.OccurTime;
     if (_sysClients > _maxClients)
         _maxClients = _sysClients;
 }
 
-void Station::ProcessDeparture(Event &evt)
+void BaseStation::ProcessDeparture(Event &evt)
 {
     _sysClients--;
     _completions++;
 }
 
-void Station::ProcessEnd(Event &evt)
+void BaseStation::ProcessEnd(Event &evt)
+{
+    _observationPeriod = _oldclock;
+}
+
+BaseStation::BaseStation(std::string name) : _logger(name), _name(name)
+{
+}
+
+void BaseStation::ProcessProbe(Event &evt)
 {
     _observationPeriod = _oldclock;
 }
 
 void Station::ProcessProbe(Event &evt)
 {
+    BaseStation::ProcessProbe(evt);
+    collector.lastTimeStamp = _oldclock;
     Update();
-    _observationPeriod = _oldclock;
 }
 
-void Station::Process(Event &event)
+void BaseStation::Process(Event &event)
 {
     if (event.Type == END)
     {
@@ -65,7 +77,7 @@ void Station::Process(Event &event)
     _clock = event.OccurTime;
     _logger.Transfer("Processing:{}", event);
     double interval = _clock - _oldclock;
-    _oldclock = event.OccurTime;
+    _oldclock = _clock;
     if (_sysClients > 0)
     {
         _busyTime += interval;
@@ -75,18 +87,11 @@ void Station::Process(Event &event)
     switch (event.Type)
     {
     case EventType::ARRIVAL:
-        if (_onArrival.has_value())
-        {
-            _onArrival.value()(this);
-        }
+
         ProcessArrival(event);
         _logger.Information("Arrival:{}", event);
         break;
     case EventType::DEPARTURE:
-        if (_onDeparture.has_value())
-        {
-            _onDeparture.value()(this);
-        }
         ProcessDeparture(event);
         _logger.Information("Departure:{}", event);
         break;
@@ -105,7 +110,7 @@ void Station::Process(Event &event)
     }
 }
 
-void Station::ProcessMaintenance(Event &evt)
+void BaseStation::ProcessMaintenance(Event &evt)
 {
 }
 
@@ -122,25 +127,25 @@ void Station::Reset()
     _areaS = 0.0;
 }
 
-Station::Station(std::string name, int station) : _name(name), _stationIndex(station), collector{name}, _logger{name}
+Station::Station(std::string name, int station) : BaseStation(name), _stationIndex(station), collector{name}
 {
-    collector.AddMeasure(sptr<Measure<double>>(new Measure<double>{"completitions", "unit"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Measure<double>{"arrivals", "unit"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Measure<double>{"sysClients", "unit"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Measure<double>{"maxClients", "unit"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"avgInterArrival", "ms"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"avgServiceTime", "ms"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"avgDelay", "ms"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"avgWaiting", "ms"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"utilization", ""}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"throughput", "job/ms"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"inputRate", ""}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"arrivalRate", ""}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"serviceRate", ""}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"traffic", ""}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"meanCustomerInQueue", "unit"}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"meanCustomerInService", ""}));
-    collector.AddMeasure(sptr<Measure<double>>(new Accumulator<double>{"meanCustomerInSystem", ""}));
+    collector.AddMeasure(Measure<double>{"completitions", "unit"});
+    collector.AddMeasure(Measure<double>{"arrivals", "unit"});
+    collector.AddMeasure(Measure<double>{"sysClients", "unit"});
+    collector.AddMeasure(Measure<double>{"maxClients", "unit"});
+    collector.AddMeasure(Accumulator<double>{"avgInterArrival", "ms"});
+    collector.AddMeasure(Accumulator<double>{"avgServiceTime", "ms"});
+    collector.AddMeasure(Accumulator<double>{"avgDelay", "ms"});
+    collector.AddMeasure(Accumulator<double>{"avgWaiting", "ms"});
+    collector.AddMeasure(Accumulator<double>{"utilization", ""});
+    collector.AddMeasure(Accumulator<double>{"throughput", "job/ms"});
+    collector.AddMeasure(Accumulator<double>{"inputRate", ""});
+    collector.AddMeasure(Accumulator<double>{"arrivalRate", ""});
+    collector.AddMeasure(Accumulator<double>{"serviceRate", ""});
+    collector.AddMeasure(Accumulator<double>{"traffic", ""});
+    collector.AddMeasure(Accumulator<double>{"meanCustomerInQueue", "unit"});
+    collector.AddMeasure(Accumulator<double>{"meanCustomerInService", ""});
+    collector.AddMeasure(Accumulator<double>{"meanCustomerInSystem", ""});
 }
 
 void Station::Initialize()
@@ -149,12 +154,15 @@ void Station::Initialize()
 
 void Station::Update()
 {
+    if (_completions == 0 || _arrivals == 0 || _oldclock == 0 || _busyTime == 0 || _lastArrival == 0)
+        return;
     collector.lastTimeStamp = _oldclock;
     collector[Completions]->Accumulate(_completions);
     collector[Arrivals]->Accumulate(_arrivals);
     collector[sysclients]->Accumulate(_sysClients);
     collector[maxclients]->Accumulate(_maxClients);
-    collector[avgInterArrival]->Accumulate(_oldclock / _arrivals);       /* Average inter-arrival time */
+    collector[avgInterArrival]->Accumulate(_oldclock / _arrivals); /* Average inter-arrival time */
+
     collector[avgServiceTime]->Accumulate(_busyTime / _completions);     /* Average service time */
     collector[avgDelay]->Accumulate(_areaS / _completions);              /* Average delay time */
     collector[avgWaiting]->Accumulate(_areaN / _completions);            /* Average wait time */
@@ -168,9 +176,4 @@ void Station::Update()
     collector[meanCustomerInService]->Accumulate(_busyTime / _oldclock); /* Mean number of customers in service */
     collector[meanCustomerInSystem]->Accumulate(_areaS / _oldclock);     /* Mean number of customers in system */
     collector._samples++;
-}
-
-DataCollector Station::Data()
-{
-    return collector;
 }

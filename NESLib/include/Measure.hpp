@@ -20,7 +20,7 @@ class BaseMeasure
   protected:
     std::string _name;
     std::string _unit;
-    size_t _count;
+    size_t _count{};
 
   public:
     BaseMeasure(std::string name, std::string unit) : _name(name), _unit(unit), _count(0)
@@ -47,12 +47,22 @@ class BaseMeasure
     {
         _count = 0;
     }
+
+    virtual bool operator==(BaseMeasure &measure)
+    {
+        return this->_name == measure.Name() && this->Unit() == measure.Unit();
+    }
+
+    virtual bool operator!=(BaseMeasure &measure)
+    {
+        return !(*this == measure);
+    }
 };
 
 template <typename T> class Measure : public BaseMeasure
 {
   private:
-    T _lastAccumulatedValue;
+    T _lastAccumulatedValue{};
 
   public:
     Measure(std::string name, std::string unit) : BaseMeasure(name, unit)
@@ -75,6 +85,11 @@ template <typename T> class Measure : public BaseMeasure
         return fmt::format("{}", _lastAccumulatedValue);
     }
 
+    virtual std::string Json()
+    {
+        return fmt::format("\"lastAccumulatedValue\":{}", _lastAccumulatedValue);
+    }
+
     void operator()(T value)
     {
         Accumulate(value);
@@ -91,7 +106,7 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 {
 
   private:
-    T _sum[Moments];
+    T _sum[Moments]{};
 
     T get(int moment) const
     {
@@ -140,7 +155,13 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         return csv;
     }
 
-    virtual void Reset()
+    std::string Json() override
+    {
+        return fmt::format("{},\n \"mean\":{},\n \"variance\":{},\n \"lower_bound\":{},\n \"higher_bound\":{}",
+                           Measure<double>::Json(), mean(), variance(), confidence().first, confidence().second);
+    }
+
+    virtual void Reset() override
     {
         Measure<T>::Reset();
         ForMoment([](T &val, int moment) { val = 0; });

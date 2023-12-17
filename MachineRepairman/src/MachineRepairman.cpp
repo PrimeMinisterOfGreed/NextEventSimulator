@@ -17,8 +17,8 @@ MachineRepairman::MachineRepairman()
     : Scheduler("Scheduler"), _clientsDelay(1, [](auto rand) { return Exponential(400); }),
       _serviceTimes(2, [](auto rand) { return Exponential(15); })
 {
-    AddStation(DelayStation(this, "delay_station", 10, [this]() { return _clientsDelay(); }));
-    AddStation(RepairStation(this, "repair_station", 1));
+    AddStation(new DelayStation(this, "delay_station", 10, [this]() { return _clientsDelay(); }));
+    AddStation(new RepairStation(this, "repair_station", 1));
     _logger.verbosity = 0;
 }
 
@@ -42,6 +42,7 @@ void MachineRepairman::Execute()
         if (inProcess.Station == -1) // directed to schedule direct to first station
         {
             inProcess.Station = 1;
+            inProcess.ServiceTime = _serviceTimes();
         }
 
         Route(inProcess);

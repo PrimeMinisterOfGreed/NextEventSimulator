@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-class Scheduler : public IScheduler, public Station
+class Scheduler : public IScheduler, public BaseStation
 {
   protected:
     std::vector<sptr<Station>> _stations{};
@@ -17,15 +17,15 @@ class Scheduler : public IScheduler, public Station
 
   public:
     virtual void Schedule(Event event) override;
-    virtual void Initialize() override;
+    virtual void Initialize();
 
-    template <typename STAT> inline Scheduler &AddStation(STAT station)
+    template <typename STAT> inline Scheduler &AddStation(STAT *station)
     {
-        _stations.push_back(std::make_shared<STAT>(station));
+        _stations.push_back(sptr<STAT>(station));
         return *this;
     };
 
-    Scheduler(std::string name) : Station(name, -1)
+    Scheduler(std::string name) : BaseStation(name)
     {
     }
     std::optional<sptr<Station>> operator[](std::string name)

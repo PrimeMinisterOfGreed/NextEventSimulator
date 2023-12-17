@@ -6,11 +6,17 @@
 #include <optional>
 #include <vector>
 
-class Station
+class BaseStation
 {
   protected:
+    virtual void ProcessArrival(Event &evt);
+    virtual void ProcessDeparture(Event &evt);
+    virtual void ProcessEnd(Event &evt);
+    virtual void ProcessProbe(Event &evt);
+    virtual void ProcessMaintenance(Event &evt);
+    TraceSource _logger;
     std::string _name;
-    int _stationIndex{};
+
     int _arrivals{};
     int _completions{};
     int _sysClients{};
@@ -22,31 +28,14 @@ class Station
     double _areaS{};
     double _oldclock{};
     double _clock{};
-    DataCollector collector;
-    virtual void ProcessArrival(Event &evt);
-    virtual void ProcessDeparture(Event &evt);
-    virtual void ProcessEnd(Event &evt);
-    virtual void ProcessProbe(Event &evt);
-    virtual void ProcessMaintenance(Event &evt);
-    TraceSource _logger;
-
-    std::optional<std::function<void(Station *)>> _onArrival;
-    std::optional<std::function<void(Station *)>> _onDeparture;
 
   public:
+    BaseStation(std::string name);
     void Process(Event &event);
-    virtual void Initialize();
-    void Update();
-    DataCollector Data();
-    virtual void Reset();
-    Station(std::string name, int station);
+
     std::string Name() const
     {
         return _name;
-    }
-    int stationIndex() const
-    {
-        return _stationIndex;
     }
 
     int arrivals() const
@@ -67,6 +56,26 @@ class Station
     {
         return _observationPeriod;
     }
+};
+
+class Station : public BaseStation
+{
+  protected:
+    DataCollector collector;
+
+    std::optional<std::function<void(Station *)>> _onArrival;
+    std::optional<std::function<void(Station *)>> _onDeparture;
+    int _stationIndex{};
+
+  public:
+    virtual void Initialize();
+    void Update();
+    DataCollector &Data()
+    {
+        return collector;
+    }
+    virtual void Reset();
+    Station(std::string name, int station);
 
     template <typename F> void OnDeparture(F &&fnc)
     {
@@ -77,4 +86,10 @@ class Station
     {
         _onArrival = fnc;
     }
+    int stationIndex() const
+    {
+        return _stationIndex;
+    }
+
+    void ProcessProbe(Event &evt) override;
 };

@@ -12,11 +12,6 @@ std::vector<sptr<Measure<double>>> DataCollector::GetAccumulators() const
     return _measures;
 }
 
-void DataCollector::AddMeasure(sptr<Measure<double>> measure)
-{
-    _measures.push_back(measure);
-}
-
 std::string DataCollector::Header() const
 {
     std::string head = "";
@@ -48,4 +43,5 @@ DataCollector::DataCollector(std::string stationName) : _stationName(stationName
 
 DataCollector::~DataCollector()
 {
+    DataWriter::Instance().Unregister(this);
 }

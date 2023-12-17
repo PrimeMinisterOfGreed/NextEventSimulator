@@ -4,41 +4,8 @@
 #include <fmt/core.h>
 #include <fstream>
 #include <ios>
-
-void DataWriter::WriteFile(const DataFile &dataFile)
-{
-    std::fstream stream{dataFile.fileName, std::ios::out | std::ios::app};
-    if (stream.tellp() == 0)
-    {
-        auto ref = dataFile.collectors.at(0);
-        stream.write(ref->Header().c_str(), ref->Header().size());
-    }
-    for (auto &ref : dataFile.collectors)
-    {
-        auto res = ref->Csv();
-        stream.write(res.c_str(), res.size());
-    }
-}
-
-void DataWriter::Register(DataCollector *collector)
-{
-    if (_dataFiles.size() == 0)
-    {
-        auto data = DataFile{.fileName = "data.csv"};
-        _dataFiles.push_back(data);
-    }
-    for (auto &category : _dataFiles)
-    {
-        if (category.isInCategory(*collector))
-        {
-            category.collectors.push_back(collector);
-            return;
-        }
-    }
-    auto data = DataFile{.fileName = makeformat("data{}.csv", _dataFiles.size())};
-    data.collectors.push_back(collector);
-    _dataFiles.push_back(data);
-}
+#include <sstream>
+#include <string>
 
 void DataWriter::Flush()
 {
@@ -46,8 +13,19 @@ void DataWriter::Flush()
 
 void DataWriter::SnapShot()
 {
-    for (auto &file : _dataFiles)
+    std::fstream f{"data.json", std::ios_base::app | std::ios_base::out};
+    for (auto collector : _collectors)
     {
-        WriteFile(file);
+        std::string json = "{\n";
+        json += fmt::format("\"Station\":\"{}\",\n", collector->Name());
+        json += fmt::format("\"TimeStamp\":\"{}\",\n", collector->TimeStamp());
+        for (auto &measure : collector->GetAccumulators())
+        {
+            json += fmt::format("\"{}\":{},\n", measure->Name(),
+                                std::string("{\n") + std::string(measure->Json()) + std::string("}\n"));
+        }
+        json += "},\n";
+        f.write(json.c_str(), json.size());
+        json.clear();
     }
 }
