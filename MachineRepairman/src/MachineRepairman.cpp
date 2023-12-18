@@ -10,7 +10,6 @@
 #include "ToString.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
-#include <gtest/gtest.h>
 #include <vector>
 
 MachineRepairman::MachineRepairman()

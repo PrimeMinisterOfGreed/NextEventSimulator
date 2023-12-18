@@ -19,7 +19,7 @@ enum class LogType
 template <> struct fmt::formatter<LogType>
 {
     FormatParser p{};
-    auto parse(format_parse_context &ctx)
+    constexpr auto parse(format_parse_context &ctx) -> fmt::format_parse_context::iterator
     {
         return p.parse(ctx);
     }

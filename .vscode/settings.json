@@ -1,5 +1,7 @@
 {
       "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+      "clangd.inactiveRegions.useBackgroundHighlight": true,
+      "clangd.inactiveRegions.opacity": 0.55,
       "files.associations": {
             "cmath": "cpp",
             "cstddef": "cpp",
@@ -65,5 +67,5 @@
       },
       "yaml.schemas": {
             "https://json.schemastore.org/clangd.json": "file:///mnt/c/Users/matteo.ielacqua/OneDrive%20-%20INPECO%20SPA/Desktop/Personal/NextEventSimulator/.clangd"
-      }
+      },
 }

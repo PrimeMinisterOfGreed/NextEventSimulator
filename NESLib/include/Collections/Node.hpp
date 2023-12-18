@@ -40,6 +40,11 @@ template <typename T> class Node
 
     T &Value();
 
+    const T &const_value() const
+    {
+        return _val;
+    }
+
     T &operator*()
     {
         return Value();
@@ -157,6 +162,16 @@ template <typename T> class NodeIterator
         return _currentNode->Value();
     }
 
+    const T &const_value() const
+    {
+        return _currentNode->Value();
+    }
+
+    const Node<T> *const_node() const
+    {
+        return _currentNode;
+    }
+
     Node<T> *operator()()
     {
         return _currentNode;
@@ -166,13 +181,13 @@ template <typename T> class NodeIterator
     {
     }
 
-    inline bool operator==(NodeIterator &itr)
+    inline bool operator==(const NodeIterator &itr)
     {
-        return _currentNode == itr();
+        return _currentNode == itr.const_node();
     }
 
-    inline bool operator!=(NodeIterator &itr)
+    inline bool operator!=(const NodeIterator &itr)
     {
-        return _currentNode != itr();
+        return _currentNode != itr.const_node();
     }
 };
