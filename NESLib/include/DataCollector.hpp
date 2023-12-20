@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-using Interval = std::pair<double, double>;
-
 class Station;
 class DataCollector
 {
@@ -50,6 +48,6 @@ class DataCollector
     }
     std::string Header() const;
     std::string Csv();
-    DataCollector(std::string stationName);
+    DataCollector(std::string stationName, bool registerCollector);
     ~DataCollector();
 };

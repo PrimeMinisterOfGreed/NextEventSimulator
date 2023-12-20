@@ -13,7 +13,35 @@
 #include <stdexcept>
 #include <string>
 
-using Interval = std::pair<double, double>;
+struct Interval
+{
+    double _mean;
+    double _delta;
+
+  public:
+    Interval(double mean, double delta) : _mean(mean), _delta(delta)
+    {
+    }
+
+    double higher() const
+    {
+        return _mean + _delta;
+    }
+    double lower() const
+    {
+        return _mean - _delta;
+    }
+
+    double width() const
+    {
+        return higher() - lower();
+    }
+
+    double precision() const
+    {
+        return _delta / _mean;
+    }
+};
 
 class BaseMeasure
 {
@@ -150,15 +178,17 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         std::string csv = fmt::format("{};", Measure<T>::Csv());
         csv += fmt::format("{};", mean());
         csv += fmt::format("{};", variance());
-        csv += fmt::format("{};", confidence().first);
-        csv += fmt::format("{}", confidence().second);
+        csv += fmt::format("{};", confidence().higher());
+        csv += fmt::format("{}", confidence().lower());
         return csv;
     }
 
     std::string Json() override
     {
-        return fmt::format("{},\n \"mean\":{},\n \"variance\":{},\n \"lower_bound\":{},\n \"higher_bound\":{}",
-                           Measure<double>::Json(), mean(), variance(), confidence().first, confidence().second);
+        return fmt::format("{},\n \"samples\":{}\n \"mean\":{},\n \"variance\":{},\n \"lower_bound\":{},\n "
+                           "\"higher_bound\":{} \n \"width\":{},\n \"precision\":{}\n",
+                           Measure<double>::Json(), this->Count(), mean(), variance(), confidence().lower(),
+                           confidence().higher(), confidence().width(), confidence().precision());
     }
 
     virtual void Reset() override
@@ -184,11 +214,21 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 
     Interval confidence()
     {
+
         double u = mean(0);
         double sigma = variance();
         double alpha = 1 - 0.95;
         auto count = this->Count();
-        double delta = idfStudent(count - 1, 1 - (alpha / 2)) * (sigma / sqrt(count - 1));
-        return {u - delta, u + delta};
+        double delta = 0.0;
+        if (count < 40)
+        {
+            delta = idfStudent(count - 1, 1 - (alpha / 2)) * (sigma / sqrt(count - 1));
+        }
+        else
+        {
+            delta = idfNormal(0.0, 1.0, 1 - alpha / 2);
+        }
+        delta = (delta * variance()) / sqrtf(count);
+        return {u, delta};
     }
 };

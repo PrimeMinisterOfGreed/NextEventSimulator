@@ -25,9 +25,7 @@ void MachineRepairman::Initialize()
 {
     (*this)["delay_station"]->get()->Initialize();
     Schedule(Event("MAINTENANCE", MAINTENANCE, 0, _nominalWorkshift, _nominalRests, 0, 1));
-    Schedule(Event("PROBE1", PROBE, 0, _nominalWorkshift, 0, 0, -1));
-    Schedule(Event("PROBE2", PROBE, 0, _nominalWorkshift + _nominalRests, 0, 0, -1));
-    Schedule(Event("END", END, 0, _nominalWorkshift + _nominalRests, 0, 0, -1));
+    Schedule(Event("END", END, 0, _nominalWorkshift, 0, 0, -1));
 }
 
 void MachineRepairman::Execute()

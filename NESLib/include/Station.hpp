@@ -58,6 +58,7 @@ class BaseStation
     }
 };
 
+// TODO make possible to choose if use a datacollector and register
 class Station : public BaseStation
 {
   protected:
@@ -75,7 +76,7 @@ class Station : public BaseStation
         return collector;
     }
     virtual void Reset();
-    Station(std::string name, int station);
+    Station(std::string name, int station, bool registerCollector = false);
 
     template <typename F> void OnDeparture(F &&fnc)
     {

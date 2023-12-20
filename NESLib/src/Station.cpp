@@ -127,25 +127,29 @@ void Station::Reset()
     _areaS = 0.0;
 }
 
-Station::Station(std::string name, int station) : BaseStation(name), _stationIndex(station), collector{name}
+Station::Station(std::string name, int station, bool registerCollector)
+    : BaseStation(name), _stationIndex(station), collector{name, registerCollector}
 {
-    collector.AddMeasure(Measure<double>{"completitions", "unit"});
-    collector.AddMeasure(Measure<double>{"arrivals", "unit"});
-    collector.AddMeasure(Measure<double>{"sysClients", "unit"});
-    collector.AddMeasure(Measure<double>{"maxClients", "unit"});
-    collector.AddMeasure(Accumulator<double>{"avgInterArrival", "ms"});
-    collector.AddMeasure(Accumulator<double>{"avgServiceTime", "ms"});
-    collector.AddMeasure(Accumulator<double>{"avgDelay", "ms"});
-    collector.AddMeasure(Accumulator<double>{"avgWaiting", "ms"});
-    collector.AddMeasure(Accumulator<double>{"utilization", ""});
-    collector.AddMeasure(Accumulator<double>{"throughput", "job/ms"});
-    collector.AddMeasure(Accumulator<double>{"inputRate", ""});
-    collector.AddMeasure(Accumulator<double>{"arrivalRate", ""});
-    collector.AddMeasure(Accumulator<double>{"serviceRate", ""});
-    collector.AddMeasure(Accumulator<double>{"traffic", ""});
-    collector.AddMeasure(Accumulator<double>{"meanCustomerInQueue", "unit"});
-    collector.AddMeasure(Accumulator<double>{"meanCustomerInService", ""});
-    collector.AddMeasure(Accumulator<double>{"meanCustomerInSystem", ""});
+    if (registerCollector)
+    {
+        collector.AddMeasure(Measure<double>{"completitions", "unit"});
+        collector.AddMeasure(Measure<double>{"arrivals", "unit"});
+        collector.AddMeasure(Measure<double>{"sysClients", "unit"});
+        collector.AddMeasure(Measure<double>{"maxClients", "unit"});
+        collector.AddMeasure(Accumulator<double>{"avgInterArrival", "ms"});
+        collector.AddMeasure(Accumulator<double>{"avgServiceTime", "ms"});
+        collector.AddMeasure(Accumulator<double>{"avgDelay", "ms"});
+        collector.AddMeasure(Accumulator<double>{"avgWaiting", "ms"});
+        collector.AddMeasure(Accumulator<double>{"utilization", ""});
+        collector.AddMeasure(Accumulator<double>{"throughput", "job/ms"});
+        collector.AddMeasure(Accumulator<double>{"inputRate", ""});
+        collector.AddMeasure(Accumulator<double>{"arrivalRate", ""});
+        collector.AddMeasure(Accumulator<double>{"serviceRate", ""});
+        collector.AddMeasure(Accumulator<double>{"traffic", ""});
+        collector.AddMeasure(Accumulator<double>{"meanCustomerInQueue", "unit"});
+        collector.AddMeasure(Accumulator<double>{"meanCustomerInService", ""});
+        collector.AddMeasure(Accumulator<double>{"meanCustomerInSystem", ""});
+    }
 }
 
 void Station::Initialize()
