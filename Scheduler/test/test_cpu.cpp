@@ -36,7 +36,7 @@ class CpuTest : public ::testing::Test
 
     virtual void SetUp()
     {
-        LogEngine::CreateInstance(3, "testLog.txt");
+        LogEngine::CreateInstance("testLog.txt");
         mockScheduler = new MockScheduler();
         cpu = new Cpu(mockScheduler);
     }

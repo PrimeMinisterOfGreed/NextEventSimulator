@@ -1,14 +1,14 @@
 /* -----------------------------------------------------------------------
  * Name            : rngs.h  (header file for the library file rngs.c)
- * Author          : Steve Park & Dave Geyer
- * Language        : ANSI C
- * Latest Revision : 09-22-98
+ * Author          : Steve Park & Dave Geyer, DrFaust
+ * Language        : C++
  * -----------------------------------------------------------------------
  */
 #pragma once
 
 #include <functional>
 #include <memory>
+#include <vector>
 #define MODULUS 2147483647 /* DON'T CHANGE THIS VALUE                  */
 #define MULTIPLIER 48271   /* DON'T CHANGE THIS VALUE                  */
 #define CHECK 399268537    /* DON'T CHANGE THIS VALUE                  */
@@ -18,12 +18,27 @@
 
 class RandomStream;
 
-class VariableStream{
+class VariableStream
+{
     int stream;
-    std::function<double(RandomStream&)> _lambda;
-    public:
+    std::function<double(RandomStream &)> _lambda;
+
+  public:
     double operator()();
-    VariableStream(int stream,std::function<double(RandomStream&)> lambda);
+    VariableStream(int stream, std::function<double(RandomStream &)> lambda);
+};
+
+struct CompositionStream
+{
+    std::vector<std::function<double(RandomStream &)>> _generators{};
+    std::vector<double> _alpha;
+    double operator()();
+    int _stream;
+    template <typename... F>
+    CompositionStream(int stream, std::vector<double> weights, F &&...fncs)
+        : _generators({fncs...}), _alpha(weights), _stream(stream)
+    {
+    }
 };
 
 class RandomStream
@@ -32,15 +47,16 @@ class RandomStream
     int stream = 0;                 /* stream index, 0 is the default */
     int initialized = 0;            /* test for stream initialization */
     int generatedStreams = 0;
-public:
-    RandomStream(){}
+
+  public:
+    RandomStream()
+    {
+    }
     double Random(void);
     void PlantSeeds(long x);
     void GetSeed(long *x);
     void PutSeed(long x);
     void SelectStream(int index);
-    static RandomStream& Global();
-    std::unique_ptr<VariableStream> GetStream(std::function<double(RandomStream&)> lambda);
+    static RandomStream &Global();
+    std::unique_ptr<VariableStream> GetStream(std::function<double(RandomStream &)> lambda);
 };
-
-

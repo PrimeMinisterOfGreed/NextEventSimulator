@@ -1,12 +1,12 @@
-/* ------------------------------------------------------------- 
+/* -------------------------------------------------------------
  * Name            : rvgs.h (header file for the library rvgs.c)
  * Author          : Steve Park & Dave Geyer
  * Language        : ANSI C
  * Latest Revision : 11-03-96
- * -------------------------------------------------------------- 
+ * --------------------------------------------------------------
  */
 
-#if !defined( _RVGS_ )
+#if !defined(_RVGS_)
 #define _RVGS_
 
 long Bernoulli(double p);

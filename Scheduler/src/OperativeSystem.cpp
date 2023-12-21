@@ -33,7 +33,6 @@ OS::OS()
       _interArrival(
           VariableStream(1, [](auto &rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); }))
 {
-    DataWriter::Instance().header = collector.Header();
     static Cpu cpu(this);
     static ReserveStation rstation(this);
     static IOStation io1(this, Stations::IO_1);
@@ -55,7 +54,7 @@ void OS::ProcessArrival(Event &evt)
 
 void OS::Reset()
 {
-    Station::Reset();
+
     _end = false;
     for (auto station : _stations)
     {
@@ -67,16 +66,11 @@ void OS::Reset()
 void OS::Initialize()
 {
 
-    Schedule(Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
-                   Station::_clock, 0, 0, 0, Stations::RESERVE_STATION));
+    /*Schedule(Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
+       _clock, 0, 0, 0, Stations::RESERVE_STATION));*/
 }
 
 void OS::ProcessProbe(Event &evt)
 {
-    Station::ProcessProbe(evt);
-    for (auto station : _stations)
-    {
-        if (station->stationIndex() != this->stationIndex())
-            station->Process(evt);
-    }
+    Scheduler::ProcessProbe(evt);
 }

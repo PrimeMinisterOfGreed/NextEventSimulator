@@ -46,6 +46,7 @@ class DataCollector
     {
         return _stationName;
     }
+    void Reset();
     std::string Header() const;
     std::string Csv();
     DataCollector(std::string stationName, bool registerCollector);

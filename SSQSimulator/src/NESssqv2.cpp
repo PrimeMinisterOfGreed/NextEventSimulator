@@ -52,7 +52,6 @@ void NESssq::Execute()
 
 void NESssq::Reset()
 {
-    Station::Reset();
 }
 
 void NESssq::ProcessEnd(Event &evt)

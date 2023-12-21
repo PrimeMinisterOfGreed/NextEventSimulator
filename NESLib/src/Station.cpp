@@ -8,6 +8,7 @@
 #include "Scheduler.hpp"
 #include <cassert>
 #include <iterator>
+#include <regex>
 #include <sstream>
 
 enum Measures
@@ -125,6 +126,7 @@ void Station::Reset()
     _lastArrival = 0.0;
     _areaN = 0.0;
     _areaS = 0.0;
+    collector.Reset();
 }
 
 Station::Station(std::string name, int station, bool registerCollector)

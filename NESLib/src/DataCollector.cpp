@@ -46,3 +46,10 @@ DataCollector::~DataCollector()
 {
     DataWriter::Instance().Unregister(this);
 }
+
+void DataCollector::Reset()
+{
+    _samples = 0;
+    for (auto &m : _measures)
+        m->Reset();
+}

@@ -31,3 +31,9 @@ Event Scheduler::Create(double interArrival, double serviceTime, int stationTarg
     std::string name = fmt::format("J{}", Event::GeneratedNodes);
     return Event{name, type, _clock, _clock + interArrival, serviceTime, _clock + interArrival, stationTarget};
 }
+
+void Scheduler::Reset()
+{
+    for (auto &s : _stations)
+        s->Reset();
+}

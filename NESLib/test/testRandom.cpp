@@ -1,7 +1,11 @@
+#include "Measure.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
+#include <cmath>
 #include <cstdio>
+#include <fmt/core.h>
 #include <gtest/gtest.h>
+#include <stdio.h>
 #include <vector>
 
 double mean(std::vector<double> &vals)
@@ -21,4 +25,20 @@ TEST(TestRandom, test_poisson)
         values.push_back(stream());
     }
     ASSERT_GE(0.1, abs(mean(values) - 1 / 0.14));
+}
+
+// https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
+TEST(TestRandom, test_composition)
+{
+    RandomStream::Global().PlantSeeds(123456789);
+    CompositionStream stream{0,
+                             {0.95, 0.05},
+                             [](RandomStream &rng) { return Exponential(10) / 10; },
+                             [](RandomStream &rng) { return Exponential(19010) / 19010; }};
+    Accumulator<double> _mean{"mean", ""};
+    for (int i = 0; i < 100000; i++)
+    {
+        _mean(stream());
+    }
+    printf("Mean: %lf", _mean.mean());
 }
