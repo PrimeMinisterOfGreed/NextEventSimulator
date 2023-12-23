@@ -12,12 +12,31 @@
 #include "rvgs.h"
 #include <vector>
 
-MachineRepairman::MachineRepairman()
-    : Scheduler("Scheduler"), _clientsDelay(1, [](auto rand) { return Exponential(400); }),
-      _serviceTimes(2, [](auto rand) { return Exponential(15); })
+MachineRepairman::MachineRepairman() : Scheduler("Scheduler")
 {
-    AddStation(new DelayStation(this, "delay_station", 10, [this]() { return _clientsDelay(); }));
-    AddStation(new RepairStation(this, "repair_station", 1));
+    auto delay_station = new DelayStation(this, "delay_station", 10, [this]() {
+        static VariableStream delay{1, [](auto rand) { return Exponential(400); }};
+        return delay();
+    });
+
+    delay_station->OnDeparture([this](auto s, Event &evt) {
+        static VariableStream repairTime(2, [](auto rand) { return Exponential(15); });
+        evt.ServiceTime = repairTime();
+        evt.Station = 1;
+        evt.Type = ARRIVAL;
+        Schedule(evt);
+    });
+
+    AddStation(delay_station);
+    auto rstation = new RepairStation(this, "repair_station", 1);
+
+    rstation->OnDeparture([this](auto s, Event &evt) {
+        evt.Station = 0;
+        evt.Type = ARRIVAL;
+        Schedule(evt);
+    });
+
+    AddStation(rstation);
     _logger.verbosity = 0;
 }
 
@@ -35,13 +54,6 @@ void MachineRepairman::Execute()
         auto inProcess = _eventList.Dequeue();
         Process(inProcess);
         _clock = inProcess.OccurTime;
-
-        if (inProcess.Station == -1) // directed to schedule direct to first station
-        {
-            inProcess.Station = 1;
-            inProcess.ServiceTime = _serviceTimes();
-        }
-
         Route(inProcess);
     }
 }

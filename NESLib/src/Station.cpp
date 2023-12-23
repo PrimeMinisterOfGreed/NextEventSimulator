@@ -88,12 +88,15 @@ void BaseStation::Process(Event &event)
     switch (event.Type)
     {
     case EventType::ARRIVAL:
-
+        if (_onArrival.has_value())
+            _onArrival.value()(this, event);
         ProcessArrival(event);
         _logger.Information("Arrival:{}", event);
         break;
     case EventType::DEPARTURE:
         ProcessDeparture(event);
+        if (_onDeparture.has_value())
+            _onDeparture.value()(this, event);
         _logger.Information("Departure:{}", event);
         break;
     case EventType::NO_EVENT:
@@ -167,8 +170,7 @@ void Station::Update()
     collector[Arrivals]->Accumulate(_arrivals);
     collector[sysclients]->Accumulate(_sysClients);
     collector[maxclients]->Accumulate(_maxClients);
-    collector[avgInterArrival]->Accumulate(_oldclock / _arrivals); /* Average inter-arrival time */
-
+    collector[avgInterArrival]->Accumulate(_oldclock / _arrivals);       /* Average inter-arrival time */
     collector[avgServiceTime]->Accumulate(_busyTime / _completions);     /* Average service time */
     collector[avgDelay]->Accumulate(_areaS / _completions);              /* Average delay time */
     collector[avgWaiting]->Accumulate(_areaN / _completions);            /* Average wait time */

@@ -28,10 +28,12 @@ class BaseStation
     double _areaS{};
     double _oldclock{};
     double _clock{};
+    std::optional<std::function<void(BaseStation *, Event &)>> _onArrival;
+    std::optional<std::function<void(BaseStation *, Event &)>> _onDeparture;
 
   public:
     BaseStation(std::string name);
-    void Process(Event &event);
+    virtual void Process(Event &event);
 
     std::string Name() const
     {
@@ -56,16 +58,23 @@ class BaseStation
     {
         return _observationPeriod;
     }
+
+    template <typename F> void OnDeparture(F &&fnc)
+    {
+        _onDeparture = fnc;
+    }
+
+    template <typename F> void OnArrival(F &&fnc)
+    {
+        _onArrival = fnc;
+    }
 };
 
-// TODO make possible to choose if use a datacollector and register
 class Station : public BaseStation
 {
   protected:
     DataCollector collector;
 
-    std::optional<std::function<void(Station *)>> _onArrival;
-    std::optional<std::function<void(Station *)>> _onDeparture;
     int _stationIndex{};
 
   public:
@@ -78,15 +87,6 @@ class Station : public BaseStation
     virtual void Reset();
     Station(std::string name, int station, bool registerCollector = false);
 
-    template <typename F> void OnDeparture(F &&fnc)
-    {
-        _onDeparture = fnc;
-    }
-
-    template <typename F> void OnArrival(F &&fnc)
-    {
-        _onArrival = fnc;
-    }
     int stationIndex() const
     {
         return _stationIndex;

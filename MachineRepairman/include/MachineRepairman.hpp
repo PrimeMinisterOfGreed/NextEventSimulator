@@ -10,8 +10,6 @@
 class MachineRepairman : public Scheduler, public ISimulator
 {
   private:
-    VariableStream _clientsDelay;
-    VariableStream _serviceTimes;
     const int _nominalWorkshift = 480;
     const int _nominalRests = 960;
     bool _end = false;

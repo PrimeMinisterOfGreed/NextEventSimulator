@@ -1,3 +1,4 @@
+#include "Event.hpp"
 #include "ISimulator.hpp"
 #include "Station.hpp"
 #include <functional>
@@ -7,6 +8,7 @@ struct DelayStation : public Station
   protected:
     IScheduler *_scheduler;
     std::function<double()> _delayTime;
+
     int _numclients = 0;
 
   public:
@@ -17,4 +19,5 @@ struct DelayStation : public Station
     }
     void Initialize() override;
     void ProcessArrival(Event &evt) override;
+    void ProcessDeparture(Event &evt) override;
 };

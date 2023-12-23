@@ -16,9 +16,6 @@ void RepairStation::ProcessDeparture(Event &evt)
     FCFSStation::ProcessDeparture(evt);
     if (evt.Name == "MAINTENANCE")
         return;
-    evt.Station = 0;
-    evt.Type = ARRIVAL;
-    _scheduler->Schedule(evt);
 }
 
 void RepairStation::ProcessProbe(Event &evt)
