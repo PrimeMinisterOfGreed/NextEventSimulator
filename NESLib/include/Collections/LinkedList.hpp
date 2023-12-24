@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Node.hpp"
@@ -8,6 +9,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <exception>
+#include <fmt/core.h>
 #include <fmt/format.h>
 #include <functional>
 #include <iostream>
@@ -134,7 +136,7 @@ template <class T>
 T DoubleLinkedList<T>::Pull()
 {
     if (_begin == nullptr)
-        throw new std::invalid_argument("Trying to pull from the list but is empty");
+        panic("Tryed to pull from the list but is empty");
     Node<T> *res = _begin;
     if (_begin != _end)
     {
@@ -187,7 +189,7 @@ template <class T>
 void DoubleLinkedList<T>::Insert(T val, int index)
 {
     if (index > _count)
-        throw new std::invalid_argument("Index out of bounds");
+        panic(fmt::format("Index {} is out of bounds: current count {}", index, _count));
     if (index == 0)
         Push(val);
     else if (index == _count)

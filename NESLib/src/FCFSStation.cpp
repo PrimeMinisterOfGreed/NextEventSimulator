@@ -4,6 +4,7 @@
 #include "LogEngine.hpp"
 #include "Station.hpp"
 #include "ToString.hpp"
+#include <fmt/core.h>
 
 void FCFSStation::ProcessArrival(Event &evt)
 {
@@ -27,7 +28,7 @@ void FCFSStation::ProcessDeparture(Event &evt)
 {
 
     if (evt != *_eventUnderProcess)
-        throw std::runtime_error("The departure requested is not equal as the event under process");
+        panic(fmt::format("event {} is not equal to event under process {}", evt.Name, _eventUnderProcess->Name));
     Station::ProcessDeparture(_eventUnderProcess.value());
     if (_sysClients > 0)
     {
@@ -73,8 +74,6 @@ void FCFSStation::ProcessMaintenance(Event &evt)
 void FCFSStation::Reset()
 {
     Station::Reset();
-    _eventQueue.Clear();
-    _eventUnderProcess.reset();
 }
 
 FCFSStation::FCFSStation(IScheduler *scheduler, std::string name, int stationIndex)
