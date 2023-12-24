@@ -147,3 +147,21 @@ TEST(test_linked_list, test_next)
     auto itr = linkedList.begin().Next([](auto e) { return e > 3.0; });
     ASSERT_EQ(*itr, 4.0);
 }
+
+TEST(test_linked_list, test_any)
+{
+    DoubleLinkedList<double> list{};
+    list.Enqueue(3);
+    ASSERT_FALSE(list.Any([](const int &a) -> bool { return a == 2; }));
+    ASSERT_TRUE(list.Any([](const int &a) { return a == 3; }));
+}
+
+TEST(test_linked_list, test_all)
+{
+    DoubleLinkedList<char> list{};
+    list.Enqueue('c');
+    list.Enqueue('c');
+    ASSERT_TRUE(list.All([](const char &c) { return c == 'c'; }));
+    list.Enqueue('a');
+    ASSERT_FALSE(list.All([](const char &c) { return c == 'c'; }));
+}

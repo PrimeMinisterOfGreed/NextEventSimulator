@@ -28,8 +28,8 @@ class BaseStation
     double _areaS{};
     double _oldclock{};
     double _clock{};
-    std::optional<std::function<void(BaseStation *, Event &)>> _onArrival;
-    std::optional<std::function<void(BaseStation *, Event &)>> _onDeparture;
+    std::vector<std::function<void(BaseStation *, Event &)>> _onArrival;
+    std::vector<std::function<void(BaseStation *, Event &)>> _onDeparture;
 
   public:
     BaseStation(std::string name);
@@ -61,12 +61,12 @@ class BaseStation
 
     template <typename F> void OnDeparture(F &&fnc)
     {
-        _onDeparture = fnc;
+        _onDeparture.push_back(fnc);
     }
 
     template <typename F> void OnArrival(F &&fnc)
     {
-        _onArrival = fnc;
+        _onArrival.push_back(fnc);
     }
 };
 

@@ -4,6 +4,7 @@
 #include "Usings.hpp"
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,16 @@ class DataCollector
     {
         return _measures[index];
     }
+
+    std::optional<sptr<Measure<double>>> operator[](std::string name)
+    {
+        for (auto &m : _measures)
+        {
+            if (m->Name() == name)
+                return m;
+        }
+        return {};
+    };
     inline double TimeStamp() const
     {
         return lastTimeStamp;

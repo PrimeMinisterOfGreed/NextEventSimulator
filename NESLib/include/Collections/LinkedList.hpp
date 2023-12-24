@@ -14,6 +14,7 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 template <class T>
     requires Comparable<T>
@@ -66,6 +67,31 @@ class DoubleLinkedList
     DoubleLinkedList<T> Take(std::function<bool(const T &)> predicate);
     std::string ToString();
     ~DoubleLinkedList();
+
+    template <typename Predicate> bool Any(Predicate p)
+    {
+
+        auto itr = begin();
+        while (itr != end())
+        {
+            if (p(itr.const_value()))
+                return true;
+            itr++;
+        }
+        return p(end().const_value());
+    }
+
+    template <typename Predicate> bool All(Predicate p)
+    {
+        auto itr = begin();
+        while (itr != end())
+        {
+            if (!p(itr.const_value()))
+                return false;
+            itr++;
+        }
+        return p(end().const_value());
+    }
 };
 
 template <class T>
