@@ -1,4 +1,5 @@
 #include "Scheduler.hpp"
+#include "Core.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Station.hpp"
@@ -18,6 +19,10 @@ bool Scheduler::Route(Event evt)
 }
 void Scheduler::Schedule(Event event)
 {
+    if (event.OccurTime < _clock)
+    {
+        panic(fmt::format("Scheduling of event {} break the rules since clock is {}", event, _clock));
+    }
     _logger.Transfer("Scheduling:{}", event);
     _eventList.Insert(event, [](const Event &a, const Event &b) { return a.OccurTime > b.OccurTime; });
 }

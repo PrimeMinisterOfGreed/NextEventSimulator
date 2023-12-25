@@ -15,3 +15,7 @@ TEST(TestStation, test_onarrival)
     s.Process(evt);
     ASSERT_EQ(1, a);
 }
+
+TEST(TestStation, test_fcfs_arrival)
+{
+}

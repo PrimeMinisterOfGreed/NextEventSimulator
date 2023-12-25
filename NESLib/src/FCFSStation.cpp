@@ -1,9 +1,9 @@
 #include "FCFSStation.hpp"
+#include "Core.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
 #include "LogEngine.hpp"
 #include "Station.hpp"
-#include "ToString.hpp"
 #include <fmt/core.h>
 
 void FCFSStation::ProcessArrival(Event &evt)
