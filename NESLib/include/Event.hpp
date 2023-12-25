@@ -58,6 +58,7 @@ template <> struct fmt::formatter<Event>
 
     auto format(const Event &evt, format_context &ctx) -> format_context::iterator
     {
-        return fmt::format_to(ctx.out(), "J:{},OC:{:2f},Tp:{}", evt.Name, evt.OccurTime, evt.Type);
+        return fmt::format_to(ctx.out(), "J:{},OC:{:2f},Tp:{},Station:{}", evt.Name, evt.OccurTime, evt.Type,
+                              evt.Station);
     }
 };

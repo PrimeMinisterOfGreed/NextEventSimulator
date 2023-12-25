@@ -13,6 +13,8 @@
 #include <regex>
 #include <vector>
 
+TraceSource _logger{""};
+
 std::vector<Accumulator<double>> _acc{
     Accumulator<double>{"failedMachines", "unit"},
     Accumulator<double>{"repairedMachines", "unit"},
@@ -24,8 +26,7 @@ bool ShouldStop()
 {
     if (std::any_of(_acc.begin(), _acc.end(), [](Accumulator<double> &acc) { return acc.Count() < 40; }))
         return false;
-    return std::all_of(_acc.begin(), _acc.end(),
-                       [](Accumulator<double> &acc) { return acc.confidence().precision() < 0.05; });
+    return _acc[3].confidence().precision() < 0.05;
 };
 
 void CollectStat(MachineRepairmanv2 &simulator)
@@ -34,6 +35,7 @@ void CollectStat(MachineRepairmanv2 &simulator)
     _acc[1](simulator["delay_station"].value()->arrivals());
     _acc[2](simulator["long_repair"].value()->Data()["avgWaiting"].value()->Current());
     _acc[3](simulator["long_repair"].value()->Data()["meanCustomerInSystem"].value()->Current());
+    _logger.Information("Current Precision:{}", _acc[3].confidence().precision());
 };
 
 void ExecuteRun()
@@ -60,7 +62,7 @@ void ExecuteRun()
 int main()
 {
     LogEngine::CreateInstance("machinerepairman.txt");
-    TraceSource logger{"Main"};
+    _logger = TraceSource{"main"};
     ExecuteRun();
 
     LogEngine::Instance()->Flush();

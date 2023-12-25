@@ -18,16 +18,16 @@ void _panic(const char *message)
     } // trap
 }
 
-void panic(const char *message, const char *file, int line)
+void _panic(const char *message, const char *file, int line)
 {
     char buffer[512];
-    auto str = fmt::format("[{},{}]{}", file, line, message);
+    auto str = fmt::format("({}:{}){}", file, line, message);
     memcpy(buffer, str.c_str(), str.size() >= 512 ? 512 : strlen(message));
     str.clear();
-    _panic(message);
+    _panic(buffer);
 }
 
-void panic(std::string message, const char *file, int line)
+void _panic(std::string message, const char *file, int line)
 {
-    panic(message.c_str(), file, line);
+    _panic(message.c_str(), file, line);
 }

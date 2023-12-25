@@ -2,9 +2,10 @@
 #include <LogEngine.hpp>
 #include <fmt/core.h>
 #include <vector>
+#define panic(message) _panic(message, __FILE_NAME__, __LINE__)
 
 [[noreturn]] void _panic(const char *message);
 
-void panic(const char *message, const char *file = __FILE_NAME__, int line = __LINE__);
+void _panic(const char *message, const char *file, int line);
 
-void panic(std::string message, const char *file = __FILE_NAME__, int line = __LINE__);
+void _panic(std::string message, const char *file, int line);

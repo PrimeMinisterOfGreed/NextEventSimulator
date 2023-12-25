@@ -1,4 +1,5 @@
 #include "MachineRepairmanv2.hpp"
+#include "Core.hpp"
 #include "DelayStation.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
@@ -8,6 +9,7 @@
 #include "Station.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
+#include <fmt/core.h>
 
 MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 {
@@ -75,7 +77,6 @@ void MachineRepairmanv2::Execute()
     {
         auto inProcess = _eventList.Dequeue();
         Process(inProcess);
-        _clock = inProcess.OccurTime;
         Route(inProcess);
     }
 }

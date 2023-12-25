@@ -1,4 +1,5 @@
 #include "Station.hpp"
+#include "Core.hpp"
 #include "DataCollector.hpp"
 #include "DataWriter.hpp"
 #include "Event.hpp"
@@ -7,6 +8,7 @@
 #include "Measure.hpp"
 #include "Scheduler.hpp"
 #include <cassert>
+#include <fmt/core.h>
 #include <iterator>
 #include <regex>
 #include <sstream>
@@ -74,6 +76,10 @@ void BaseStation::Process(Event &event)
     {
         ProcessEnd(event);
         return;
+    }
+    if (event.OccurTime < _clock)
+    {
+        panic(fmt::format("Event {} occur at a lesser time of {} in station {}", event, _clock, _name));
     }
     _clock = event.OccurTime;
     _logger.Transfer("Processing:{}", event);
