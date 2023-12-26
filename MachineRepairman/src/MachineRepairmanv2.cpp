@@ -10,6 +10,7 @@
 #include "rngs.hpp"
 #include "rvgs.h"
 #include <fmt/core.h>
+#include <sched.h>
 
 MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 {
@@ -32,21 +33,19 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
         evt.ServiceTime = repair_time();
     });
 
-    srepstation->OnDeparture([this](auto stat, auto evt) {
+    srepstation->OnDeparture([this](auto stat, Event &evt) {
         static CompositionStream router{2,
                                         {0.2, 0.8},
-                                        [this, evt](auto s) {
-                                            auto newEvt = Event(evt);
-                                            newEvt.Type = ARRIVAL;
-                                            newEvt.Station = (*this)["long_repair"].value()->stationIndex();
-                                            Schedule(newEvt);
+                                        [this, &evt](auto s) {
+                                            evt.Type = ARRIVAL;
+                                            evt.Station = (*this)["long_repair"].value()->stationIndex();
+                                            Schedule(evt);
                                             return 1;
                                         },
-                                        [this, evt](auto s) {
-                                            auto newEvt = Event(evt);
-                                            newEvt.Type = ARRIVAL;
-                                            newEvt.Station = (*this)["delay_station"].value()->stationIndex();
-                                            Schedule(newEvt);
+                                        [this, &evt](auto s) {
+                                            evt.Type = ARRIVAL;
+                                            evt.Station = (*this)["delay_station"].value()->stationIndex();
+                                            Schedule(evt);
                                             return 0;
                                         }};
         router();
@@ -69,6 +68,7 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 void MachineRepairmanv2::Initialize()
 {
     (*this)["delay_station"].value()->Initialize();
+    Schedule(Event("MAINTENANCE", MAINTENANCE, 0, _nominalWorkshift, _nominalRests, 0, -1));
 }
 
 void MachineRepairmanv2::Execute()
@@ -84,6 +84,16 @@ void MachineRepairmanv2::Execute()
 void MachineRepairmanv2::ProcessEnd(Event &evt)
 {
     _end = true;
+}
+
+void MachineRepairmanv2::ProcessMaintenance(Event &evt)
+{
+    for (auto s : _stations)
+    {
+        s->Process(evt);
+    }
+    Schedule(Event("MAINTENANCE", MAINTENANCE, _clock, _clock + _nominalRests + _nominalWorkshift, _nominalRests,
+                   _clock, -1));
 }
 
 void MachineRepairmanv2::Stop()

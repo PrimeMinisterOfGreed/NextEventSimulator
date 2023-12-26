@@ -64,6 +64,7 @@ int main()
     LogEngine::CreateInstance("machinerepairman.txt");
     _logger = TraceSource{"main"};
     ExecuteRun();
-
+    _logger.Result("Average waiting at long {}, precision {}", _acc[2].mean(), _acc[2].confidence().precision());
+    _logger.Result("Average customers at long {}, precision {}", _acc[3].mean(), _acc[3].confidence().precision());
     LogEngine::Instance()->Flush();
 }

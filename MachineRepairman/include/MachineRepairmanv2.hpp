@@ -7,6 +7,8 @@
 class MachineRepairmanv2 : public Scheduler
 {
   private:
+    const int _nominalWorkshift = 480;
+    const int _nominalRests = 960;
     bool _end = false;
 
   public:
@@ -14,6 +16,7 @@ class MachineRepairmanv2 : public Scheduler
     void Initialize() override;
     virtual void Execute();
     virtual void ProcessEnd(Event &evt) override;
+    virtual void ProcessMaintenance(Event &evt) override;
     void Stop();
     void Update();
 };
