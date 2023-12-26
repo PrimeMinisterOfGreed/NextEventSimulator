@@ -13,7 +13,6 @@ class BaseStation
     virtual void ProcessDeparture(Event &evt);
     virtual void ProcessEnd(Event &evt);
     virtual void ProcessProbe(Event &evt);
-    virtual void ProcessMaintenance(Event &evt);
     TraceSource _logger;
     std::string _name;
 

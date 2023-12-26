@@ -61,10 +61,6 @@ void MachineRepairman::Reset()
 {
 }
 
-void MachineRepairman::ProcessMaintenance(Event &evt)
-{
-}
-
 void MachineRepairman::ProcessEnd(Event &evt)
 {
     Scheduler::ProcessEnd(evt);

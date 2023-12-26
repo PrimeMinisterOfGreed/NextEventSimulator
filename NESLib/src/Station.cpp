@@ -3,7 +3,6 @@
 #include "DataCollector.hpp"
 #include "DataWriter.hpp"
 #include "Event.hpp"
-#include "FCFSStation.hpp"
 #include "LogEngine.hpp"
 #include "Measure.hpp"
 #include "Scheduler.hpp"
@@ -94,12 +93,12 @@ void BaseStation::Process(Event &event)
     switch (event.Type)
     {
     case EventType::ARRIVAL:
+        _logger.Information("Arrival:{}", event);
         for (auto &h : _onArrival)
         {
             h(this, event);
         }
         ProcessArrival(event);
-        _logger.Information("Arrival:{}", event);
         break;
     case EventType::DEPARTURE:
         ProcessDeparture(event);
@@ -118,14 +117,7 @@ void BaseStation::Process(Event &event)
     case EventType::PROBE:
         _logger.Information("Probe:{}", event);
         ProcessProbe(event);
-    case EventType::MAINTENANCE:
-        ProcessMaintenance(event);
-        break;
     }
-}
-
-void BaseStation::ProcessMaintenance(Event &evt)
-{
 }
 
 void Station::Reset()

@@ -8,7 +8,8 @@
 
 void FCFSStation::ProcessArrival(Event &evt)
 {
-    Station::ProcessArrival(evt);
+    if (evt.SubType != MAINTENANCE)
+        Station::ProcessArrival(evt);
     if (!_eventUnderProcess.has_value())
     {
         evt.CreateTime = _clock;
@@ -29,7 +30,8 @@ void FCFSStation::ProcessDeparture(Event &evt)
 
     if (evt != *_eventUnderProcess)
         panic(fmt::format("event {} is not equal to event under process {}", evt.Name, _eventUnderProcess->Name));
-    Station::ProcessDeparture(_eventUnderProcess.value());
+    if (_eventUnderProcess->SubType != MAINTENANCE)
+        Station::ProcessDeparture(_eventUnderProcess.value());
     if (_sysClients > 0)
     {
         _eventUnderProcess.emplace(_eventQueue.Dequeue());
@@ -51,24 +53,6 @@ void FCFSStation::ProcessEnd(Event &evt)
 void FCFSStation::ProcessProbe(Event &evt)
 {
     Station::ProcessProbe(evt);
-}
-
-void FCFSStation::ProcessMaintenance(Event &evt)
-{
-    Station::ProcessMaintenance(evt);
-    if (!_eventUnderProcess.has_value())
-    {
-        evt.CreateTime = _clock;
-        evt.ArrivalTime = _clock;
-        evt.OccurTime = _clock + evt.ServiceTime;
-        evt.Type = EventType::DEPARTURE;
-        _eventUnderProcess.emplace(evt);
-        _scheduler->Schedule(evt);
-    }
-    else
-    {
-        _eventQueue.Enqueue(evt);
-    }
 }
 
 void FCFSStation::Reset()

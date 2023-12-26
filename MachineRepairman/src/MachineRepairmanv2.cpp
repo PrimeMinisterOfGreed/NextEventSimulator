@@ -12,6 +12,13 @@
 #include <fmt/core.h>
 #include <sched.h>
 
+Event gen_maintenance(double clock, double occurTime, double serviceTime)
+{
+    auto evt = Event("MAINTENANCE", ARRIVAL, clock, occurTime, serviceTime, clock, -1);
+    evt.SubType = MAINTENANCE;
+    return evt;
+}
+
 MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 {
     auto delay_station = new DelayStation(this, "delay_station", 10, []() {
@@ -48,7 +55,12 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
                                             Schedule(evt);
                                             return 0;
                                         }};
-        router();
+        if (evt.SubType != MAINTENANCE)
+            router();
+        else
+        {
+            Schedule(Event("MAINTENANCE", MAINTENANCE, _clock, _clock + _nominalWorkshift, _nominalRests, _clock, -1));
+        }
     });
     AddStation(srepstation);
 
@@ -58,6 +70,8 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
         evt.ServiceTime = longRepair();
     });
     lrepstation->OnDeparture([this](auto s, Event &evt) {
+        if (evt.SubType == MAINTENANCE)
+            return;
         evt.Station = 0;
         evt.Type = ARRIVAL;
         Schedule(evt);
@@ -68,7 +82,7 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 void MachineRepairmanv2::Initialize()
 {
     (*this)["delay_station"].value()->Initialize();
-    Schedule(Event("MAINTENANCE", MAINTENANCE, 0, _nominalWorkshift, _nominalRests, 0, -1));
+    Schedule(gen_maintenance(_clock, _nominalWorkshift, _nominalRests));
 }
 
 void MachineRepairmanv2::Execute()
@@ -86,14 +100,17 @@ void MachineRepairmanv2::ProcessEnd(Event &evt)
     _end = true;
 }
 
-void MachineRepairmanv2::ProcessMaintenance(Event &evt)
+void MachineRepairmanv2::ProcessArrival(Event &evt)
 {
-    for (auto s : _stations)
+    if (evt.SubType == MAINTENANCE)
     {
-        s->Process(evt);
+        _stations[1]->Process(evt);
+        _stations[2]->Process(evt);
     }
-    Schedule(Event("MAINTENANCE", MAINTENANCE, _clock, _clock + _nominalRests + _nominalWorkshift, _nominalRests,
-                   _clock, -1));
+}
+
+void MachineRepairmanv2::ProcessDeparture(Event &evt)
+{
 }
 
 void MachineRepairmanv2::Stop()

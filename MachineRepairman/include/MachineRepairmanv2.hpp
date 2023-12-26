@@ -16,7 +16,8 @@ class MachineRepairmanv2 : public Scheduler
     void Initialize() override;
     virtual void Execute();
     virtual void ProcessEnd(Event &evt) override;
-    virtual void ProcessMaintenance(Event &evt) override;
+    virtual void ProcessArrival(Event &evt) override;
+    virtual void ProcessDeparture(Event &evt) override;
     void Stop();
     void Update();
 };

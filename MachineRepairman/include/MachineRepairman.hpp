@@ -21,7 +21,6 @@ class MachineRepairman : public Scheduler, public ISimulator
     void Execute() override;
     void Reset() override;
 
-    void ProcessMaintenance(Event &evt) override;
     void ProcessEnd(Event &evt) override;
     void ProcessProbe(Event &evt) override;
 };
