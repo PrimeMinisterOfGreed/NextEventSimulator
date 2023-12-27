@@ -11,13 +11,6 @@ RepairStation::RepairStation(IScheduler *scheduler, std::string name, int index)
 {
 }
 
-void RepairStation::ProcessDeparture(Event &evt)
-{
-    FCFSStation::ProcessDeparture(evt);
-    if (evt.Name == "MAINTENANCE")
-        return;
-}
-
 void RepairStation::ProcessProbe(Event &evt)
 {
     FCFSStation::ProcessProbe(evt);

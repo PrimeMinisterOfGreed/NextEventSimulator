@@ -26,7 +26,7 @@ bool ShouldStop()
 {
     if (std::any_of(_acc.begin(), _acc.end(), [](Accumulator<double> &acc) { return acc.Count() < 40; }))
         return false;
-    return _acc[3].confidence().precision() < 0.05;
+    return _acc[2].confidence().precision() < 0.05;
 };
 
 void CollectStat(MachineRepairmanv2 &simulator)
@@ -35,7 +35,7 @@ void CollectStat(MachineRepairmanv2 &simulator)
     _acc[1](simulator["delay_station"].value()->arrivals());
     _acc[2](simulator["long_repair"].value()->Data()["avgWaiting"].value()->Current());
     _acc[3](simulator["long_repair"].value()->Data()["meanCustomerInSystem"].value()->Current());
-    _logger.Information("Current Precision:{}", _acc[3].confidence().precision());
+    _logger.Information("Current Precision:{}, Current Mean: {}", _acc[2].confidence().precision(), _acc[2].mean());
 };
 
 void ExecuteRun()

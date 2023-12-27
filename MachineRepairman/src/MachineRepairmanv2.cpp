@@ -36,6 +36,8 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 
     auto srepstation = new RepairStation(this, "short_repair", 1);
     srepstation->OnArrival([](auto s, Event &evt) {
+        if (evt.SubType == MAINTENANCE)
+            return;
         static VariableStream repair_time(3, [evt](auto rng) { return Exponential(40); });
         evt.ServiceTime = repair_time();
     });
@@ -59,19 +61,24 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
             router();
         else
         {
-            Schedule(Event("MAINTENANCE", MAINTENANCE, _clock, _clock + _nominalWorkshift, _nominalRests, _clock, -1));
+            Schedule(Event("MAINTENANCE", MAINTENANCE, _clock, _clock + _nominalWorkshift, _nominalRests, _clock, 1));
         }
     });
     AddStation(srepstation);
 
     auto lrepstation = new RepairStation(this, "long_repair", 2);
     lrepstation->OnArrival([](auto s, Event &evt) {
+        if (evt.SubType == MAINTENANCE)
+            return;
         static VariableStream longRepair{4, [](auto rng) { return Exponential(960); }};
         evt.ServiceTime = longRepair();
     });
     lrepstation->OnDeparture([this](auto s, Event &evt) {
         if (evt.SubType == MAINTENANCE)
+        {
+            Schedule(Event("MAINTENANCE", MAINTENANCE, _clock, _clock + _nominalWorkshift, _nominalRests, _clock, 2));
             return;
+        }
         evt.Station = 0;
         evt.Type = ARRIVAL;
         Schedule(evt);
@@ -82,7 +89,11 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 void MachineRepairmanv2::Initialize()
 {
     (*this)["delay_station"].value()->Initialize();
-    Schedule(gen_maintenance(_clock, _nominalWorkshift, _nominalRests));
+    auto evt = gen_maintenance(_clock, _nominalWorkshift, _nominalRests);
+    evt.Station = 1;
+    Schedule(evt);
+    evt.Station = 2;
+    Schedule(evt);
 }
 
 void MachineRepairmanv2::Execute()
@@ -102,11 +113,6 @@ void MachineRepairmanv2::ProcessEnd(Event &evt)
 
 void MachineRepairmanv2::ProcessArrival(Event &evt)
 {
-    if (evt.SubType == MAINTENANCE)
-    {
-        _stations[1]->Process(evt);
-        _stations[2]->Process(evt);
-    }
 }
 
 void MachineRepairmanv2::ProcessDeparture(Event &evt)

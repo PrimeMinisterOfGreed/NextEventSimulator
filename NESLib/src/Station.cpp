@@ -182,6 +182,6 @@ void Station::Update()
     collector[traffic]->Accumulate(_busyTime / _lastArrival);            /* Traffic intensity */
     collector[meanCustomerInQueue]->Accumulate(_areaS / _oldclock);      /* Mean number of customers in queue */
     collector[meanCustomerInService]->Accumulate(_busyTime / _oldclock); /* Mean number of customers in service */
-    collector[meanCustomerInSystem]->Accumulate(_areaS / _oldclock);     /* Mean number of customers in system */
+    collector[meanCustomerInSystem]->Accumulate(_areaN / _oldclock);     /* Mean number of customers in system */
     collector._samples++;
 }
