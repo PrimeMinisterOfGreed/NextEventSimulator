@@ -1,9 +1,26 @@
 #this is your final project
+set(SRC_FILES 
+    src/CPU.cpp
+    src/IOStation.cpp
+    src/OperativeSystem.cpp
+    src/ReserveStation.cpp
+    src/SwapIn.cpp
+    src/SwapOut.cpp
+)
 
-file(GLOB_RECURSE PRIV_SRC src/*.cpp)
 
-add_executable(scheduler ${PRIV_SRC})
+add_executable(scheduler 
+    src/main.cpp 
+    ${SRC_FILES}
+)
+
+add_executable(scheduler_mva 
+
+    src/mvaSolver.cpp
+)
+
 target_link_libraries(scheduler PUBLIC ${Boost_LIBRARIES} fmt::fmt NESLib)
 target_include_directories(scheduler PUBLIC include)
 
-generate_gtest(PROJECT_NAME "Scheduler" TEST_DIR "test" INCLUDE_DIR "include" SRC_DIR "src" MAIN_SRC_NAME "main.cpp" ADDITIONAL_TARGET_LIBS "${Boost_LIBRARIES}" "fmt::fmt" "NESLib")
+file(GLOB_RECURSE TEST_FILES test/*.cpp)
+generate_gtest(PROJECT_NAME "Scheduler" SRC_FILES ${SRC_FILES} TEST_SRC_FILES ${TEST_FILES}  ADDITIONAL_TARGET_LIBS "${Boost_LIBRARIES}" "fmt::fmt" "NESLib")

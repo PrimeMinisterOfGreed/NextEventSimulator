@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DataCollector.hpp"
+#include "Core.hpp"
 #include "LogEngine.hpp"
 #include <cstdarg>
 #include <cstddef>
@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
 template <typename T>
 concept IsAdd = requires(T a) {
     {
@@ -30,7 +31,7 @@ static T operator*(std::vector<T> a, std::vector<T> b)
 {
     if (a.size() != b.size())
     {
-        throw "matrix of different sizes";
+        panic("matrix of different sizes");
     }
     T sum{};
     for (int i = 0; i < a.size(); i++)
@@ -58,6 +59,12 @@ struct Matrix
 
     Matrix()
     {
+    }
+
+    Matrix(size_t rows, size_t columns)
+    {
+        AllocRows(rows);
+        AllocColumns(columns);
     }
 
     Matrix(std::vector<std::vector<T>> data) : _data(data)
@@ -124,7 +131,7 @@ struct Matrix
         }
     }
 
-    void AllocColumns(int toAdd)
+    void AllocColumns(size_t toAdd)
     {
         for (std::vector<T> &vec : _data)
         {
@@ -132,7 +139,7 @@ struct Matrix
         }
     }
 
-    void AllocRows(int toAdd)
+    void AllocRows(size_t toAdd)
     {
         size_t ref = _data[0].size();
         for (int i = 0; i < toAdd; i++)

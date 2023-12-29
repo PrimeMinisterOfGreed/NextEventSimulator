@@ -75,6 +75,7 @@ class Station : public BaseStation
     DataCollector collector;
 
     int _stationIndex{};
+    double _regPointClock = 0.0;
 
   public:
     virtual void Initialize();

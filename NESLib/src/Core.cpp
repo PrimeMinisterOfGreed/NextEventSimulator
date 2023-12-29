@@ -2,7 +2,7 @@
 #include <Core.hpp>
 #include <cstring>
 #include <fmt/core.h>
-void _panic(const char *message)
+[[noreturn]] void _panic(const char *message)
 {
     if (LogEngine::Instance() == nullptr)
     {

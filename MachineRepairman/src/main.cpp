@@ -44,7 +44,7 @@ void ExecuteRun()
     RandomStream::Global().PlantSeeds(seed);
     MachineRepairmanv2 simulator{};
 
-    simulator["delay_station"].value()->OnArrival([&simulator](auto s, Event &evt) {
+    simulator["long_repair"].value()->OnDeparture([&simulator](auto s, Event &evt) {
         simulator.Update();
         CollectStat(simulator);
         if (ShouldStop())
