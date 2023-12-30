@@ -21,7 +21,7 @@ class DataCollector
 
   private:
     std::string _stationName{};
-    std::vector<sptr<Measure<double>>> _measures;
+    std::vector<sptr<Measure<double>>> _measures{};
     double lastTimeStamp{};
 
   public:
@@ -60,6 +60,5 @@ class DataCollector
     void Reset();
     std::string Header() const;
     std::string Csv();
-    DataCollector(std::string stationName, bool registerCollector);
-    ~DataCollector();
+    DataCollector(std::string stationName);
 };

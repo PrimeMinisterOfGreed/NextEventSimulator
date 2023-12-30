@@ -18,21 +18,26 @@
 
 class RandomStream;
 
-class VariableStream
+struct BaseStream
+{
+    virtual double operator()() = 0;
+};
+
+class VariableStream : public BaseStream
 {
     int stream;
     std::function<double(RandomStream &)> _lambda;
 
   public:
-    double operator()();
+    double operator()() override;
     VariableStream(int stream, std::function<double(RandomStream &)> lambda);
 };
 
-struct CompositionStream
+struct CompositionStream : public BaseStream
 {
     std::vector<std::function<double(RandomStream &)>> _generators{};
     std::vector<double> _alpha;
-    double operator()();
+    double operator()() override;
     int _stream;
     template <typename... F>
     CompositionStream(int stream, std::vector<double> weights, F &&...fncs)

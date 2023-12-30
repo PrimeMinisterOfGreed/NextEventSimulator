@@ -1,114 +1,92 @@
 #include "CPU.hpp"
+#include "Core.hpp"
 #include "Enums.hpp"
 #include "Event.hpp"
+#include "FCFSStation.hpp"
 #include "OperativeSystem.hpp"
 #include "Options.hpp"
+#include "Station.hpp"
 #include "SystemParameters.hpp"
+#include "Usings.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
+#include <fmt/core.h>
+#include <vector>
 
-Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
+// burst is written this way because of this
+// https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
+Cpu::Cpu(IScheduler *scheduler, bool useNegExp)
+    : Station("CPU", Stations::CPU), _scheduler(scheduler), _timeSlice(SystemParameters::Parameters().cpuQuantum)
 {
-
-    burst = RandomStream::Global().GetStream([this](RandomStream &gen) -> double {
-        auto x = RandomStream::Global().Random();
-        return alpha * (1 / u1) * exp(-x / u1) + beta * (1 / u2) * exp(-x / u2);
-    });
-    _timeSlice = SystemParameters::Parameters().cpuQuantum;
-    serviceTime = RandomStream::Global().GetStream(
-        [this](auto &gen) { return Exponential(SystemParameters::Parameters().averageCpuTime); });
-    _name = "CPU";
+    if (useNegExp)
+    {
+        auto negExpStream = new VariableStream(3, [](auto rng) { return Exponential(27); });
+        _burst = sptr<BaseStream>(negExpStream);
+    }
+    else
+    {
+        auto hyperExpStream = new CompositionStream{
+            4, {0.95, 0.05}, [](auto rng) { return Exponential(10); }, [](auto rng) { return Exponential(350); }};
+        _burst = sptr<BaseStream>(hyperExpStream);
+    }
 }
 
 void Cpu::ProcessArrival(Event &evt)
 {
-    if (evt.SubType == EventType::NO_EVENT)
+    // it's a new process
+    if (evt.SubType != 'E')
     {
+        _logger.Transfer("New process joined: {}", evt);
         Station::ProcessArrival(evt);
-        evt.SubType = 'C';
-        double processServiceTime = (*serviceTime)();
-        evt.ServiceTime = processServiceTime;
+        evt.SubType = 'E';
+        evt.ServiceTime = (*_burst)();
+        if (_eventUnderProcess.has_value() && _readyQueue.Count() > 0)
+        {
+            _readyQueue.Push(evt);
+            return;
+        }
     }
-    if (!_eventUnderProcess.has_value())
-    {
-        ManageProcess(evt);
-        _scheduler->Schedule(evt);
-        _eventUnderProcess.emplace(evt);
-    }
+
+    // it was in the ready queue
     else
     {
-        _eventQueue.Enqueue(evt);
+        if (_eventUnderProcess.has_value())
+        {
+            panic(fmt::format("Expected empty underprocess but was {}", _eventUnderProcess.value()));
+        }
+        _logger.Transfer("Now Processing:{}", evt);
     }
+    auto slice = evt.ServiceTime > _timeSlice ? _timeSlice : evt.ServiceTime;
+    evt.Type = DEPARTURE;
+    evt.OccurTime = _clock + slice;
+    evt.ServiceTime -= slice;
+    _eventUnderProcess = evt;
+    _scheduler->Schedule(evt);
 }
 
 void Cpu::ProcessDeparture(Event &evt)
 {
-    if (evt.ServiceTime > 0)
-    {
-        evt.Type = EventType::ARRIVAL;
-        evt.OccurTime = _clock;
-        if (!_eventUnderProcess.has_value())
-        {
-            auto newEvt = _eventQueue.Dequeue();
-            ManageProcess(newEvt);
-            _eventUnderProcess.emplace(newEvt);
-            _eventQueue.Enqueue(evt);
-            _scheduler->Schedule(newEvt);
-        }
-        else
-        {
-            _scheduler->Schedule(evt);
-        }
-    }
-    else
+    static CompositionStream router(
+        3, {0.65, 0.35, 0.1}, [](auto rng) { return Stations::IO_1; }, [](auto rng) { return Stations::IO_2; },
+        [](auto rng) { return Stations::SWAP_OUT; });
+    // process has finished
+    if (evt.ServiceTime == 0)
     {
         Station::ProcessDeparture(evt);
-        double probabilities[3] = {0, 0.65, 0.9};
-        double num = Uniform(0.0, 1.0);
-        int selected = 0;
-        for (int i = 0; i < 3; i++)
-            if (num >= probabilities[i])
-                selected = i;
-        evt.ArrivalTime = _clock;
-        evt.OccurTime = _clock;
-        evt.Type = EventType::ARRIVAL;
-        switch (selected)
-        {
-        case 0:
-            evt.Station = Stations::IO_1;
-            break;
-
-        case 1:
-            evt.Station = Stations::IO_2;
-            break;
-
-        case 2:
-            evt.Station = Stations::SWAP_OUT;
-            break;
-        }
+        evt.Type = ARRIVAL;
+        evt.Station = router();
         _scheduler->Schedule(evt);
-    }
-}
-
-void Cpu::ManageProcess(Event &evt)
-{
-    evt.ArrivalTime = _clock;
-    evt.CreateTime = _clock;
-    if (_timeSlice < evt.ServiceTime)
-    {
-        evt.OccurTime = _clock + _timeSlice;
-        evt.ServiceTime -= _timeSlice;
     }
     else
     {
-        evt.OccurTime = _clock + evt.ServiceTime;
-        evt.ServiceTime = 0;
+        _readyQueue.Enqueue(evt);
     }
-    evt.Type = EventType::DEPARTURE;
-}
-
-void Cpu::Reset()
-{
-    Station::Reset();
-    _eventQueue.Clear();
+    if (_readyQueue.Count() > 0)
+    {
+        auto newEvt = _readyQueue.Dequeue();
+        newEvt.Type = ARRIVAL;
+        newEvt.OccurTime = _clock;
+        _scheduler->Schedule(newEvt);
+    }
+    _eventUnderProcess.reset();
 }

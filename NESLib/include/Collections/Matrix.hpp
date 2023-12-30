@@ -4,6 +4,7 @@
 #include "LogEngine.hpp"
 #include <cstdarg>
 #include <cstddef>
+#include <fmt/core.h>
 #include <functional>
 #include <initializer_list>
 #include <optional>
@@ -63,12 +64,21 @@ struct Matrix
 
     Matrix(size_t rows, size_t columns)
     {
-        AllocRows(rows);
-        AllocColumns(columns);
+        for (int i = 0; i < rows; i++)
+        {
+            std::vector<T> vec(columns);
+            _data.push_back(vec);
+        }
     }
 
     Matrix(std::vector<std::vector<T>> data) : _data(data)
     {
+        auto ref = data[0].size();
+        for (auto vec : data)
+        {
+            if (vec.size() != ref)
+                panic("Vector of different sizes in same matrix");
+        }
     }
 
     size_t Columns() const
@@ -144,13 +154,30 @@ struct Matrix
         size_t ref = _data[0].size();
         for (int i = 0; i < toAdd; i++)
         {
-            _data.push_back(std::vector<T>{ref});
+            _data.push_back(std::vector<T>(ref));
         }
     }
 
     T &operator()(int row, int col)
     {
+        if (row >= Rows() || col >= Columns())
+            panic(fmt::format("Index out of range row:{} with Rows:{}, col:{} with Rows:{}", row, Rows(), col,
+                              Columns()));
         return _data.at(row).at(col);
+    }
+
+    Matrix<T> Transpose()
+    {
+        Matrix<double> res(this->Columns(), this->Rows());
+        for (int i = 0; i < Columns(); i++)
+        {
+            auto col = Col(i);
+            for (int k = 0; k < col.size(); k++)
+            {
+                res(i, k) = col[k];
+            }
+        }
+        return res;
     }
 
     Matrix<T> operator*(const Matrix<T> &oth)

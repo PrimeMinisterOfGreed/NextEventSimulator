@@ -2,16 +2,18 @@
 #include <vector>
 using Vector = std::vector<double>;
 
-Vector &RouteToVisit(Matrix<double> &routings)
+Vector RouteToVisit(Matrix<double> &routings)
 {
-    Vector &visits = *new Vector(routings.Rows());
+    Vector visits(routings.Rows());
     visits[0] = 1.0;
     for (int i = 0; i < routings.Rows(); i++)
     {
         double sum = 0.0;
-        for (int k = 0; k < routings.Row(0).size(); k++)
+        for (int k = 0; k < routings.Col(i).size(); k++)
         {
-            sum += (routings(k, i) / visits[0]) * routings(i, k);
+            double a = routings(k, i);
+            double b = routings(i, k);
+            sum += (a / visits[0]) * b;
         }
         visits[i] = sum;
         sum = 0;

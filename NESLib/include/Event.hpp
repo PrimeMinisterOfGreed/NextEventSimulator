@@ -18,6 +18,7 @@ enum EventType : char
 struct Event
 {
     int Station = 0;
+    int *copyCounter = nullptr;
     static int GeneratedNodes;
     static int DeletedNodes;
     double CreateTime = 0.0;
@@ -29,6 +30,7 @@ struct Event
     char SubType = EventType::NO_EVENT;
     Event()
     {
+        copyCounter = new int();
     }
     Event(std::string name, char type, double createTime, double occurTime, double serviceTime, double arrivalTime,
           int stationTarget = 0)
@@ -36,14 +38,24 @@ struct Event
           ArrivalTime{arrivalTime}, Station(stationTarget)
     {
         Event::GeneratedNodes++;
+        copyCounter = new int();
     }
     ~Event()
     {
+        if (*copyCounter > 0)
+            (*copyCounter)--;
+        else
+            DeletedNodes++;
         Name.clear();
-        DeletedNodes++;
     }
 
-    Event(const Event &) = default;
+    Event(const Event &evt)
+        : Name(evt.Name), Type(evt.Type), CreateTime(evt.CreateTime), OccurTime(evt.OccurTime),
+          ServiceTime(evt.ServiceTime), ArrivalTime(evt.ArrivalTime), Station(evt.Station), SubType(evt.SubType),
+          copyCounter(evt.copyCounter)
+    {
+        (*copyCounter)++;
+    }
 
     bool operator==(Event &oth);
 };

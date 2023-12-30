@@ -17,7 +17,7 @@ struct MVAResult
     MVAResult(int mStations, int nClients);
 };
 
-std::vector<double> &RouteToVisit(const Matrix<double> &routings);
+std::vector<double> RouteToVisit(Matrix<double> &routings);
 
 MVAResult MVALID(const std::vector<double> &visits, const std::vector<double> &serviceTimes,
                  const std::vector<StationType> &types, int N);

@@ -1,6 +1,7 @@
 #include "OperativeSystem.hpp"
 #include "CPU.hpp"
 #include "DataWriter.hpp"
+#include "DelayStation.hpp"
 #include "Enums.hpp"
 #include "Event.hpp"
 #include "IOStation.hpp"
@@ -28,28 +29,29 @@ void OS::Execute()
     }
 }
 
-OS::OS()
-    : Scheduler("OS"),
-      _interArrival(
-          VariableStream(1, [](auto &rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); }))
+OS::OS() : Scheduler("OS")
 {
-    static Cpu cpu(this);
-    static ReserveStation rstation(this);
-    static IOStation io1(this, Stations::IO_1);
-    static IOStation io2(this, Stations::IO_2);
-    static SwapOut swapOut(this);
-    static SwapIn swapin(this);
-    _stations = std::vector<sptr<Station>>({sptr<Station>(&rstation), sptr<Station>(&io1), sptr<Station>(&io2),
-                                            sptr<Station>(&swapOut), sptr<Station>(&swapin)});
+    auto dstation = new DelayStation(this, "delay_station", 20, []() {
+        static VariableStream delayStream(
+            1, [](auto rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); });
+        return delayStream();
+    });
+
+    dstation->OnDeparture([this](auto s, Event &evt) {
+        evt.Station = 1;
+        Schedule(evt);
+    });
+    AddStation(dstation);
+    AddStation(new Cpu(this));
+    AddStation(new ReserveStation(this));
+    AddStation(new IOStation(this, Stations::IO_1));
+    AddStation(new IOStation(this, Stations::IO_2));
+    AddStation(new SwapOut(this));
+    AddStation(new SwapIn(this));
 }
 
 void OS::ProcessArrival(Event &evt)
 {
-    evt.Station = Stations::RESERVE_STATION;
-    Schedule(evt);
-    auto newEvt = Event(makeformat("J{}:S{}", Event::GeneratedNodes, 0), EventType::ARRIVAL, _clock,
-                        _interArrival() + _clock, 0, _interArrival() + _clock, 0);
-    Schedule(newEvt);
 }
 
 void OS::Reset()
@@ -60,14 +62,11 @@ void OS::Reset()
     {
         station->Reset();
     }
-    _eventList.Clear();
 }
 
 void OS::Initialize()
 {
-
-    /*Schedule(Event(makeformat("J{}:S{}", Event::GeneratedNodes, Stations::RESERVE_STATION), EventType::ARRIVAL,
-       _clock, 0, 0, 0, Stations::RESERVE_STATION));*/
+    (*this)["delay_station"].value()->Initialize();
 }
 
 void OS::ProcessProbe(Event &evt)

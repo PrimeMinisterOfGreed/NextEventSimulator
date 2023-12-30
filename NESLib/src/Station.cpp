@@ -135,8 +135,7 @@ void Station::Reset()
     collector.Reset();
 }
 
-Station::Station(std::string name, int station, bool registerCollector)
-    : BaseStation(name), _stationIndex(station), collector{name, registerCollector}
+Station::Station(std::string name, int station) : BaseStation(name), _stationIndex(station), collector{name}
 {
 
     collector.AddMeasure(Measure<double>{"completitions", "unit"});

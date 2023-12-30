@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Enums.hpp"
 #include "Event.hpp"
 #include "FCFSStation.hpp"
 #include "rngs.hpp"
@@ -11,23 +12,15 @@ class Cpu : public Station
 
   private:
     std::optional<Event> _eventUnderProcess;
-    std::unique_ptr<VariableStream> burst;
-    std::unique_ptr<VariableStream> serviceTime;
-    double alpha = 0.95;
-    double beta = 0.05;
-    double u1 = 0.01;
-    double u2 = 0.35;
+
     IScheduler *_scheduler;
     double _timeSlice;
-    EventList _eventQueue{};
-    void ManageProcess(Event &evt);
-    double Burst(double alpha, double beta, double u1, double u2);
+    EventList _readyQueue{};
+    sptr<BaseStream> _burst;
 
   public:
-    Cpu(IScheduler *scheduler);
+    Cpu(IScheduler *scheduler, bool useNegExp = false);
 
     void ProcessArrival(Event &evt) override;
-
     void ProcessDeparture(Event &evt) override;
-    void Reset() override;
 };

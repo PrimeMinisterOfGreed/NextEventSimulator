@@ -14,7 +14,7 @@ struct DelayStation : public Station
   public:
     template <typename F>
     DelayStation(IScheduler *scheduler, std::string name, int numclients, F &&delayFnc)
-        : Station(name, 0, false), _scheduler(scheduler), _delayTime(delayFnc), _numclients(numclients)
+        : Station(name, 0), _scheduler(scheduler), _delayTime(delayFnc), _numclients(numclients)
     {
     }
     void Initialize() override;

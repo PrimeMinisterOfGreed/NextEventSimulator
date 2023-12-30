@@ -31,6 +31,14 @@ void Scheduler::Initialize()
 {
 }
 
+Event Scheduler::ProcessNext()
+{
+    auto evt = _eventList.Dequeue();
+    Process(evt);
+    Route(evt);
+    return evt;
+}
+
 Event Scheduler::Create(double interArrival, double serviceTime, int stationTarget, EventType type)
 {
     std::string name = fmt::format("J{}", Event::GeneratedNodes);

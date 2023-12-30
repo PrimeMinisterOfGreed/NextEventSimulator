@@ -85,6 +85,7 @@ class BaseMeasure
     {
         return !(*this == measure);
     }
+    virtual ~BaseMeasure() = default;
 };
 
 template <typename T> class Measure : public BaseMeasure
@@ -150,8 +151,6 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
     }
 
   public:
-    EventHandler<T> OnCatch;
-
     Accumulator(std::string name, std::string unit) : Measure<T>(name, unit)
     {
     }

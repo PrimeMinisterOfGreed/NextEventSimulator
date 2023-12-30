@@ -36,15 +36,8 @@ std::string DataCollector::Csv()
     return csv;
 }
 
-DataCollector::DataCollector(std::string stationName, bool registerCollector) : _stationName(stationName)
+DataCollector::DataCollector(std::string stationName) : _stationName(stationName)
 {
-    if (registerCollector)
-        DataWriter::Instance().Register(this);
-}
-
-DataCollector::~DataCollector()
-{
-    DataWriter::Instance().Unregister(this);
 }
 
 void DataCollector::Reset()

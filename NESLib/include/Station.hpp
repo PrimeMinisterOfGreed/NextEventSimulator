@@ -85,7 +85,7 @@ class Station : public BaseStation
         return collector;
     }
     virtual void Reset();
-    Station(std::string name, int station, bool registerCollector = false);
+    Station(std::string name, int station);
 
     int stationIndex() const
     {

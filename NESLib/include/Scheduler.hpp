@@ -44,7 +44,7 @@ class Scheduler : public IScheduler, public BaseStation
     {
         return _stations[index];
     }
-
+    Event ProcessNext();
     void Reset() override;
     virtual Event Create(double interArrival, double serviceTime, int stationTarget = -1, EventType type = ARRIVAL);
 };
