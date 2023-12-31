@@ -4,7 +4,7 @@ file(GLOB_RECURSE PRIV_SRC src/*.cpp)
 
 add_executable(simulator_v2  ${PRIV_SRC})
 target_include_directories(simulator_v2 PUBLIC include)
-target_link_libraries(simulator_v2  ${Boost_LIBRARIES} fmt::fmt NESLib)
+target_link_libraries(simulator_v2  fmt::fmt NESLib)
 
 
 configure_file(./doc/ssq2.dat  ${CMAKE_BINARY_DIR}/ssq2.dat)

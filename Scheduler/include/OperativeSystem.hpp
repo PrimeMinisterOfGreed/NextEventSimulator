@@ -1,19 +1,7 @@
 #pragma once
-#include "CPU.hpp"
-#include "DataCollector.hpp"
 #include "Event.hpp"
-#include "EventHandler.hpp"
-#include "IOStation.hpp"
 #include "ISimulator.hpp"
-#include "ReserveStation.hpp"
 #include "Scheduler.hpp"
-#include "Station.hpp"
-#include "SwapIn.hpp"
-#include "SwapOut.hpp"
-#include "rngs.hpp"
-#include <map>
-#include <memory>
-#include <vector>
 
 class OS : public ISimulator, public Scheduler
 {

@@ -5,14 +5,11 @@
 
 #include "ISimulator.hpp"
 #include "Station.hpp"
-#include "rngs.hpp"
-#include <memory>
 
 class SwapOut : public Station
 {
   protected:
     IScheduler *_scheduler;
-    std::unique_ptr<VariableStream> _swap;
 
   public:
     SwapOut(IScheduler *scheduler);

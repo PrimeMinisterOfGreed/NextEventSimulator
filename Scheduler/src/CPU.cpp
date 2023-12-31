@@ -2,9 +2,6 @@
 #include "Core.hpp"
 #include "Enums.hpp"
 #include "Event.hpp"
-#include "FCFSStation.hpp"
-#include "OperativeSystem.hpp"
-#include "Options.hpp"
 #include "Station.hpp"
 #include "SystemParameters.hpp"
 #include "Usings.hpp"
@@ -75,6 +72,7 @@ void Cpu::ProcessDeparture(Event &evt)
         Station::ProcessDeparture(evt);
         evt.Type = ARRIVAL;
         evt.Station = router();
+        evt.SubType = 0;
         _scheduler->Schedule(evt);
     }
     else

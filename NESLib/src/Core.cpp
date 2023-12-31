@@ -20,8 +20,8 @@
 
 void _panic(const char *message, const char *file, int line)
 {
-    char buffer[512];
-    auto str = fmt::format("({}:{}){}", file, line, message);
+    char buffer[513]{};
+    auto str = fmt::format("({}:{}){}\0", file, line, message);
     memcpy(buffer, str.c_str(), str.size() >= 512 ? 512 : str.size());
     str.clear();
     _panic(buffer);

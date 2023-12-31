@@ -24,5 +24,5 @@ DTMC CTMC::ToDtmc()
             max = e;
     });
 
-    DTMC res{_data};
+    return DTMC{_data};
 }

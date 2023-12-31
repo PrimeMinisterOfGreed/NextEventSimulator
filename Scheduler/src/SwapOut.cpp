@@ -3,9 +3,7 @@
 //
 #include "SwapOut.hpp"
 #include "Enums.hpp"
-#include "Options.hpp"
 #include "rngs.hpp"
-#include "rvgs.h"
 
 void SwapOut::ProcessArrival(Event &evt)
 {
@@ -18,18 +16,18 @@ void SwapOut::ProcessArrival(Event &evt)
 
 void SwapOut::ProcessDeparture(Event &evt)
 {
+    static CompositionStream router(
+        6, {0.6, 0.4}, [](auto rng) { return 0; }, [](auto rng) { return RESERVE_STATION; });
     Station::ProcessDeparture(evt);
-    if ((*_swap)() > 0.4)
-    {
-        evt.Type = EventType::ARRIVAL;
-        evt.OccurTime = _clock;
-        evt.Station = Stations::RESERVE_STATION;
-        _scheduler->Schedule(evt);
-    }
+    evt.Type = EventType::ARRIVAL;
+    evt.OccurTime = _clock;
+    evt.Station = router();
+    _logger.Information("Swapping out Process:{} to {}", evt,
+                        evt.Station == RESERVE_STATION ? "Reserve" : "DelayStation");
+    _scheduler->Schedule(evt);
 }
 
 SwapOut::SwapOut(IScheduler *scheduler) : Station("SWAP_OUT", Stations::SWAP_OUT)
 {
     _scheduler = scheduler;
-    _swap = RandomStream::Global().GetStream([](auto &rng) { return Uniform(0.0, 1.0); });
 }

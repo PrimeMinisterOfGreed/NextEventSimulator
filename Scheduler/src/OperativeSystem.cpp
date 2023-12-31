@@ -1,31 +1,29 @@
 #include "OperativeSystem.hpp"
 #include "CPU.hpp"
+#include "Core.hpp"
 #include "DataWriter.hpp"
 #include "DelayStation.hpp"
 #include "Enums.hpp"
 #include "Event.hpp"
 #include "IOStation.hpp"
-#include "ISimulator.hpp"
-#include "Options.hpp"
 #include "ReserveStation.hpp"
 #include "Scheduler.hpp"
-#include "Station.hpp"
+#include "SwapIn.hpp"
 #include "SwapOut.hpp"
 #include "SystemParameters.hpp"
-#include "Usings.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
-#include <vector>
+#include <fmt/core.h>
 
 void OS::Execute()
 {
-    Initialize();
-    while (!_end)
+    auto nextEvt = _eventList.Dequeue();
+    _clock = nextEvt.OccurTime;
+    Process(nextEvt);
+    Route(nextEvt);
+    if (_eventList.Count() == 0)
     {
-        auto nextEvt = _eventList.Dequeue();
-        _clock = nextEvt.OccurTime;
-        Process(nextEvt);
-        Route(nextEvt);
+        panic(fmt::format("Error eventlist is empty, last event processed {}", nextEvt));
     }
 }
 
@@ -39,14 +37,15 @@ OS::OS() : Scheduler("OS")
 
     dstation->OnDeparture([this](auto s, Event &evt) {
         evt.Station = 1;
+        evt.Type = ARRIVAL;
         Schedule(evt);
     });
     AddStation(dstation);
+    AddStation(new SwapOut(this));
     AddStation(new Cpu(this));
     AddStation(new ReserveStation(this));
     AddStation(new IOStation(this, Stations::IO_1));
     AddStation(new IOStation(this, Stations::IO_2));
-    AddStation(new SwapOut(this));
     AddStation(new SwapIn(this));
 }
 

@@ -28,7 +28,8 @@ class Scheduler : public IScheduler, public BaseStation
     Scheduler(std::string name) : BaseStation(name)
     {
     }
-    std::optional<sptr<Station>> operator[](std::string name)
+
+    std::optional<sptr<Station>> GetStation(std::string name) override
     {
         for (auto &st : _stations)
         {
@@ -40,9 +41,34 @@ class Scheduler : public IScheduler, public BaseStation
         return {};
     }
 
+    std::optional<sptr<Station>> GetStation(int stationIndex) override
+    {
+        for (auto s : _stations)
+        {
+            if (s->stationIndex() == stationIndex)
+            {
+                return s;
+            }
+        }
+        return {};
+    }
+    std::optional<sptr<Station>> operator[](std::string name)
+    {
+        return GetStation(name);
+    }
+
     std::optional<sptr<Station>> operator[](int index)
     {
-        return _stations[index];
+        return GetStation(index);
+    }
+
+    void Sync() override
+    {
+        for (auto s : _stations)
+        {
+            auto e = Event("SYNC", NO_EVENT, _clock, _clock, 0, _clock, s->stationIndex());
+            s->Process(e);
+        }
     }
     Event ProcessNext();
     void Reset() override;

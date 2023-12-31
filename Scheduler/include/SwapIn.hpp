@@ -14,7 +14,7 @@ class SwapIn : public FCFSStation
     void ProcessDeparture(Event &evt) override;
 
   private:
-    std::unique_ptr<VariableStream> _serviceTime;
+    VariableStream _serviceTime;
 
   public:
 };
