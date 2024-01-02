@@ -49,27 +49,27 @@ TEST(TestRandom, test_routing)
     CompositionStream stream(
         0, {0.65, 0.25, 0.1}, [](auto rng) { return 0; }, [](auto rng) { return 1; }, [](auto rng) { return 2; });
 
-    bool one = false;
-    bool two = false;
-    bool three = false;
-    for (int i = 0; i < 10000; i++)
+    int one = 0;
+    int two = 0;
+    int three = 0;
+    for (int i = 0; i < 100; i++)
     {
         switch ((int)stream())
         {
         case 0:
-            one = true;
+            one++;
             break;
         case 1:
-            two = true;
+            two++;
             break;
 
         case 2:
-            three = true;
+            three++;
             break;
         }
     }
 
-    ASSERT_TRUE(one);
-    ASSERT_TRUE(two);
-    ASSERT_TRUE(three);
+    ASSERT_LE(60, one);
+    ASSERT_LE(20, two);
+    ASSERT_LE(5, three);
 }

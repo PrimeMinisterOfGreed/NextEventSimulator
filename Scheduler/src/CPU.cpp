@@ -12,10 +12,10 @@
 
 // burst is written this way because of this
 // https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
-Cpu::Cpu(IScheduler *scheduler, bool useNegExp)
+Cpu::Cpu(IScheduler *scheduler)
     : Station("CPU", Stations::CPU), _scheduler(scheduler), _timeSlice(SystemParameters::Parameters().cpuQuantum)
 {
-    if (useNegExp)
+    if (SystemParameters::Parameters().cpuUseNegExp)
     {
         auto negExpStream = new VariableStream(3, [](auto rng) { return Exponential(27); });
         _burst = sptr<BaseStream>(negExpStream);
@@ -51,7 +51,7 @@ void Cpu::ProcessArrival(Event &evt)
         {
             panic(fmt::format("Expected empty underprocess but was {}", _eventUnderProcess.value()));
         }
-        _logger.Transfer("Now Processing:{}", evt);
+        _logger.Transfer("Now Processing:{}, Remaining service time:{}", evt, evt.ServiceTime);
     }
     auto slice = evt.ServiceTime > _timeSlice ? _timeSlice : evt.ServiceTime;
     evt.Type = DEPARTURE;
@@ -64,8 +64,9 @@ void Cpu::ProcessArrival(Event &evt)
 void Cpu::ProcessDeparture(Event &evt)
 {
     static CompositionStream router(
-        3, {0.65, 0.25, 0.1, 0.0}, [](auto rng) { return Stations::IO_1; }, [](auto rng) { return Stations::IO_2; },
-        [](auto rng) { return Stations::SWAP_OUT; }, [](auto rng) { return Stations::CPU; });
+        3, SystemParameters::Parameters().cpuChoice, [](auto rng) { return Stations::IO_1; },
+        [](auto rng) { return Stations::IO_2; }, [](auto rng) { return Stations::SWAP_OUT; },
+        [](auto rng) { return Stations::CPU; });
     // process has finished
     if (evt.ServiceTime == 0)
     {

@@ -8,8 +8,6 @@ class OS : public ISimulator, public Scheduler
   private:
     bool _end = false;
 
-    const int _workstations = 20;
-
   protected:
     void ProcessProbe(Event &evt) override;
 

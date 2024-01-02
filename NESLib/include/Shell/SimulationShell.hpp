@@ -10,6 +10,7 @@ class SimulationShell
 {
   private:
     TraceSource _logger{"Shell"};
+    friend class Command;
     struct Command
     {
         const char *command;
@@ -22,8 +23,10 @@ class SimulationShell
         virtual void operator()(const char *context)
         {
             char buffer[256]{};
-            memcpy(buffer, context + strlen(command),
-                   strlen(context) > 255 ? 255 - strlen(command) : strlen(context) - strlen(command));
+            int pad = 0;
+            for (pad = strlen(command); pad < 256 && context[pad] == ' ' && pad < strlen(context); pad++)
+                ;
+            memcpy(buffer, context + pad, strlen(context) > 255 ? 255 - strlen(command) : strlen(context) - pad);
             _fnc(_shell, buffer);
         }
 
@@ -46,18 +49,25 @@ class SimulationShell
     std::vector<Command> _cmds;
 
   public:
-    SimulationShell(IScheduler *scheduler, ISimulator *simulator) : _scheduler(scheduler), _simulator(simulator)
+    SimulationShell()
     {
         SetupDefaultCmds();
     }
-
+    void SetControllers(IScheduler *scheduler, ISimulator *simulator)
+    {
+        _scheduler = scheduler;
+        _simulator = simulator;
+    }
     void Start();
     void Pause();
     void SetupDefaultCmds();
     void Execute();
     void ShowLog(bool show);
     void Command(const char *command);
-
+    TraceSource *Log()
+    {
+        return &_logger;
+    }
     template <typename F> void AddCommand(const char *command, F &&fnc)
     {
         struct Command cmd(command, this, fnc);

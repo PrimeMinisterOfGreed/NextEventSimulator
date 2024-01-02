@@ -19,7 +19,7 @@ class Cpu : public Station
     sptr<BaseStream> _burst;
 
   public:
-    Cpu(IScheduler *scheduler, bool useNegExp = false);
+    Cpu(IScheduler *scheduler);
 
     void ProcessArrival(Event &evt) override;
     void ProcessDeparture(Event &evt) override;

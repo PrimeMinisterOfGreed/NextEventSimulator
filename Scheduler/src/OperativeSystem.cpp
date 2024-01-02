@@ -29,7 +29,7 @@ void OS::Execute()
 
 OS::OS() : Scheduler("OS")
 {
-    auto dstation = new DelayStation(this, "delay_station", 20, []() {
+    auto dstation = new DelayStation(this, "delay_station", SystemParameters::Parameters().numclients, []() {
         static VariableStream delayStream(
             1, [](auto rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); });
         return delayStream();
