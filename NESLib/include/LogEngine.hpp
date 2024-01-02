@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <type_traits>
+#include <vector>
 
 enum class LogType
 {
@@ -48,22 +50,21 @@ template <typename... Args> std::string makeformat(const char *format, Args... a
     return std::move(std::string(fmt::vformat(std::string(format), fmt::make_format_args(args...))));
 }
 
-class ILogEngine
-{
-  public:
-    virtual void Flush() = 0;
-    virtual void Trace(LogType type, std::string message) = 0;
-};
-
 struct TraceSource;
-class LogEngine : public ILogEngine
+
+struct LogLocker;
+class LogEngine
 {
     friend struct TraceSource;
+    friend struct LogLocker;
 
   private:
+    bool _printStdout = true;
+    bool _pauseStdout = false;
     std::stringstream _buffer;
     std::string _logFile;
     static LogEngine *_instance;
+    std::vector<TraceSource *> _sources;
     LogEngine()
     {
     }
@@ -72,33 +73,76 @@ class LogEngine : public ILogEngine
     }
 
   public:
-    virtual void Flush() override;
-    virtual void Trace(LogType type, std::string message) override;
-
+    virtual void Flush();
+    virtual void Trace(LogType type, std::string message);
+    void AddSource(TraceSource *source)
+    {
+        _sources.push_back(source);
+    }
     static void CreateInstance(std::string logFile)
     {
         _instance = new LogEngine(logFile);
     }
 
-    static ILogEngine *Instance()
+    const std::vector<TraceSource *> GetSources() const
+    {
+        return _sources;
+    }
+    static LogEngine *Instance()
     {
         return _instance;
+    }
+
+    void PrintStdout(bool value)
+    {
+        _printStdout = value;
+    }
+};
+
+struct LogLocker
+{
+  private:
+    LogEngine *_instance;
+
+  public:
+    LogLocker()
+    {
+        _instance = LogEngine::Instance();
+        _instance->_pauseStdout = true;
+    }
+
+    ~LogLocker()
+    {
+        _instance->_pauseStdout = false;
     }
 };
 
 struct TraceSource
 {
     std::string sourceName;
-    ILogEngine *engine;
     int verbosity;
+    LogEngine *engine = nullptr;
     TraceSource(std::string sourceName, int verbosity = 4) : sourceName(sourceName), verbosity(verbosity)
     {
-        engine = LogEngine::_instance;
     }
 
+    void Init()
+    {
+        if (LogEngine::_instance != nullptr)
+        {
+            engine = LogEngine::_instance;
+            engine->AddSource(this);
+        }
+        else
+        {
+            engine = nullptr;
+        }
+    }
     void Trace(LogType type, std::string message)
     {
-        if (verbosity >= (int)type)
+        if (engine == nullptr || LogEngine::_instance != engine)
+            Init();
+        if (verbosity >= (int)type && engine != nullptr)
         {
             engine->Trace(type, fmt::format("({}){}", sourceName, message));
         }

@@ -11,6 +11,7 @@ class ISimulator
 {
   public:
     virtual void Execute() = 0;
+    virtual void Initialize() = 0;
 };
 
 class IScheduler
@@ -21,4 +22,6 @@ class IScheduler
     virtual void Sync() = 0;
     virtual std::optional<sptr<Station>> GetStation(int index) = 0;
     virtual std::optional<sptr<Station>> GetStation(std::string name) = 0;
+    virtual const std::vector<sptr<Station>> GetStations() const = 0;
+    virtual double GetClock() = 0;
 };

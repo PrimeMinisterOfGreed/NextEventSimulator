@@ -52,6 +52,12 @@ class Scheduler : public IScheduler, public BaseStation
         }
         return {};
     }
+
+    const std::vector<sptr<Station>> GetStations() const override
+    {
+        return _stations;
+    }
+
     std::optional<sptr<Station>> operator[](std::string name)
     {
         return GetStation(name);
@@ -71,6 +77,11 @@ class Scheduler : public IScheduler, public BaseStation
         }
     }
     Event ProcessNext();
+    double GetClock() override
+    {
+        return _clock;
+    }
+
     void Reset() override;
     virtual Event Create(double interArrival, double serviceTime, int stationTarget = -1, EventType type = ARRIVAL);
 };

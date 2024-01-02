@@ -160,7 +160,7 @@ double CompositionStream::operator()()
     }
     auto Y = RandomStream::Global().Random();
     auto r = 0;
-    while (Y > A[r])
+    while (Y >= A[r])
         r++;
     return _generators[r](RandomStream::Global());
 }

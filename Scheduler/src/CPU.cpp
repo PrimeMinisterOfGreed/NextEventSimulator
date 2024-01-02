@@ -64,8 +64,8 @@ void Cpu::ProcessArrival(Event &evt)
 void Cpu::ProcessDeparture(Event &evt)
 {
     static CompositionStream router(
-        3, {0.65, 0.35, 0.1}, [](auto rng) { return Stations::IO_1; }, [](auto rng) { return Stations::IO_2; },
-        [](auto rng) { return Stations::SWAP_OUT; });
+        3, {0.65, 0.25, 0.1, 0.0}, [](auto rng) { return Stations::IO_1; }, [](auto rng) { return Stations::IO_2; },
+        [](auto rng) { return Stations::SWAP_OUT; }, [](auto rng) { return Stations::CPU; });
     // process has finished
     if (evt.ServiceTime == 0)
     {
