@@ -57,7 +57,16 @@ void SimulationShell::SetupDefaultCmds()
         _logger.Result("Clock is {}", shell->_scheduler->GetClock());
     });
 
-    AddCommand("ne", [](SimulationShell *shell, auto ctx) { shell->_simulator->Execute(); });
+    AddCommand("ne", [](SimulationShell *shell, auto ctx) {
+        std::stringstream stream{ctx};
+        char arg[12];
+        stream.get(arg, 12, ' ');
+        int value = atoi(arg);
+        if (value == 0)
+            value = 1;
+        for (int i = 0; i < value; i++)
+            shell->_simulator->Execute();
+    });
 }
 
 void SimulationShell::Execute()

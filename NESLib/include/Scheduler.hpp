@@ -2,6 +2,7 @@
 #include "Collections/LinkedList.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
+#include "LogEngine.hpp"
 #include "Station.hpp"
 #include "Usings.hpp"
 #include <memory>
@@ -70,13 +71,18 @@ class Scheduler : public IScheduler, public BaseStation
 
     void Sync() override
     {
+        LogLocker l{};
         for (auto s : _stations)
         {
-            auto e = Event("SYNC", NO_EVENT, _clock, _clock, 0, _clock, s->stationIndex());
+            auto e = Event("SYNC", PROBE, _clock, _clock, 0, _clock, s->stationIndex());
             s->Process(e);
         }
     }
     Event ProcessNext();
+    bool HasEvents() const
+    {
+        return _eventList.Count() > 0;
+    }
     double GetClock() override
     {
         return _clock;

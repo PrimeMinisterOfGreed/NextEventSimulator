@@ -26,6 +26,7 @@ class BaseStation
     double _areaN{};
     double _areaS{};
     double _oldclock{};
+    double _regPointClock = 0.0;
     double _clock{};
     std::vector<std::function<void(BaseStation *, Event &)>> _onArrival;
     std::vector<std::function<void(BaseStation *, Event &)>> _onDeparture;
@@ -33,7 +34,7 @@ class BaseStation
   public:
     BaseStation(std::string name);
     virtual void Process(Event &event);
-
+    virtual void Reset();
     std::string Name() const
     {
         return _name;
@@ -58,6 +59,20 @@ class BaseStation
         return _observationPeriod;
     }
 
+    double busyTime() const
+    {
+        return _busyTime;
+    }
+
+    double clock() const
+    {
+        return _clock;
+    }
+
+    double regPoint() const
+    {
+        return _regPointClock;
+    }
     template <typename F> void OnDeparture(F &&fnc)
     {
         _onDeparture.push_back(fnc);
@@ -75,7 +90,6 @@ class Station : public BaseStation
     DataCollector collector;
 
     int _stationIndex{};
-    double _regPointClock = 0.0;
 
   public:
     virtual void Initialize();

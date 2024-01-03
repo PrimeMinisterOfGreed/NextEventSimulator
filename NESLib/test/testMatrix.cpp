@@ -1,5 +1,6 @@
 #include "Collections/Matrix.hpp"
 #include "Mva.hpp"
+#include <cmath>
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <vector>
@@ -37,10 +38,16 @@ TEST(TestMatrix, test_left_mul)
 TEST(TestMatrix, test_mva)
 {
     // 0.100000,10.000000,5.500000,3.500000,
-    Matrix<double> routings({{0, 0.10, 0, 0}, {1, 0, 1, 1}, {0, 0.55, 0, 0}, {0, 0.35, 0, 0}});
+    Matrix<double> routings({
+        {0, 1, 0, 0}, 
+        {0.10, 0, 0.55, 0.35}, 
+        {0, 1, 0, 0}, 
+        {0, 1, 0, 0}
+        });
     auto visits = RouteToVisit(routings);
-    ASSERT_EQ(0.10, visits[0]);
-    ASSERT_EQ(10.0, visits[1]);
-    ASSERT_EQ(5.5, visits[2]);
-    ASSERT_EQ(3.5, visits[3]);
+    double epsilon = 0.001;
+    ASSERT_LE(epsilon, visits[0]-0.10);
+    ASSERT_LE(epsilon, visits[1]-10.0);
+    ASSERT_LE(epsilon, visits[2]-5.5);
+    ASSERT_LE(epsilon, visits[3]-3.5);
 }
