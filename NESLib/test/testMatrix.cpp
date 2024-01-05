@@ -1,8 +1,12 @@
+#include "Chains/CTMC.hpp"
 #include "Collections/Matrix.hpp"
 #include "Mva.hpp"
 #include <cmath>
 #include <cstdio>
+#include <fmt/core.h>
+#include <fmt/format.h>
 #include <gtest/gtest.h>
+#include "Chains/DTMC.hpp"
 #include <vector>
 
 TEST(TestMatrix, test_mat_insert)
@@ -46,8 +50,24 @@ TEST(TestMatrix, test_mva)
         });
     auto visits = RouteToVisit(routings);
     double epsilon = 0.001;
-    ASSERT_LE(epsilon, visits[0]-0.10);
-    ASSERT_LE(epsilon, visits[1]-10.0);
-    ASSERT_LE(epsilon, visits[2]-5.5);
-    ASSERT_LE(epsilon, visits[3]-3.5);
+    ASSERT_LE(abs(visits[0]-0.10),epsilon );
+    ASSERT_LE(abs(visits[1]-10.0),epsilon );
+    ASSERT_LE(abs(visits[2]-5.5),epsilon );
+    ASSERT_LE(abs(visits[3]-3.5),epsilon );
+    auto v2 = powerMatrixMethod(routings, 100);
+    for(int i = 1; i < v2.size(); i++){
+        v2[i] = v2[i]*(1/v2[0]);
+    }
+}
+
+
+TEST(TestMarkov, test_vector_method){
+        Matrix<double> d({{0.80, 0.15, 0.05}, {0.70, 0.20, 0.10}, {0.50, 0.30, 0.20}});
+    auto v = vectorMethod(d, 0.001);
+    std::string res = "";
+    for (auto &e : v)
+    {
+        res += makeformat("{},", e);
+    }
+    printf("%s", res.c_str());
 }

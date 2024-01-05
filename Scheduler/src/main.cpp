@@ -19,6 +19,7 @@ OS *os;
 SimulationShell shell{};
 TraceSource logger{"main"};
 double regPoint = 0.0;
+bool hot = false;
 void AddStationToCollectibles(std::string name)
 {
     using namespace fmt;
@@ -50,7 +51,7 @@ void LogMeasures()
     for (auto m : _acc)
     {
         logger.Result("Measure: {}, Mean: {}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}", m.Name(), m.mean(),
-                      m.confidence().precision(), m.Count(), m.confidence().lower(), m.confidence().higher(),
+                      m.confidence(0.90).precision(), m.Count(), m.confidence(0.90).lower(), m.confidence(0.90).higher(),
                       m.Current());
     }
 }
@@ -58,6 +59,11 @@ void LogMeasures()
 void Setup()
 {
     os->GetStation("SWAP_OUT").value()->OnDeparture([](auto s, Event &e) {
+        if(!hot){
+            hot = true;
+            regPoint= e.OccurTime;
+            return ;
+        }
         os->Sync();
         if (e.Station == 0)
         {
@@ -89,7 +95,7 @@ void HReset()
 
 void SetupCommands()
 {
-    shell.AddCommand("list", [](SimulationShell *shell, auto c) { LogMeasures(); });
+    shell.AddCommand("lmeasures", [](SimulationShell *shell, auto c) { LogMeasures(); });
     shell.AddCommand("hreset", [](SimulationShell *shell, auto ctx) mutable { HReset(); });
     shell.AddCommand("exit", [](auto s, auto c) { exit(0); });
 
@@ -138,6 +144,9 @@ void SetupCommands()
         }
     });
     shell.AddCommand("regClock", [](auto s, auto c) { logger.Result("RegClock:{}", os->GetClock() - regPoint); });
+    shell.AddCommand("lqueue", [](auto s, auto c){
+        logger.Result("Scheduler Queue:{}", os->EventQueue());
+    });
     SystemParameters::Parameters().AddControlCommands(&shell);
 }
 

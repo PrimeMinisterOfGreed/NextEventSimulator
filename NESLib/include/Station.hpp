@@ -26,7 +26,6 @@ class BaseStation
     double _areaN{};
     double _areaS{};
     double _oldclock{};
-    double _regPointClock = 0.0;
     double _clock{};
     std::vector<std::function<void(BaseStation *, Event &)>> _onArrival;
     std::vector<std::function<void(BaseStation *, Event &)>> _onDeparture;
@@ -69,10 +68,6 @@ class BaseStation
         return _clock;
     }
 
-    double regPoint() const
-    {
-        return _regPointClock;
-    }
     template <typename F> void OnDeparture(F &&fnc)
     {
         _onDeparture.push_back(fnc);
@@ -98,7 +93,7 @@ class Station : public BaseStation
     {
         return collector;
     }
-    virtual void Reset();
+    virtual void Reset() override;
     Station(std::string name, int station);
 
     int stationIndex() const

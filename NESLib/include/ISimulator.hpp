@@ -25,3 +25,11 @@ class IScheduler
     virtual const std::vector<sptr<Station>> GetStations() const = 0;
     virtual double GetClock() = 0;
 };
+
+class IQueueHolder
+{
+  protected:
+  EventList _eventList;
+  public:
+  EventList& GetEventList(){return _eventList;}
+};

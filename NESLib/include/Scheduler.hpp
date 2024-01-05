@@ -42,6 +42,10 @@ class Scheduler : public IScheduler, public BaseStation
         return {};
     }
 
+    const DoubleLinkedList<Event> EventQueue(){
+        return _eventList;
+    }
+
     std::optional<sptr<Station>> GetStation(int stationIndex) override
     {
         for (auto s : _stations)

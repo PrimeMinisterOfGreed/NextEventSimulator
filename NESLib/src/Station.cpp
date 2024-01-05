@@ -50,12 +50,11 @@ void BaseStation::ProcessDeparture(Event &evt)
 
 void BaseStation::ProcessEnd(Event &evt)
 {
-    _observationPeriod = _oldclock - _regPointClock;
+    
 }
 
 void BaseStation::Reset()
 {
-    _regPointClock = _oldclock;
     _arrivals = 0;
     _completions = 0;
     _sysClients = 0;
@@ -73,7 +72,7 @@ BaseStation::BaseStation(std::string name) : _logger(name), _name(name)
 
 void BaseStation::ProcessProbe(Event &evt)
 {
-    _observationPeriod = _oldclock - _regPointClock;
+   
 }
 
 void Station::ProcessProbe(Event &evt)
@@ -104,6 +103,7 @@ void BaseStation::Process(Event &event)
         _areaN += _sysClients * interval;
         _areaS += (_sysClients - 1) * interval;
     }
+    _observationPeriod += interval;
     switch (event.Type)
     {
     case EventType::ARRIVAL:

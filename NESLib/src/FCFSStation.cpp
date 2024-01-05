@@ -21,7 +21,7 @@ void FCFSStation::ProcessArrival(Event &evt)
     }
     else
     {
-        _eventQueue.Enqueue(evt);
+        _eventList.Enqueue(evt);
     }
 }
 
@@ -34,7 +34,7 @@ void FCFSStation::ProcessDeparture(Event &evt)
         Station::ProcessDeparture(_eventUnderProcess.value());
     if (_sysClients > 0)
     {
-        _eventUnderProcess.emplace(_eventQueue.Dequeue());
+        _eventUnderProcess.emplace(_eventList.Dequeue());
         _eventUnderProcess->ArrivalTime = _clock;
         _eventUnderProcess->CreateTime = _clock;
         _eventUnderProcess->OccurTime = _clock + _eventUnderProcess->ServiceTime;

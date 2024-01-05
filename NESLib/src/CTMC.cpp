@@ -1,5 +1,5 @@
-#include "CTMC.hpp"
-#include "DTMC.hpp"
+#include "Chains/CTMC.hpp"
+#include "Chains/DTMC.hpp"
 void CTMC::Rasterize()
 {
     for (int i = 0; i < _data.size(); i++)
@@ -19,7 +19,7 @@ void CTMC::Rasterize()
 DTMC CTMC::ToDtmc()
 {
     double max = (*this)(0, 0);
-    Traverse([this, &max](double e) {
+    Traverse([this, &max](int i, int j ,double e) {
         if (e > max)
             max = e;
     });

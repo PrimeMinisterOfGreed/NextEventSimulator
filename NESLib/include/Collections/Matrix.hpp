@@ -221,9 +221,11 @@ struct Matrix
 
     template <typename F> void Traverse(F &&fnc)
     {
-        for (auto &row : _data)
-            for (auto &col : row)
-                fnc(col);
+        for(int i = 0; i < Rows(); i++){
+            for(int j = 0; j < Row(i).size(); j++){
+                fnc(i,j,(*this)(i,j));
+            }
+        }
     }
 };
 

@@ -8,10 +8,9 @@
 #include <queue>
 #include <vector>
 
-class FCFSStation : public Station
+class FCFSStation : public Station, public IQueueHolder
 {
   protected:
-    EventList _eventQueue{};
     std::optional<Event> _eventUnderProcess;
     IScheduler *_scheduler;
 
@@ -22,8 +21,4 @@ class FCFSStation : public Station
     void ProcessProbe(Event &evt) override;
     void Reset() override;
     FCFSStation(IScheduler *scheduler, std::string name, int stationIndex);
-    EventList EventQueue() const
-    {
-        return _eventQueue;
-    }
 };

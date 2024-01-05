@@ -30,5 +30,5 @@ TEST(TestStation, test_fcfs_arrival)
     for (int i = 0; i < 3; i++)
         sched.ProcessNext();
 
-    ASSERT_EQ(2, std::dynamic_pointer_cast<FCFSStation>(sched["mockStation"].value())->EventQueue().Count());
+    ASSERT_EQ(2, std::dynamic_pointer_cast<FCFSStation>(sched["mockStation"].value())->GetEventList().Count());
 }

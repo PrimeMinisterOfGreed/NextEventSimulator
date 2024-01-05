@@ -211,12 +211,12 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         return _sum[0];
     }
 
-    Interval confidence()
+    Interval confidence(double conflevel = 0.95)
     {
 
         double u = mean(0);
         double sigma = variance();
-        double alpha = 1 - 0.95;
+        double alpha = 1 - conflevel;
         auto count = this->Count();
         double delta = 0.0;
         if (count < 40)

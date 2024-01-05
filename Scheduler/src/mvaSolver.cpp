@@ -1,3 +1,4 @@
+#include "Chains/DTMC.hpp"
 #include "Collections/Matrix.hpp"
 #include <Mva.hpp>
 #include <fmt/core.h>
@@ -20,16 +21,17 @@ std::string MVAToString(Matrix<double> result, std::string resultName)
 int main()
 {
     Matrix<double> q{{
-        {0, 0, 0, 0, 0, 0, 0.4},
-        {1, 0, 0, 0, 0, 0, 0.6},
-        {0, 1, 0, 0, 0, 0, 0},
-        {0, 0, 1, 0.9, 1, 1, 0},
-        {0, 0, 0, 0, 0.065, 0, 0},
-        {0, 0, 0, 0.025, 0, 0, 0},
-        {0, 0, 0, 0.1, 0, 0, 0},
+        {0,1,0,0,0},
+        {0,0,1,0,0},
+        {0.004,0.006,0.9,0.065,0.025},
+        {0,0,1,0,0},
+        {0,0,1,0,0}
     }};
-    // std::vector<double> visits = RouteToVisit(q);
-    std::vector<double> visits = {1, 250, 2.5, 16.25, 6.25};
+    std::vector<double> visits = powerMatrixMethod(q,10000);
+    for(int i = 1; i < visits.size(); i++){
+        visits[i] = visits[i]*(1/visits[0]);
+    }
+    //std::vector<double> visits = {1, 250, 2.5, 16.25, 6.25};
     std::vector<double> stimes = {5000, 210, 2.7, 40, 180};
     std::vector<StationType> types = {D, I, I, I, I};
     auto result = MVALID(visits, stimes, types, 30);

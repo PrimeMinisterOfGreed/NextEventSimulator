@@ -7,7 +7,6 @@ class ReserveStation : public FCFSStation
   protected:
     int _multiProgrammingDegree;
     int _counter = 0;
-    VariableStream _swapinTime;
 
   public:
     void ProcessDeparture(Event &evt) override;

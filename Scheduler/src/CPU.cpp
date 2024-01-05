@@ -38,9 +38,9 @@ void Cpu::ProcessArrival(Event &evt)
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
         evt.ServiceTime = (*_burst)();
-        if (_eventUnderProcess.has_value() && _readyQueue.Count() > 0)
+        if (_eventUnderProcess.has_value() && _eventList.Count() > 0)
         {
-            _readyQueue.Push(evt);
+            _eventList.Push(evt);
             return;
         }
     }
@@ -81,11 +81,11 @@ void Cpu::ProcessDeparture(Event &evt)
     }
     else
     {
-        _readyQueue.Enqueue(evt);
+        _eventList.Enqueue(evt);
     }
-    if (_readyQueue.Count() > 0)
+    if (_eventList.Count() > 0)
     {
-        auto newEvt = _readyQueue.Dequeue();
+        auto newEvt = _eventList.Dequeue();
         newEvt.Type = ARRIVAL;
         newEvt.OccurTime = _clock;
         _scheduler->Schedule(newEvt);

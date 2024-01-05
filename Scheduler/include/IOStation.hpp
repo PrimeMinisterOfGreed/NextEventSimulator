@@ -6,7 +6,7 @@
 class IOStation : public FCFSStation
 {
   private:
-    std::unique_ptr<VariableStream> _serviceTime;
+    VariableStream _serviceTime;
 
   public:
     IOStation(IScheduler *scheduler, int stationIndex);

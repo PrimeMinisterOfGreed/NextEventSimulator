@@ -3,11 +3,12 @@
 #include "Enums.hpp"
 #include "Event.hpp"
 #include "FCFSStation.hpp"
+#include "ISimulator.hpp"
 #include "rngs.hpp"
 #include <memory>
 #include <optional>
 
-class Cpu : public Station
+class Cpu : public Station, public IQueueHolder
 {
 
   private:
@@ -15,7 +16,7 @@ class Cpu : public Station
 
     IScheduler *_scheduler;
     double _timeSlice;
-    EventList _readyQueue{};
+
     sptr<BaseStream> _burst;
 
   public:
