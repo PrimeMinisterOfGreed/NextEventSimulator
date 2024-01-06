@@ -9,7 +9,7 @@
 \usepackage{multirow}
 \usepackage{subfig}
 \usepackage{pgfpages}
-\usepackage{svg}
+\usepackage{listings}
 \usepackage{rotating}
 
 %\usepackage{times}
@@ -201,5 +201,52 @@
         N^*=\frac{Y(1)}{V_bS_b}=\frac{D}{V_bS_b}=\frac{2975ms}{1125ms}=2.64
     \end{displaymath}
     \subsection{MVA analysis}
-    
+    Starting from the previous matrix is possible to compute various measures using the MVA algorithm for Load Indipendent and Delay stations. In order to compute the visits vector is possible to use the power matrix method.
+    \begin{lstlisting}[language=C++]
+        
+    std::vector<double> 
+    powerMatrixMethod(Matrix<double> dtmc, int iterations)
+    {
+        auto old = dtmc;
+        auto res = old;
+        for(int i = 0; i < iterations; i++){
+            res = old*old;
+            old = res;
+        }
+
+        std::vector<double> result{};
+        for(int i = 0; i < res.Rows(); i++)
+            result.push_back(res(i,i));
+        return result;
+    }
+    \end{lstlisting}
+    That requires only to multiply the transition matrix for an arbitrary number of iterations, then pick the elements on the diagonal, that are the probability mass flowing in to the i-th station. Let the previously obtained vector be $D$, at this point the visits can be computed with this simple formula $V_i=D_i*\frac{1}{D_0} \ \ \ i=1 \dots N$. In c++ this translate to:
+    \begin{lstlisting}[language=C++]
+        // compute the visits vector with 
+        // 10000 iteration of power matrix method
+        std::vector<double> visits = powerMatrixMethod(q, 10000);
+        for (int i = 1; i < visits.size(); i++)
+        {
+            visits[i] = visits[i] * (1 / visits[0]);
+        }
+    \end{lstlisting}
+    At this point is possible to apply the MVA algorithm, that result in subsequent values.
+    \\
+    \includegraphics[width=0.9\textwidth]{Images/meanWaits.png}\\
+    <da commentare>
+    \\
+    \includegraphics[width=0.9\textwidth]{Images/meanClients.png}
+    \\
+    <da commentare>
+    \\
+    \includegraphics[width=0.9\textwidth]{Images/Utilizations.png}\\
+    <da commentare>
+    \\
+    \includegraphics[width=0.9\textwidth]{Images/throughputs.png}
+    \\
+    <da commentare>
+    \\
+    \includegraphics[width=0.9\textwidth]{Images/Response_Times.png}
+    \\
+    <da commentare>
     \end{document}

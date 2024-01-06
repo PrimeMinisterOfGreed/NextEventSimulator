@@ -34,7 +34,7 @@ void NESssq::Execute()
     {
         auto ref = (*this)["server"].value();
         _logger.Transfer("Schedule Queue:{}", _eventList);
-        _logger.Transfer("Server Queue:{}", std::static_pointer_cast<FCFSStation>(ref)->EventQueue());
+        _logger.Transfer("Server Queue:{}", std::static_pointer_cast<FCFSStation>(ref)->GetEventList());
         auto inProcess = _eventList.Dequeue();
         Process(inProcess);
 

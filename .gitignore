@@ -523,3 +523,4 @@ build/CMakeFiles/simulator_v2.dir/src/rngs.c.o
 /cmake-build-debug-coverage/
 /CMakeSettings.json
 CMakePresets.json
+CMakeUserPresets.json

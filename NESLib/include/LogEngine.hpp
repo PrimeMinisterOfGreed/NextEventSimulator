@@ -9,23 +9,20 @@
 #include <type_traits>
 #include <vector>
 
-enum class LogType
+enum class LogType : int
 {
     EXCEPTION,
     RESULT,
     INFORMATION,
     TRANSFER,
     DEBUG
+    
 };
 
-template <> struct fmt::formatter<LogType>
+
+template <> struct fmt::formatter<enum LogType> : formatter<string_view>
 {
-    FormatParser p{};
-    constexpr auto parse(format_parse_context &ctx) -> fmt::format_parse_context::iterator
-    {
-        return p.parse(ctx);
-    }
-    auto format(const LogType &type, format_context &ctx) -> format_context::iterator
+    auto format(LogType type, format_context &ctx) -> format_context::iterator
     {
         switch (type)
         {
