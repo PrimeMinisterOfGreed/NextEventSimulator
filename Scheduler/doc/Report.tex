@@ -193,12 +193,12 @@
     from this calculation we can say that $V_bS_b=V_5S_5=1125ms$ and so , station 5 (IO2) is 
     our bottleneck. Let's extract some additional information, as the total cycle time when $N=1$ ,i.e Y(1) 
     \begin{displaymath}
-        D=\sum_{i=1}^{N}D_i=\sum_{i=1}^{N}V_iS_i=2975ms
+        D=\sum_{i=1}^{N}D_i=\sum_{i=1}^{N}V_iS_i + V_0S_0=7975ms
     \end{displaymath}
     Thus we can also calculate the saturation point $N^*$ of this system, after which we can expect
     the total response time will increase. 
     \begin{displaymath}
-        N^*=\frac{Y(1)}{V_bS_b}=\frac{D}{V_bS_b}=\frac{2975ms}{1125ms}=2.64
+        N^*=\frac{Y(1)}{V_bS_b}=\frac{D}{V_bS_b}=\frac{7975ms}{1125ms}=7.08
     \end{displaymath}
     \subsection{MVA analysis}
     Starting from the previous matrix is possible to compute various measures using the MVA algorithm for Load Indipendent and Delay stations. In order to compute the visits vector is possible to use the power matrix method.
