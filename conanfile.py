@@ -8,9 +8,6 @@ class SimFile(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeToolchain", "CMakeDeps"
 
-    def layout(self):
-        cmake_layout(self)
-        pass
     def requirements(self):
         self.requires("fmt/10.2.1")
         self.tool_requires("gtest/1.14.0")
@@ -21,6 +18,7 @@ class SimFile(ConanFile):
         cmake.configure()
         cmake.build()
         pass
+
 
 
 
