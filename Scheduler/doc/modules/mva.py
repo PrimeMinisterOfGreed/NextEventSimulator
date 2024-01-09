@@ -27,8 +27,17 @@ class MVA:
         self.throughputs = np.zeros((M,N))
         self.utilizations = np.zeros((M,N))
         for k in range(1,N):
+            print("FOR N {}",k)
             for i in range(0,M):
-                self.meanwaits[i,k] = serviceTimes[i] if self.types[i] == StationType.Delay else serviceTimes[i]*(1+self.meanwaits[i][k-1])
+                if self.types[i] == StationType.Delay:
+                    self.meanwaits[i,k] = serviceTimes[i]
+                    print("Delay is {}".format(self.meanwaits[i,k])) 
+                    pass
+                else:
+                    self.meanwaits[i,k]=serviceTimes[i]*(1+self.meanclients[i,k-1])
+                    print("Meanwaits for {} are {}".format(i,self.meanwaits[i]))
+                    print("Meanwait for {} is {}".format(i,self.meanwaits[i,k])) 
+                    pass
                 pass
             sum = 0.0
             for i in range(0,M):
@@ -37,13 +46,16 @@ class MVA:
             xref = k/sum 
             for i in range(0,M):
                 self.throughputs[i,k] = self.visits[i]*xref
+                print("Station {} throughput {}".format(i,self.throughputs[i,k]))
                 if types[i] == StationType.Delay:
                     self.meanclients[i,k] = self.serviceTimes[i]*self.throughputs[i,k]
                     self.utilizations[i,k]= self.meanclients[i,k]/k 
+                    print("Station Delay {} utilization, {} meanclients".format(self.utilizations[i,k],self.meanclients[i,k]))
                     pass
                 else:
                     self.utilizations[i,k] = self.serviceTimes[i]*self.throughputs[i,k]
                     self.meanclients[i,k] = self.utilizations[i,k]*(1+self.meanclients[i,k-1])
+                    print("Station {} has {} meanClients, {} utilization".format(i,self.meanclients[i,k],self.utilizations[i,k]))
                     pass
                 pass
             pass
@@ -63,6 +75,8 @@ class MVA:
         for i in range(1,len(self.visits)):
             self.visits[i] = self.visits[i]*1/self.visits[0]
             pass
+        self.visits[0] = 1
+        print("Visits: {}",self.visits)
         return self
     
     def __call__(self):
