@@ -9,7 +9,7 @@
 class SimulationShell
 {
   private:
-    TraceSource _logger{"Shell"};
+    TraceSource _logger{"Shell",4};
     friend class Command;
     struct Command
     {

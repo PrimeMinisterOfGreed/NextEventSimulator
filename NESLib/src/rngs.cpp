@@ -150,17 +150,33 @@ double VariableStream::operator()()
     return _lambda(RandomStream::Global());
 }
 
-double CompositionStream::operator()()
+int selector(std::vector<double> alpha)
 {
-    RandomStream::Global().SelectStream(_stream);
-    std::vector<double> A{_alpha};
+    std::vector<double> A{alpha};
     for (int i = 1; i < A.size(); i++)
     {
-        A[i] = A[i - 1] + _alpha[i];
+        A[i] = A[i - 1] + alpha[i];
     }
     auto Y = RandomStream::Global().Random();
     auto r = 0;
     while (Y >= A[r])
         r++;
-    return _generators[r](RandomStream::Global());
+    return r;
+}
+
+double CompositionStream::operator()()
+{
+    RandomStream::Global().SelectStream(_stream);
+    return _generators[selector(_alpha)](RandomStream::Global());
+}
+
+
+int Router::operator()() {
+    RandomStream::Global().SelectStream(_stream);
+    return _indexes[selector(_p)];
+}
+
+Router::Router(int stream, std::vector<double> probs, std::vector<int> indexes)
+    : _stream(stream), _indexes(indexes), _p(probs)
+{
 }

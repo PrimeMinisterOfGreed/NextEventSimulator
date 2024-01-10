@@ -26,7 +26,7 @@ struct SystemParameters
 
     void AddControlCommands(SimulationShell *shell)
     {
-        shell->AddCommand("set", [](auto s, const char *context) {
+        shell->AddCommand("set", [](SimulationShell *s, const char *context) {
             char buffer[64]{};
             char argument[32]{};
             std::stringstream stream{context};
@@ -38,6 +38,9 @@ struct SystemParameters
                 SystemParameters::Parameters().numclients = arg;
             else if (strcmp(buffer, "stime") == 0)
                 SystemParameters::Parameters().averageSwapIn = arg;
+            else
+                s->Log()->Exception("Variable {} Not found", buffer);
+            s->Log()->Information("Set Variable {} to {}", buffer,arg);
         });
 
         shell->AddCommand("env", [](SimulationShell *s, const char *context) {

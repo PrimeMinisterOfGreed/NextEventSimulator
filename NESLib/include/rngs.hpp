@@ -46,6 +46,15 @@ struct CompositionStream : public BaseStream
     }
 };
 
+
+struct Router{
+    std::vector<int> _indexes;
+    std::vector<double> _p;
+    int operator()();
+    int _stream{};
+    Router(int stream, std::vector<double> probs, std::vector<int> indexes);
+};
+
 class RandomStream
 {
     long seed[STREAMS] = {DEFAULT}; /* current state of each stream   */

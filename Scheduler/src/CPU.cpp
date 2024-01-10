@@ -64,10 +64,8 @@ void Cpu::ProcessArrival(Event &evt)
 
 void Cpu::ProcessDeparture(Event &evt)
 {
-    static CompositionStream router(
-        3, SystemParameters::Parameters().cpuChoice, [](auto rng) { return Stations::IO_1; },
-        [](auto rng) { return Stations::IO_2; }, [](auto rng) { return Stations::SWAP_OUT; },
-        [](auto rng) { return Stations::CPU; });
+
+    static Router router(3,SystemParameters::Parameters().cpuChoice,{IO_2,IO_1,SWAP_OUT,CPU});
     // process has finished
 
     if (evt.ServiceTime == 0)
@@ -77,6 +75,7 @@ void Cpu::ProcessDeparture(Event &evt)
         evt.Type = ARRIVAL;
         evt.Station = router();
         evt.SubType = 0;
+        _logger.Debug("CPU Departure, send event to {}", _scheduler->GetStation(evt.Station).value()->Name());
         _scheduler->Schedule(evt);
     }
     else

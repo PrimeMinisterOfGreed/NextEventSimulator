@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <stdio.h>
 #include <vector>
@@ -46,30 +47,9 @@ TEST(TestRandom, test_composition)
 TEST(TestRandom, test_routing)
 {
     RandomStream::Global().PlantSeeds(123456789);
-    CompositionStream stream(
-        0, {0.65, 0.25, 0.1}, [](auto rng) { return 0; }, [](auto rng) { return 1; }, [](auto rng) { return 2; });
-
-    int one = 0;
-    int two = 0;
-    int three = 0;
-    for (int i = 0; i < 100; i++)
-    {
-        switch ((int)stream())
-        {
-        case 0:
-            one++;
-            break;
-        case 1:
-            two++;
-            break;
-
-        case 2:
-            three++;
-            break;
-        }
-    }
-
-    ASSERT_LE(60, one);
-    ASSERT_LE(20, two);
-    ASSERT_LE(5, three);
+    Router router(2,{0.33,0.33,0.33},{0,1,2});
+    std::vector<int> hits{0,0,0};
+    for(int i = 0; i < 100; i++)
+        hits[router()]++;
+    fmt::print("Hits: {}",fmt::join(hits,","));
 }

@@ -16,9 +16,7 @@ enum class LogType : int
     INFORMATION,
     TRANSFER,
     DEBUG
-    
 };
-
 
 template <> struct fmt::formatter<enum LogType> : formatter<string_view>
 {
@@ -119,7 +117,7 @@ struct TraceSource
     std::string sourceName;
     int verbosity;
     LogEngine *engine = nullptr;
-    TraceSource(std::string sourceName, int verbosity = 4) : sourceName(sourceName), verbosity(verbosity)
+    TraceSource(std::string sourceName, int verbosity = 0) : sourceName(sourceName), verbosity(verbosity)
     {
     }
 
