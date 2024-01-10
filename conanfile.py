@@ -10,7 +10,7 @@ class SimFile(ConanFile):
 
     def requirements(self):
         self.requires("fmt/10.2.1")
-        self.tool_requires("gtest/1.14.0")
+        self.test_requires("gtest/1.14.0")
         pass
 
     def build(self):

@@ -32,9 +32,9 @@ void AddStationToCollectibles(std::string name)
     _collectFunctions.push_back([t, u, n, name] {
         auto station = os->GetStation(name).value();
         station->Update();
-        _acc[t](station->Data()["throughput"].value()->Current());
-        _acc[u](station->Data()["utilization"].value()->Current());
-        _acc[n](station->Data()["meanCustomerInSystem"].value()->Current());
+        _acc[t](station->throughput());
+        _acc[u](station->utilization());
+        _acc[n](station->mean_customer_system());
     });
 }
 
@@ -51,28 +51,14 @@ void LogMeasures()
     for (auto m : _acc)
     {
         logger.Result("Measure: {}, Mean: {}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}", m.Name(), m.mean(),
-                      m.confidence(0.90).precision(), m.Count(), m.confidence(0.90).lower(), m.confidence(0.90).higher(),
-                      m.Current());
+                      m.confidence(0.90).precision(), m.Count(), m.confidence(0.90).lower(),
+                      m.confidence(0.90).higher(), m.Current());
     }
 }
 
 void Setup()
 {
-    os->GetStation("SWAP_OUT").value()->OnDeparture([](auto s, Event &e) {
-        if(!hot){
-            hot = true;
-            regPoint= e.OccurTime;
-            return ;
-        }
-        os->Sync();
-        if (e.Station == 0)
-        {
-            CollectMeasures();
-            os->Reset();
-            LogMeasures();
-            regPoint = e.OccurTime;
-        }
-    });
+
     _acc.clear();
     AddStationToCollectibles("CPU");
     AddStationToCollectibles("IO1");
@@ -98,6 +84,8 @@ void SetupCommands()
     shell.AddCommand("lmeasures", [](SimulationShell *shell, auto c) { LogMeasures(); });
     shell.AddCommand("hreset", [](SimulationShell *shell, auto ctx) mutable { HReset(); });
     shell.AddCommand("exit", [](auto s, auto c) { exit(0); });
+
+    SystemParameters::Parameters().AddControlCommands(&shell);
 
     shell.AddCommand("scenario", [](auto s, auto c) {
         std::stringstream stream{c};
@@ -129,7 +117,7 @@ void SetupCommands()
 
         case 5:
             params.cpuUseNegExp = true;
-            params.cpuQuantum = 27;
+            params.cpuQuantum = 2.7;
             params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
             break;
         }
@@ -139,15 +127,12 @@ void SetupCommands()
         {
             os->Sync();
             s->Update();
-            logger.Result("S:{},B:{},O:{},A:{},S:{}", s->Name(), s->busyTime(), s->observation(), s->arrivals(),
-                          s->completions());
+            logger.Result("S:{},B:{},O:{},A:{},S:{},N:{}", s->Name(), s->busyTime(), s->observation(), s->arrivals(),
+                          s->completions(), s->sysClients());
         }
     });
     shell.AddCommand("regClock", [](auto s, auto c) { logger.Result("RegClock:{}", os->GetClock() - regPoint); });
-    shell.AddCommand("lqueue", [](auto s, auto c){
-        logger.Result("Scheduler Queue:{}", os->EventQueue());
-    });
-    SystemParameters::Parameters().AddControlCommands(&shell);
+    shell.AddCommand("lqueue", [](auto s, auto c) { logger.Result("Scheduler Queue:{}", os->EventQueue()); });
 }
 
 int main(int argc, char **argv)

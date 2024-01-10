@@ -77,6 +77,70 @@ class BaseStation
     {
         _onArrival.push_back(fnc);
     }
+
+    double avg_interArrival() const
+    {
+        return _observationPeriod / _arrivals;
+    }
+
+    double avg_serviceTime() const
+    {
+        return _busyTime / _completions;
+    }
+
+    double avg_delay() const
+    {
+        return _areaS / _completions;
+    }
+
+    double avg_waiting() const
+    {
+        return _areaN / _completions;
+    }
+
+    double utilization() const
+    {
+        return _busyTime / _observationPeriod;
+    }
+
+    double throughput() const
+    {
+        return _completions / _observationPeriod;
+    }
+
+    double input_rate() const
+    {
+        return _arrivals / _observationPeriod;
+    }
+
+    double arrival_rate() const
+    {
+        return _arrivals / _observationPeriod;
+    }
+
+    double service_rate() const
+    {
+        return _completions / _busyTime;
+    }
+
+    double traffic() const
+    {
+        return _busyTime / _lastArrival;
+    }
+
+    double mean_customer_queue() const
+    {
+        return _areaS / _observationPeriod;
+    }
+    double mean_customer_service() const
+    {
+        return _busyTime / _observationPeriod;
+    }
+
+    double mean_customer_system() const
+    {
+        return _areaN / _observationPeriod;
+    }
 };
 
 class Station : public BaseStation

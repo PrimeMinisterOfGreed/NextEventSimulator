@@ -524,3 +524,4 @@ build/CMakeFiles/simulator_v2.dir/src/rngs.c.o
 /CMakeSettings.json
 CMakePresets.json
 CMakeUserPresets.json
+.venv

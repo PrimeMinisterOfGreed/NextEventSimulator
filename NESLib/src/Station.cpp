@@ -22,12 +22,12 @@ enum Measures
     avgServiceTime,
     avgDelay,
     avgWaiting,
-    utilization,
-    throughput,
+    utilizations,
+    throughputs,
     inputRate,
     arrivalRate,
     serviceRate,
-    traffic,
+    traffics,
     meanCustomerInQueue,
     meanCustomerInService,
     meanCustomerInSystem,
@@ -50,7 +50,6 @@ void BaseStation::ProcessDeparture(Event &evt)
 
 void BaseStation::ProcessEnd(Event &evt)
 {
-    
 }
 
 void BaseStation::Reset()
@@ -72,7 +71,6 @@ BaseStation::BaseStation(std::string name) : _logger(name), _name(name)
 
 void BaseStation::ProcessProbe(Event &evt)
 {
-   
 }
 
 void Station::ProcessProbe(Event &evt)
@@ -84,11 +82,6 @@ void Station::ProcessProbe(Event &evt)
 
 void BaseStation::Process(Event &event)
 {
-    if (event.Type == END)
-    {
-        ProcessEnd(event);
-        return;
-    }
     if (event.OccurTime < _clock)
     {
         panic(fmt::format("Event {} occur at a lesser time of {} in station {}", event, _clock, _name));
@@ -170,24 +163,25 @@ void Station::Update()
     if (_completions == 0 || _arrivals == 0 || _oldclock == 0 || _busyTime == 0 || _lastArrival == 0)
         return;
     collector.lastTimeStamp = _oldclock;
- 
+
     collector[Completions]->Accumulate(_completions);
     collector[Arrivals]->Accumulate(_arrivals);
     collector[sysclients]->Accumulate(_sysClients);
     collector[maxclients]->Accumulate(_maxClients);
     collector[avgInterArrival]->Accumulate(_observationPeriod / _arrivals); /* Average inter-arrival time */
 
-    collector[avgServiceTime]->Accumulate(_busyTime / _completions); /* Average service time */
-    collector[avgDelay]->Accumulate(_areaS / _completions);          /* Average delay time */
-    collector[avgWaiting]->Accumulate(_areaN / _completions);        /* Average wait time */
-    collector[utilization]->Accumulate(_busyTime / _observationPeriod);            /* Utilization */
-    collector[throughput]->Accumulate(_completions / _observationPeriod);          /* Throughput */
-    collector[inputRate]->Accumulate(_arrivals / _observationPeriod);              /* Input rate */
-    collector[arrivalRate]->Accumulate(_arrivals / _observationPeriod);            /* Arriva rate */
-    collector[serviceRate]->Accumulate(_completions / _busyTime);    /* Service rate */
-    collector[traffic]->Accumulate(_busyTime / _lastArrival);        /* Traffic intensity */
-    collector[meanCustomerInQueue]->Accumulate(_areaS / _observationPeriod);       /* Mean number of customers in queue */
-    collector[meanCustomerInService]->Accumulate(_busyTime / _observationPeriod);  /* Mean number of customers in service */
-    collector[meanCustomerInSystem]->Accumulate(_areaN / _observationPeriod);      /* Mean number of customers in system */
+    collector[avgServiceTime]->Accumulate(_busyTime / _completions);         /* Average service time */
+    collector[avgDelay]->Accumulate(_areaS / _completions);                  /* Average delay time */
+    collector[avgWaiting]->Accumulate(_areaN / _completions);                /* Average wait time */
+    collector[utilizations]->Accumulate(_busyTime / _observationPeriod);     /* Utilization */
+    collector[throughputs]->Accumulate(_completions / _observationPeriod);   /* Throughput */
+    collector[inputRate]->Accumulate(_arrivals / _observationPeriod);        /* Input rate */
+    collector[arrivalRate]->Accumulate(_arrivals / _observationPeriod);      /* Arriva rate */
+    collector[serviceRate]->Accumulate(_completions / _busyTime);            /* Service rate */
+    collector[traffics]->Accumulate(_busyTime / _lastArrival);               /* Traffic intensity */
+    collector[meanCustomerInQueue]->Accumulate(_areaS / _observationPeriod); /* Mean number of customers in queue */
+    collector[meanCustomerInService]->Accumulate(_busyTime /
+                                                 _observationPeriod);         /* Mean number of customers in service */
+    collector[meanCustomerInSystem]->Accumulate(_areaN / _observationPeriod); /* Mean number of customers in system */
     collector._samples++;
 }

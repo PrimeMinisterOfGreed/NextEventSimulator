@@ -6,6 +6,7 @@
 #include "Station.hpp"
 #include "TestEnv.hpp"
 #include "gtest/gtest.h"
+#include <fmt/core.h>
 #include <memory>
 
 TEST(TestStation, test_onarrival)
@@ -23,12 +24,12 @@ TEST(TestStation, test_fcfs_arrival)
 {
     LogEngine::CreateInstance("test.txt");
     MockScheduler sched{};
-    sched.AddStation(new FCFSStation(&sched, "mockStation", 0));
+    auto stat = new FCFSStation(&sched, "mockStation", 0);
+    sched.AddStation(stat);
     sched.Schedule(sched.GenEvent(100, 10, ARRIVAL));
     sched.Schedule(sched.GenEvent(10, 20, ARRIVAL));
     sched.Schedule(sched.GenEvent(10, 30, ARRIVAL));
     for (int i = 0; i < 3; i++)
         sched.ProcessNext();
-
-    ASSERT_EQ(2, std::dynamic_pointer_cast<FCFSStation>(sched["mockStation"].value())->GetEventList().Count());
+    ASSERT_EQ(2, stat->GetEventList().Count());
 }
