@@ -22,8 +22,8 @@ std::vector<std::function<void()>> _collectFunctions{};
 std::unique_ptr<OS> os;
 std::unique_ptr<RegenerationPoint> regPoint;
 SimulationShell shell{};
-TraceSource logger{"main",4};
-RegenerationPoint* point;
+TraceSource logger{"main", 4};
+RegenerationPoint *point;
 bool hot = false;
 void AddStationToCollectibles(std::string name)
 {
@@ -63,20 +63,19 @@ void LogMeasures()
 
 void Setup()
 {
-    regPoint = std::unique_ptr<RegenerationPoint>(new RegenerationPoint(os.get(),os.get()));
-    os->GetStation("SWAP_OUT").value()->OnDeparture([](auto s, auto e){
-        regPoint->Trigger();
-    });
+    regPoint = std::unique_ptr<RegenerationPoint>(new RegenerationPoint(os.get(), os.get()));
+    os->GetStation("SWAP_OUT").value()->OnDeparture([](auto s, auto e) { regPoint->Trigger(); });
 
-    regPoint->AddRule([](IScheduler * sched, ISimulator * sim){
-        return sched->GetStation("CPU").value()->sysClients() > 3;
-    });
+    regPoint->AddRule(
+        [](RegenerationPoint *pt) { return pt->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddAction([](RegenerationPoint* point){
+    regPoint->AddRule(
+        [](RegenerationPoint *pt) { return pt->scheduler->GetStation("IO2").value()->sysClients() == 2; });
+
+    regPoint->AddAction([](RegenerationPoint *point) {
         CollectMeasures();
         point->scheduler->Reset();
     });
-
 
     _acc.clear();
     AddStationToCollectibles("CPU");
@@ -103,8 +102,8 @@ void SetupCommands()
     shell.AddCommand("lmeasures", [](SimulationShell *shell, auto c) { LogMeasures(); });
     shell.AddCommand("hreset", [](SimulationShell *shell, auto ctx) mutable { HReset(); });
     shell.AddCommand("exit", [](auto s, auto c) { exit(0); });
-    shell.AddCommand("regPointStats", [](SimulationShell* s, auto c){
-        logger.Information("Regeneration point -> Hitted:{}, Called:{}", regPoint->hitted(),regPoint->called());
+    shell.AddCommand("regPointStats", [](SimulationShell *s, auto c) {
+        logger.Information("Regeneration point -> Hitted:{}, Called:{}", regPoint->hitted(), regPoint->called());
     });
     SystemParameters::Parameters().AddControlCommands(&shell);
 
@@ -138,7 +137,7 @@ void SetupCommands()
 
         case 5:
             params.cpuUseNegExp = true;
-            params.cpuQuantum = 27;
+            params.cpuQuantum = 2700;
             params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
             break;
         }
@@ -154,7 +153,6 @@ void SetupCommands()
         }
     });
     shell.AddCommand("lqueue", [](auto s, auto c) { logger.Result("Scheduler Queue:{}", os->EventQueue()); });
-    
 }
 
 int main(int argc, char **argv)

@@ -1,8 +1,7 @@
 #include "Strategies/RegenerationPoint.hpp"
 
-RegenerationPoint::RegenerationPoint(IScheduler *sched, ISimulator *simulator): simulator(simulator),scheduler(sched)
+RegenerationPoint::RegenerationPoint(IScheduler *sched, ISimulator *simulator) : simulator(simulator), scheduler(sched)
 {
-    
 }
 
 void RegenerationPoint::Trigger()
@@ -10,7 +9,7 @@ void RegenerationPoint::Trigger()
     _called++;
     for (auto r : _rules)
     {
-        if (!r(scheduler, simulator))
+        if (!r(this))
         {
             return;
         }

@@ -21,12 +21,12 @@ struct RegenerationPoint
   public:
     IScheduler *scheduler;
     ISimulator *simulator;
-    std::vector<std::function<bool(IScheduler *, ISimulator *)>> _rules;
+    std::vector<std::function<bool(RegenerationPoint *)>> _rules;
     std::vector<std::function<void(RegenerationPoint *)>> _actions;
     RegenerationPoint(IScheduler *sched, ISimulator *simulator);
 
     template <typename F>
-        requires(has_return_value<F, bool, IScheduler *, ISimulator *>)
+        requires(has_return_value<F, bool, RegenerationPoint *>)
     void AddRule(F &&fnc)
     {
         _rules.push_back(fnc);
