@@ -83,6 +83,15 @@ class LogEngine
     {
         return _sources;
     }
+
+    void RemoveSource(TraceSource *src)
+    {
+        for (int i = 0; i < _sources.size(); i++)
+        {
+            if (_sources[i] == src)
+                _sources.erase(_sources.begin() + i);
+        }
+    }
     static LogEngine *Instance()
     {
         return _instance;
@@ -166,5 +175,10 @@ struct TraceSource
     template <typename... Args> void Debug(const char *format, Args... args)
     {
         Trace(LogType::DEBUG, makeformat(format, args...));
+    }
+    ~TraceSource()
+    {
+        if (engine != nullptr)
+            engine->RemoveSource(this);
     }
 };

@@ -135,6 +135,7 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 {
 
   private:
+    double _confidence = 0.95;
     T _sum[Moments]{};
 
     T get(int moment) const
@@ -153,6 +154,12 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
   public:
     Accumulator(std::string name, std::string unit) : Measure<T>(name, unit)
     {
+    }
+
+    Accumulator<> &WithConfidence(double confidence)
+    {
+        _confidence = confidence;
+        return *this;
     }
 
     void Accumulate(T value) override
@@ -211,12 +218,12 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         return _sum[0];
     }
 
-    Interval confidence(double conflevel = 0.95)
+    Interval confidence()
     {
 
         double u = mean(0);
         double sigma = variance();
-        double alpha = 1 - conflevel;
+        double alpha = 1 - _confidence;
         auto count = this->Count();
         double delta = 0.0;
         if (count < 40)
@@ -229,5 +236,15 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         }
         delta = (delta * variance()) / sqrtf(count);
         return {u, delta};
+    }
+};
+
+template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
+{
+    auto format(Accumulator<> &m, format_context &ctx) -> format_context::iterator
+    {
+        return fmt::format_to(ctx.out(), "Measure: {}, Mean: {}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}",
+                              m.Name(), m.mean(), m.confidence().precision(), m.Count(), m.confidence().lower(),
+                              m.confidence().higher(), m.Current());
     }
 };

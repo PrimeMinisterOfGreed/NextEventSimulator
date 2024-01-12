@@ -67,6 +67,7 @@ void BaseStation::Reset()
 
 BaseStation::BaseStation(std::string name) : _logger(name), _name(name)
 {
+    _logger.Transfer("Station:{} constructed", name);
 }
 
 void BaseStation::ProcessProbe(Event &evt)

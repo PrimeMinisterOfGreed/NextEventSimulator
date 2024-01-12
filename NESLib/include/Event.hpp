@@ -60,12 +60,11 @@ struct Event
     bool operator==(Event &oth);
 };
 
-template <> struct fmt::formatter<Event>: formatter<string_view>
+template <> struct fmt::formatter<Event> : formatter<string_view>
 {
     auto format(Event evt, format_context &ctx) -> format_context::iterator
     {
         return fmt::format_to(ctx.out(), "J:{},OC:{:2f},Tp:{},Station:{}", evt.Name, evt.OccurTime, evt.Type,
                               evt.Station);
     }
-
 };

@@ -7,6 +7,7 @@
 #include "Shell/SimulationShell.hpp"
 #include "Station.hpp"
 #include "Strategies/RegenerationPoint.hpp"
+#include "Strategies/TaggedCustomer.hpp"
 #include "SystemParameters.hpp"
 #include "rngs.hpp"
 #include <cmath>
@@ -22,6 +23,7 @@ std::vector<std::function<void()>> _collectFunctions{};
 std::unique_ptr<OS> os;
 std::unique_ptr<RegenerationPoint> regPoint;
 SimulationShell shell{};
+TaggedCustomer tgt{};
 TraceSource logger{"main", 4};
 RegenerationPoint *point;
 bool hot = false;
@@ -55,9 +57,7 @@ void LogMeasures()
 {
     for (auto m : _acc)
     {
-        logger.Result("Measure: {}, Mean: {}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}", m.Name(), m.mean(),
-                      m.confidence(0.90).precision(), m.Count(), m.confidence(0.90).lower(),
-                      m.confidence(0.90).higher(), m.Current());
+        logger.Result("{}", m);
     }
 }
 
@@ -69,14 +69,14 @@ void Setup()
     regPoint->AddRule(
         [](RegenerationPoint *pt) { return pt->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddRule(
-        [](RegenerationPoint *pt) { return pt->scheduler->GetStation("IO2").value()->sysClients() == 2; });
-
     regPoint->AddAction([](RegenerationPoint *point) {
         CollectMeasures();
         point->scheduler->Reset();
     });
 
+    tgt.WithRegPoint(regPoint.get());
+    tgt.ConnectEntrance(os->GetStation("SWAP_IN").value().get());
+    tgt.ConnectLeave(os->GetStation("SWAP_OUT").value().get());
     _acc.clear();
     AddStationToCollectibles("CPU");
     AddStationToCollectibles("IO1");
@@ -152,6 +152,7 @@ void SetupCommands()
                           s->completions(), s->sysClients());
         }
     });
+    tgt.AddShellCommands(&shell);
     shell.AddCommand("lqueue", [](auto s, auto c) { logger.Result("Scheduler Queue:{}", os->EventQueue()); });
 }
 
