@@ -4,20 +4,28 @@
 #include <Strategies/TaggedCustomer.hpp>
 #include <fmt/core.h>
 
-void TaggedCustomer::ConnectEntrance(BaseStation *station)
+void TaggedCustomer::ConnectEntrance(BaseStation *station, bool arrival)
 {
-    station->OnArrival([this](auto s, Event &e) { _times[e.Name] = {e.OccurTime, 0}; });
+    auto l = [this](auto s, Event &e) { _times[e.Name] = {e.OccurTime, 0}; };
+    if (arrival)
+        station->OnArrival(l);
+    else
+        station->OnDeparture(l);
 }
 
-void TaggedCustomer::ConnectLeave(BaseStation *station)
+void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
 {
-    station->OnDeparture([this](auto s, Event &e) {
+    auto l = [this](auto s, Event &e) {
         if (_times.count(e.Name) == 0)
             panic(fmt::format("Event with name {} not registered at entrance", e.Name));
         _times[e.Name].second = e.OccurTime;
         auto pair = _times.at(e.Name);
         _regCycle(pair.second - pair.first);
-    });
+    };
+    if (arrival)
+        station->OnArrival(l);
+    else
+        station->OnDeparture(l);
 }
 
 void TaggedCustomer::AddShellCommands(SimulationShell *shell)

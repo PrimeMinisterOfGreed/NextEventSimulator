@@ -26,22 +26,7 @@ struct SystemParameters
 
     void AddControlCommands(SimulationShell *shell)
     {
-        shell->AddCommand("set", [](SimulationShell *s, const char *context) {
-            char buffer[64]{};
-            char argument[32]{};
-            std::stringstream stream{context};
-            stream.getline(buffer, 64, ' ').get(argument, 32, ' ');
-            double arg = atof(argument);
-            if (strcmp(buffer, "mpd") == 0)
-                SystemParameters::Parameters().multiProgrammingDegree = arg;
-            else if (strcmp(buffer, "N") == 0)
-                SystemParameters::Parameters().numclients = arg;
-            else if (strcmp(buffer, "stime") == 0)
-                SystemParameters::Parameters().averageSwapIn = arg;
-            else
-                s->Log()->Exception("Variable {} Not found", buffer);
-            s->Log()->Information("Set Variable {} to {}", buffer,arg);
-        });
+
 
         shell->AddCommand("env", [](SimulationShell *s, const char *context) {
             auto p = SystemParameters::Parameters();

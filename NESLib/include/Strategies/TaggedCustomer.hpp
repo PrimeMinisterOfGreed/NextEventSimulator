@@ -22,8 +22,8 @@ struct TaggedCustomer
     }
 
     std::map<std::string, std::pair<double, double>> _times;
-    void ConnectEntrance(BaseStation *station);
-    void ConnectLeave(BaseStation *station);
+    void ConnectEntrance(BaseStation *station, bool arrival = false);
+    void ConnectLeave(BaseStation *station, bool arrival = false);
     void AddShellCommands(SimulationShell *shell);
     void CompleteRegCycle();
 };

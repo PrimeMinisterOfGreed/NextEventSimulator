@@ -6,6 +6,7 @@ set(SRC_FILES
     src/ReserveStation.cpp
     src/SwapIn.cpp
     src/SwapOut.cpp
+    src/SimulationEnv.cpp
 )
 
 
