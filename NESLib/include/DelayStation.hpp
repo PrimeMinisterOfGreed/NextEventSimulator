@@ -8,12 +8,10 @@ struct DelayStation : public Station
   protected:
     IScheduler *_scheduler;
     std::function<double()> _delayTime;
-
-    int _numclients = 0;
-
+    std::function<int()> _numclients;
   public:
-    template <typename F>
-    DelayStation(IScheduler *scheduler, std::string name, int numclients, F &&delayFnc)
+    template <typename RDouble, typename RInt>
+    DelayStation(IScheduler *scheduler, std::string name, RDouble &&delayFnc, RInt && numclients)
         : Station(name, 0), _scheduler(scheduler), _delayTime(delayFnc), _numclients(numclients)
     {
     }

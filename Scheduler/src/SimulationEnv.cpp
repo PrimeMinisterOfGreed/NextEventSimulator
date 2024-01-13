@@ -1,20 +1,16 @@
 #include "SimulationEnv.hpp"
-std::vector<Accumulator<double>> _acc{};
-std::vector<std::function<void()>> _collectFunctions{};
-std::unique_ptr<OS> os;
-std::unique_ptr<RegenerationPoint> regPoint;
-SimulationShell shell{};
-TaggedCustomer tgt{};
-TraceSource logger{"main", 4};
-RegenerationPoint *point;
-bool hot = false;
+#include "Core.hpp"
+#include "OperativeSystem.hpp"
+#include "Shell/SimulationShell.hpp"
+#include "Strategies/RegenerationPoint.hpp"
+#include "SystemParameters.hpp"
+#include <cmath>
+#include <cstring>
+#include <fmt/core.h>
+#include <memory>
+#include <sstream>
 
-
-
-
-
-
-void AddStationToCollectibles(std::string name)
+void SimulationManager::AddStationToCollectibles(std::string name)
 {
     using namespace fmt;
     auto t = _acc.size();
@@ -23,7 +19,7 @@ void AddStationToCollectibles(std::string name)
     _acc.push_back(Accumulator<>{format("{}_utilization", name), ""});
     auto n = _acc.size();
     _acc.push_back(Accumulator<>{format("{}_meanclients", name), ""});
-    _collectFunctions.push_back([t, u, n, name] {
+    _collectFunctions.push_back([t, u, n, name, this] {
         auto station = os->GetStation(name).value();
         station->Update();
         _acc[t](station->throughput());
@@ -32,7 +28,7 @@ void AddStationToCollectibles(std::string name)
     });
 }
 
-void CollectMeasures()
+void SimulationManager::CollectMeasures()
 {
     for (auto f : _collectFunctions)
     {
@@ -40,27 +36,23 @@ void CollectMeasures()
     }
 }
 
-void LogMeasures()
+void SimulationManager::SetupScenario(std::string name)
 {
-    for (auto m : _acc)
+    regPoint->Reset();
+    HReset();
+    for (auto s : _scenarios)
     {
-        logger.Result("{}", m);
+        if (name == s->name)
+        {
+            s->Setup(this);
+        }
     }
-}
-
-void Setup()
-{
-    regPoint = std::unique_ptr<RegenerationPoint>(new RegenerationPoint(os.get(), os.get()));
-    os->GetStation("SWAP_OUT").value()->OnDeparture([](auto s, auto e) { regPoint->Trigger(); });
-
-    regPoint->AddRule(
-        [](RegenerationPoint *pt) { return pt->scheduler->GetStation("CPU").value()->sysClients() == 0; });
-
-    regPoint->AddAction([](RegenerationPoint *point) {
+    regPoint->AddAction([this](RegenerationPoint *point) {
         CollectMeasures();
         point->scheduler->Reset();
     });
-
+    regPoint->scheduler = os.get();
+    regPoint->simulator = os.get();
     tgt.WithRegPoint(regPoint.get());
     tgt.ConnectEntrance(os->GetStation("SWAP_IN").value().get(), false);
     tgt.ConnectLeave(os->GetStation("SWAP_OUT").value().get(), true);
@@ -73,87 +65,89 @@ void Setup()
     AddStationToCollectibles("RESERVE_STATION");
 }
 
-void HReset()
+void SimulationManager::HReset()
 {
     os = std::unique_ptr<OS>(new OS());
-    shell.SetControllers(os.get(), os.get());
+    shell->SetControllers(os.get(), os.get());
     for (auto m : _acc)
     {
         m.Reset();
     }
-    Setup();
 }
 
-void SetupCommands()
-{
-    shell.AddCommand("lmeasures", [](SimulationShell *shell, auto c) { LogMeasures(); });
-    shell.AddCommand("hreset", [](SimulationShell *shell, auto ctx) mutable { HReset(); });
-    shell.AddCommand("exit", [](auto s, auto c) { exit(0); });
-    shell.AddCommand("regPointStats", [](SimulationShell *s, auto c) {
-        logger.Information("Regeneration point -> Hitted:{}, Called:{}", regPoint->hitted(), regPoint->called());
-    });
-    SystemParameters::Parameters().AddControlCommands(&shell);
-
-    shell.AddCommand("lstats", [](auto s, auto c) {
-        for (auto s : os->GetStations())
-        {
-            os->Sync();
-            s->Update();
-            logger.Result("S:{},B:{},O:{},A:{},S:{},N:{}", s->Name(), s->busyTime(), s->observation(), s->arrivals(),
-                          s->completions(), s->sysClients());
-        }
-    });
-    tgt.AddShellCommands(&shell);
-    shell.AddCommand("lqueue", [](auto s, auto c) { logger.Result("Scheduler Queue:{}", os->EventQueue()); });
-}
-
-void SetupSimulationScenarios()
-{
-    shell.AddCommand("scenario", [](auto s, auto c) {
-        std::stringstream stream{c};
-        char buf[12]{};
-        stream.get(buf, 12, ' ');
-        int val = atoi(buf);
-        auto &params = SystemParameters::Parameters();
-        switch (val)
-        {
-        case 1:
-            params.cpuUseNegExp = false;
-            params.cpuQuantum = 2.7;
-            break;
-
-        case 2:
-            params.cpuUseNegExp = true;
-            params.cpuQuantum = 2.7;
-            break;
-
-        case 3:
-            params.cpuUseNegExp = false;
-            params.cpuQuantum = 2700;
-            break;
-
-        case 4:
-            params.cpuUseNegExp = true;
-            params.cpuQuantum = 2700;
-            break;
-
-        case 5:
-            params.cpuUseNegExp = true;
-            params.cpuQuantum = 2700;
-            params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
-            break;
-        }
-        HReset();
-    });
-}
-
-
-void SetupEnvironment()
+SimulationManager::SimulationManager()
 {
     os = std::unique_ptr<OS>(new OS());
-    shell.SetControllers(os.get(), os.get());
-    Setup();
-    SetupCommands();
+    regPoint = std::unique_ptr<RegenerationPoint>(new RegenerationPoint(os.get(), os.get()));
 }
 
+void SimulationManager::SetupShell(SimulationShell *shell)
+{
+    this->shell = shell;
+    shell->AddCommand("lmeasures", [this](SimulationShell *shell, auto c) {
+        for (auto a : _acc)
+        {
+            shell->Log()->Result("{}", a);
+        }
+    });
+    shell->AddCommand("hreset", [this](SimulationShell *shell, auto ctx) mutable { HReset(); });
+    shell->AddCommand("exit", [](auto s, auto c) { exit(0); });
+    shell->AddCommand("regstats", [this](SimulationShell *s, auto c) {
+        logger.Information("Regeneration point -> Hitted:{}, Called:{}", regPoint->hitted(), regPoint->called());
+    });
+    SystemParameters::Parameters().AddControlCommands(shell);
 
+    shell->AddCommand("lstats", [this](auto s, auto c) {
+        char buffer[32]{};
+        std::istringstream read{c};
+        read >> buffer;
+        if (strlen(buffer) == 0)
+        {
+            for (auto s : os->GetStations())
+            {
+                os->Sync();
+                s->Update();
+                logger.Result("S:{},B:{},O:{},A:{},S:{},N:{}", s->Name(), s->busyTime(), s->observation(),
+                              s->arrivals(), s->completions(), s->sysClients());
+            }
+        }
+        else
+        {
+            std::string statName{buffer};
+            auto ref = os->GetStation(statName);
+            if (!ref.has_value())
+            {
+                logger.Exception("Station : {} not found", statName);
+                return;
+            }
+            auto stat = ref.value();
+            logger.Result("Station:{} \n Arrivals:{}\n Completions:{} \n Throughput:{} \n Utilization:{} \n "
+                          "Avg_serviceTime:{} \n "
+                          "Avg_Delay:{}\n Avg_interarrival:{} \n Avg_waiting:{} \n ",
+                          stat->Name(), stat->arrivals(), stat->completions(), stat->throughput(), stat->utilization(),
+                          stat->avg_serviceTime(), stat->avg_delay(), stat->avg_interArrival(), stat->avg_waiting());
+        }
+    });
+    tgt.AddShellCommands(shell);
+    shell->AddCommand("lqueue", [this](auto s, auto c) { logger.Result("Scheduler Queue:{}", os->EventQueue()); });
+    shell->AddCommand("scenario", [this](SimulationShell *shell, const char *ctx) {
+        char buffer[64]{};
+        std::stringstream read(ctx);
+        read >> buffer;
+        if (strcmp(buffer, "list") == 0)
+        {
+            for (auto s : _scenarios)
+            {
+                fmt::println("Scenario: {}", s->name);
+            }
+        }
+        else
+        {
+            std::string sc{buffer};
+            SetupScenario(sc);
+            fmt::println("Setup for scenario:{} completed", sc);
+        }
+    });
+
+    SetupScenario("Default");
+};

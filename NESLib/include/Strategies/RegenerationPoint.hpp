@@ -53,4 +53,10 @@ struct RegenerationPoint
     {
         return _called;
     }
+    void Reset(){
+        _rules.clear();
+        _actions.clear();
+        _hitted = 0;
+        _called = 0;
+    }
 };

@@ -243,8 +243,8 @@ template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
 {
     auto format(Accumulator<> &m, format_context &ctx) -> format_context::iterator
     {
-        return fmt::format_to(ctx.out(), "Measure: {}, Mean: {}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}",
-                              m.Name(), m.mean(), m.confidence().precision(), m.Count(), m.confidence().lower(),
+        return fmt::format_to(ctx.out(), "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}",
+                              m.Name(), m.mean(), m.variance() ,m.confidence().precision(), m.Count(), m.confidence().lower(),
                               m.confidence().higher(), m.Current());
     }
 };

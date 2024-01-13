@@ -1,5 +1,7 @@
 #include "Shell/SimulationShell.hpp"
 #include "LogEngine.hpp"
+#include <algorithm>
+#include <any>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -10,6 +12,8 @@
 #include <sstream>
 #include <stdlib.h>
 #include <thread>
+#include <tuple>
+#include <variant>
 
 using namespace fmt;
 
@@ -97,6 +101,14 @@ void SimulationShell::SetupDefaultCmds()
         for (int i = 0; i < value; i++)
             shell->_simulator->Execute();
     });
+
+    AddCommand("help", [this](auto s, auto ctx) {
+        fmt::print("List of available commands:");
+        for (auto c : _cmds)
+        {
+            fmt::println("Command :{}", c.command);
+        }
+    });
 }
 
 void SimulationShell::Execute()
@@ -107,30 +119,44 @@ void SimulationShell::Execute()
         print("<SimulationShell> ");
         char buffer[256]{};
         std::cin.getline(buffer, 256);
-        Command(buffer);
+        ExecuteCommand(buffer);
     }
 }
 
-void SimulationShell::Command(const char *command)
+void SimulationShell::ExecuteCommand(const char *command)
 {
+    char buffer[36]{};
+    char args[128]{};
+    std::istringstream ctx{command};
+    ctx >> buffer;
+    ctx.get(args,128);
     for (auto c : _cmds)
     {
-        if (c.IsCommandFor(command))
+        if (c.IsCommandFor(buffer))
         {
-            c(command);
+            c(args);
             return;
         }
     }
     _logger.Exception("Command {} not found", command);
 }
 
-void SimulationShell::RemoveCommand(const char *command)
+bool SimulationShell::Command::IsCommandFor(const char *context)
 {
-    for (int i = 0; i < _cmds.size(); i++)
-    {
-        if (strcmp(_cmds[i].command, command) == 0)
-        {
-            _cmds.erase(_cmds.begin() + i);
-        }
-    }
+    char buffer[36]{};
+    std::stringstream ctx{context};
+    ctx.get(buffer, 36, ' ');
+    auto size = strlen(command);
+    if (strlen(buffer) != size)
+        return false;
+    return strcmp(buffer, command) == 0;
+}
+
+void SimulationShell::Command::operator()(const char *context)
+{
+    char buffer[256]{};
+    std::stringstream stream{context};
+    stream.ignore();
+    stream.read(buffer, 256);
+    _fnc(_shell, buffer);
 }

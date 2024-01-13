@@ -29,11 +29,14 @@ void OS::Execute()
 
 OS::OS() : Scheduler("OS")
 {
-    auto dstation = new DelayStation(this, "delay_station", SystemParameters::Parameters().numclients, []() {
-        static VariableStream delayStream(
-            1, [](auto rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); });
-        return delayStream();
-    });
+    DelayStation *dstation = new DelayStation(
+        this, "delay_station",
+        [dstation]() {
+            static VariableStream delayStream(
+                1, [](auto rng) { return Exponential(SystemParameters::Parameters().workStationThinkTime); });
+            return delayStream();
+        },
+        []() { return SystemParameters::Parameters().numclients; });
 
     dstation->OnDeparture([this](auto s, Event &evt) {
         evt.Station = 1;

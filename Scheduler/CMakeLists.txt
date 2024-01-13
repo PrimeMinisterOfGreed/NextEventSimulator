@@ -7,6 +7,7 @@ set(SRC_FILES
     src/SwapIn.cpp
     src/SwapOut.cpp
     src/SimulationEnv.cpp
+    src/Scenario.cpp
 )
 
 

@@ -26,8 +26,6 @@ struct SystemParameters
 
     void AddControlCommands(SimulationShell *shell)
     {
-
-
         shell->AddCommand("env", [](SimulationShell *s, const char *context) {
             auto p = SystemParameters::Parameters();
             s->Log()->Information("Z={}\nMPD={}\nN={}\navgSwaping={}", p.workStationThinkTime, p.multiProgrammingDegree,

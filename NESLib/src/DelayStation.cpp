@@ -6,7 +6,7 @@
 void DelayStation::Initialize()
 {
     Station::Initialize();
-    for (int i = 0; i < _numclients; i++)
+    for (int i = 0; i < _numclients(); i++)
     {
         auto evt = Event(fmt::format("{}", Event::GeneratedNodes), DEPARTURE, _clock, _delayTime(), 0, 0, 0);
         _scheduler->Schedule(evt);

@@ -2,6 +2,7 @@
 #include <LogEngine.hpp>
 #include <fmt/core.h>
 #include <vector>
+
 #define panic(message) _panic(message, __FILE_NAME__, __LINE__)
 
 [[noreturn]] void _panic(const char *message);
