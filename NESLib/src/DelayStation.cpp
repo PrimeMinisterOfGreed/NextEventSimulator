@@ -16,8 +16,9 @@ void DelayStation::Initialize()
 void DelayStation::ProcessArrival(Event &evt)
 {
     Station::ProcessArrival(evt);
-    auto newevt = Event(fmt::format("{}", Event::GeneratedNodes), DEPARTURE, _clock, _clock + _delayTime(), 0, 0, 0);
-    _scheduler->Schedule(newevt);
+    evt.OccurTime = _delayTime()+ _clock;
+    evt.Type = DEPARTURE;
+    _scheduler->Schedule(evt);
 }
 
 void DelayStation::ProcessDeparture(Event &evt)

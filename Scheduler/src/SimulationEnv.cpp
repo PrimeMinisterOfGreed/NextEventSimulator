@@ -5,6 +5,7 @@
 #include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
 #include <cmath>
+#include <condition_variable>
 #include <cstring>
 #include <fmt/core.h>
 #include <memory>
@@ -84,6 +85,7 @@ SimulationManager::SimulationManager()
 void SimulationManager::SetupShell(SimulationShell *shell)
 {
     this->shell = shell;
+    SetupScenario("Default");
     shell->AddCommand("lmeasures", [this](SimulationShell *shell, auto c) {
         for (auto a : _acc)
         {
@@ -107,8 +109,8 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             {
                 os->Sync();
                 s->Update();
-                logger.Result("S:{},B:{},O:{},A:{},S:{},N:{}", s->Name(), s->busyTime(), s->observation(),
-                              s->arrivals(), s->completions(), s->sysClients());
+                logger.Result("S:{},B:{},O:{},A:{},S:{},N:{},W:{}", s->Name(), s->busyTime(), s->observation(),
+                              s->arrivals(), s->completions(), s->sysClients(), s->avg_waiting());
             }
         }
         else
@@ -148,6 +150,18 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             fmt::println("Setup for scenario:{} completed", sc);
         }
     });
+    shell->AddCommand("activetimes", [this](auto s, auto ctx) {
+        double sum = os->GetStation("CPU").value()->avg_waiting() + os->GetStation("IO1").value()->avg_waiting() +
+                     os->GetStation("IO2").value()->avg_waiting();
+        logger.Result("Sum of active times {}", sum);
+    });
 
-    SetupScenario("Default");
+    shell->AddCommand("nr", [this](SimulationShell *shell, auto ctx) {
+        bool end = false;
+        regPoint->AddOneTimeAction([&end](auto regPoint) { end = true; });
+        while (!end)
+        {
+            os->Execute();
+        }
+    });
 };

@@ -23,6 +23,7 @@ struct RegenerationPoint
     ISimulator *simulator;
     std::vector<std::function<bool(RegenerationPoint *)>> _rules;
     std::vector<std::function<void(RegenerationPoint *)>> _actions;
+    std::vector<std::function<void(RegenerationPoint *)>> _onTimeActions;
     RegenerationPoint(IScheduler *sched, ISimulator *simulator);
 
     template <typename F>
@@ -39,6 +40,13 @@ struct RegenerationPoint
         _actions.push_back(fnc);
     }
 
+    template <typename F>
+        requires(has_return_value<F, void, RegenerationPoint *>)
+    void AddOneTimeAction(F &&fnc)
+    {
+        _onTimeActions.push_back(fnc);
+    }
+
     void Trigger();
     void operator()()
     {
@@ -53,7 +61,8 @@ struct RegenerationPoint
     {
         return _called;
     }
-    void Reset(){
+    void Reset()
+    {
         _rules.clear();
         _actions.clear();
         _hitted = 0;

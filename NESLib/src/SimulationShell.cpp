@@ -1,5 +1,6 @@
 #include "Shell/SimulationShell.hpp"
 #include "LogEngine.hpp"
+#include "rngs.hpp"
 #include <algorithm>
 #include <any>
 #include <cstdio>
@@ -109,6 +110,18 @@ void SimulationShell::SetupDefaultCmds()
             fmt::println("Command :{}", c.command);
         }
     });
+
+    AddCommand("seed", [this](auto s, const char *ctx) {
+        char buffer[36]{};
+        std::istringstream stream{ctx};
+        stream >> buffer;
+        if(strlen(buffer) == 0){
+            _logger.Exception("Seed must be called with argument");
+            return;
+        }
+        int seed = atoi(buffer);
+        RandomStream::Global().PlantSeeds(seed);
+    });
 }
 
 void SimulationShell::Execute()
@@ -129,7 +142,7 @@ void SimulationShell::ExecuteCommand(const char *command)
     char args[128]{};
     std::istringstream ctx{command};
     ctx >> buffer;
-    ctx.get(args,128);
+    ctx.get(args, 128);
     for (auto c : _cmds)
     {
         if (c.IsCommandFor(buffer))

@@ -19,7 +19,13 @@ SCENARIO(Simplified)
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
+        static int counter = 0;
+        counter++;
+        if (counter == 100)
+        {
+            manager->regPoint->Trigger();
+            counter = 0;
+        }
     });
 };
 

@@ -18,5 +18,9 @@ void RegenerationPoint::Trigger()
     {
         a(this);
     }
+    for(auto a: _onTimeActions){
+        a(this);
+    }
+    _onTimeActions.clear();
     _hitted++;
 }
