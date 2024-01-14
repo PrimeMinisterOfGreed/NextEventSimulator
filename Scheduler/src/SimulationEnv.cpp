@@ -157,11 +157,21 @@ void SimulationManager::SetupShell(SimulationShell *shell)
     });
 
     shell->AddCommand("nr", [this](SimulationShell *shell, auto ctx) {
-        bool end = false;
-        regPoint->AddOneTimeAction([&end](auto regPoint) { end = true; });
-        while (!end)
+        char buffer[12]{};
+        std::stringstream stream{ctx};
+        stream >> buffer;
+        int m = 1;
+        if (strlen(buffer) > 0)
+            m = atoi(buffer);
+        for (int i = 0; i < m; i++)
         {
-            os->Execute();
+            bool end = false;
+            regPoint->AddOneTimeAction([&end](auto regPoint) { end = true; });
+            while (!end)
+            {
+                os->Execute();
+            }
+            logger.Information("End of {} rengeneration cycle", i);
         }
     });
 };

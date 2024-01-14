@@ -12,7 +12,8 @@ enum EventType : char
     DEPARTURE = 'D',
     END = 'E',
     PROBE = 'P',
-    MAINTENANCE = 'M'
+    MAINTENANCE = 'M',
+    RESET= 'R'
 };
 
 struct Event

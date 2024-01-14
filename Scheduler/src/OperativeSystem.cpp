@@ -62,6 +62,8 @@ void OS::Reset()
     _end = false;
     for (auto station : _stations)
     {
+        auto evt = Event{"PROBE",PROBE,_clock,_clock,0,0,0};
+        station->Process(evt);
         station->Reset();
     }
 }
