@@ -1,4 +1,5 @@
 #include "SimulationEnv.hpp"
+#include "Strategies/RegenerationPoint.hpp"
 
 #define SCENARIO(name)                                                                                                 \
     struct _Scenario_##name : public BaseScenario                                                                      \
@@ -29,7 +30,26 @@ SCENARIO(Simplified)
     });
 };
 
-SCENARIO(Default)
+SCENARIO(Simplified_N20)
+{
+    auto &params = SystemParameters::Parameters();
+    params.numclients = 1;
+    params.cpuUseNegExp = true;
+    params.cpuQuantum = 2.7;
+    params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
+    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
+        manager->regPoint->Trigger();
+    });
+
+    auto &regPoint = manager->regPoint;
+    regPoint->AddRule(
+        [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
+}
+
+SCENARIO(Default) // first request
 {
     auto &params = SystemParameters::Parameters();
     params.cpuUseNegExp = false;
@@ -37,9 +57,34 @@ SCENARIO(Default)
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
     });
+
+    auto &regPoint = manager->regPoint;
+    // first CPU must have 0 clients because is hyperexp
+    regPoint->AddRule(
+        [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 };
 
-SCENARIO(NegExpCpu)
+SCENARIO(Default_NOMPD)
+{
+    auto &params = SystemParameters::Parameters();
+    params.cpuUseNegExp = false;
+    params.cpuQuantum = 2.7;
+    params.multiProgrammingDegree = 1000;
+    params.numclients = 20;
+    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
+        manager->regPoint->Trigger();
+    });
+
+    auto &regPoint = manager->regPoint;
+    // first CPU must have 0 clients because is hyperexp
+    regPoint->AddRule(
+        [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 4; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
+}
+
+SCENARIO(NegExpCpu) // second request
 {
     auto &params = SystemParameters::Parameters();
     params.cpuUseNegExp = true;
@@ -47,9 +92,15 @@ SCENARIO(NegExpCpu)
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
     });
+    auto &regPoint = manager->regPoint;
+    regPoint->AddRule(
+        [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }
 
-SCENARIO(LTCpu)
+SCENARIO(LTCpu) // third request
 {
     auto &params = SystemParameters::Parameters();
     params.cpuUseNegExp = false;
@@ -59,7 +110,7 @@ SCENARIO(LTCpu)
     });
 }
 
-SCENARIO(NegExpLt)
+SCENARIO(NegExpLt) // last request
 {
     auto &params = SystemParameters::Parameters();
     params.cpuUseNegExp = true;
