@@ -18,7 +18,7 @@ SCENARIO(Simplified)
     params.numclients = 1;
     params.cpuUseNegExp = true;
     params.cpuQuantum = 2.7;
-    params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
+    //params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         static int counter = 0;
         counter++;
@@ -36,7 +36,7 @@ SCENARIO(Simplified_N20)
     params.numclients = 1;
     params.cpuUseNegExp = true;
     params.cpuQuantum = 2.7;
-    params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
+    //params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
     });

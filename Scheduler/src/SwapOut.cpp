@@ -17,7 +17,7 @@ void SwapOut::ProcessArrival(Event &evt)
 void SwapOut::ProcessDeparture(Event &evt)
 {
     static CompositionStream router(
-        6, {0.6, 0.4}, [](auto rng) { return 0; }, [](auto rng) { return RESERVE_STATION; });
+        2, {0.6, 0.4}, [](auto rng) { return 0; }, [](auto rng) { return RESERVE_STATION; });
     Station::ProcessDeparture(evt);
     evt.Type = EventType::ARRIVAL;
     evt.OccurTime = _clock;

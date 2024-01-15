@@ -23,7 +23,7 @@ Cpu::Cpu(IScheduler *scheduler)
     else
     {
         auto hyperExpStream = new CompositionStream{
-            4, {0.95, 0.05}, [](auto rng) { return Exponential(10); }, [](auto rng) { return Exponential(350); }};
+            3, {0.95, 0.05}, [](auto rng) { return Exponential(10); }, [](auto rng) { return Exponential(350); }};
         _burst = sptr<BaseStream>(hyperExpStream);
     }
 }
@@ -64,7 +64,7 @@ void Cpu::ProcessArrival(Event &evt)
 void Cpu::ProcessDeparture(Event &evt)
 {
 
-    static Router router(3, SystemParameters::Parameters().cpuChoice, {IO_2, IO_1, SWAP_OUT, CPU});
+    static Router router(4, SystemParameters::Parameters().cpuChoice, {IO_2, IO_1, SWAP_OUT, CPU});
     // process has finished
     Station::ProcessDeparture(evt);
 

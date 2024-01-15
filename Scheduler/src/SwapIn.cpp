@@ -10,7 +10,7 @@
 SwapIn::SwapIn(IScheduler *scheduler)
     : FCFSStation(scheduler, "SWAP_IN", Stations::SWAP_IN),
       _serviceTime(
-          VariableStream(7, [](auto &rng) { return Exponential(SystemParameters::Parameters().averageSwapIn); }))
+          VariableStream(6, [](auto &rng) { return Exponential(SystemParameters::Parameters().averageSwapIn); }))
 {
 }
 

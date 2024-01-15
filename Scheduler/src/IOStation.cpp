@@ -24,7 +24,7 @@ void IOStation::ProcessDeparture(Event &evt)
     _scheduler->Schedule(evt);
 }
 
-IOStation::IOStation(IScheduler *scheduler, int stationIndex): _serviceTime(VariableStream(stationIndex, 
+IOStation::IOStation(IScheduler *scheduler, int stationIndex): _serviceTime(VariableStream(5, 
 [this](auto rng){
     if(_stationIndex == IO_1) return Exponential(SystemParameters::Parameters().averageIO1);
     else if(_stationIndex == IO_2) return Exponential(SystemParameters::Parameters().averageIO2);
