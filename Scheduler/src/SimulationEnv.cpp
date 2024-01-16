@@ -1,5 +1,6 @@
 #include "SimulationEnv.hpp"
 #include "Core.hpp"
+#include "Event.hpp"
 #include "OperativeSystem.hpp"
 #include "Shell/SimulationShell.hpp"
 #include "Strategies/RegenerationPoint.hpp"
@@ -10,6 +11,7 @@
 #include <fmt/core.h>
 #include <memory>
 #include <sstream>
+#include <string.h>
 
 void SimulationManager::AddStationToCollectibles(std::string name)
 {
@@ -57,13 +59,6 @@ void SimulationManager::SetupScenario(std::string name)
     tgt.WithRegPoint(regPoint.get());
     tgt.ConnectEntrance(os->GetStation("SWAP_IN").value().get(), false);
     tgt.ConnectLeave(os->GetStation("SWAP_OUT").value().get(), true);
-    _acc.clear();
-    AddStationToCollectibles("CPU");
-    AddStationToCollectibles("IO1");
-    AddStationToCollectibles("IO2");
-    AddStationToCollectibles("SWAP_IN");
-    AddStationToCollectibles("SWAP_OUT");
-    AddStationToCollectibles("RESERVE_STATION");
 }
 
 void SimulationManager::HReset()
@@ -80,6 +75,7 @@ SimulationManager::SimulationManager()
 {
     os = std::unique_ptr<OS>(new OS());
     regPoint = std::unique_ptr<RegenerationPoint>(new RegenerationPoint(os.get(), os.get()));
+    SetupEnvironment();
 }
 
 void SimulationManager::SetupShell(SimulationShell *shell)
@@ -174,4 +170,60 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             logger.Information("End of {} rengeneration cycle", i);
         }
     });
+
+    auto l = [this](SimulationShell *shell, const char *context, bool arrival) {
+        char buffer[36]{};
+        std::stringstream read{context};
+        read >> buffer;
+        if (strlen(buffer) == 0)
+            shell->Log()->Exception("Must select a station to let the event arrive");
+        std::string stat{buffer};
+        memset(buffer, 0, sizeof(buffer));
+        read >> buffer;
+        bool end = false;
+        if (strlen(buffer) == 0)
+        {
+            // first event to arrive
+            if (arrival)
+                os->GetStation(stat).value()->OnArrivalOnce([&end](auto s, auto e) { end = true; });
+            else
+                os->GetStation(stat).value()->OnDepartureOnce([&end](auto s, auto e) { end = true; });
+        }
+        else
+        {
+            std::string capName{buffer};
+            if (arrival)
+                os->GetStation(stat).value()->OnArrivalOnce([&end, capName](auto s, Event &e) {
+                    if (e.Name == capName)
+                    {
+                        end = true;
+                    }
+                });
+            else
+                os->GetStation(stat).value()->OnDepartureOnce([&end, capName](auto s, Event &e) {
+                    if (e.Name == capName)
+                    {
+                        end = true;
+                    }
+                });
+        }
+        while (!end)
+        {
+            os->Execute();
+        }
+        logger.Information("{} of event detected", arrival ? "Arrival" : "Departure");
+    };
+
+    shell->AddCommand("na", [this, l](SimulationShell *shell, const char *context) { l(shell, context, true); });
+    shell->AddCommand("nd", [l](auto s, auto ctx) { l(s, ctx, false); });
 };
+
+void SimulationManager::SetupEnvironment()
+{
+    AddStationToCollectibles("CPU");
+    AddStationToCollectibles("IO1");
+    AddStationToCollectibles("IO2");
+    AddStationToCollectibles("SWAP_IN");
+    AddStationToCollectibles("SWAP_OUT");
+    AddStationToCollectibles("RESERVE_STATION");
+}

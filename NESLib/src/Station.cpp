@@ -103,17 +103,19 @@ void BaseStation::Process(Event &event)
     case EventType::ARRIVAL:
         _logger.Information("Arrival:{}", event);
         for (auto &h : _onArrival)
-        {
             h(this, event);
-        }
+        for (auto &j : _onArrivalOnce)
+            j(this, event);
+        _onArrivalOnce.clear();
         ProcessArrival(event);
         break;
     case EventType::DEPARTURE:
         ProcessDeparture(event);
         for (auto &h : _onDeparture)
-        {
             h(this, event);
-        }
+        for (auto &j : _onDepartureOnce)
+            j(this, event);
+        _onDepartureOnce.clear();
         _logger.Information("Departure:{}", event);
         break;
     case EventType::NO_EVENT:

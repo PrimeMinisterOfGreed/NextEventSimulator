@@ -64,7 +64,7 @@ void Cpu::ProcessArrival(Event &evt)
 void Cpu::ProcessDeparture(Event &evt)
 {
 
-    static Router router(4, SystemParameters::Parameters().cpuChoice, {IO_2, IO_1, SWAP_OUT, CPU});
+    static Router router(4, SystemParameters::Parameters().cpuChoice, {IO_1, IO_2, SWAP_OUT, CPU});
     // process has finished
     Station::ProcessDeparture(evt);
 

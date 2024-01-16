@@ -30,6 +30,9 @@ class BaseStation
     std::vector<std::function<void(BaseStation *, Event &)>> _onArrival;
     std::vector<std::function<void(BaseStation *, Event &)>> _onDeparture;
 
+    std::vector<std::function<void(BaseStation *, Event &)>> _onArrivalOnce;
+    std::vector<std::function<void(BaseStation *, Event &)>> _onDepartureOnce;
+
   public:
     BaseStation(std::string name);
     virtual void Process(Event &event);
@@ -76,6 +79,16 @@ class BaseStation
     template <typename F> void OnArrival(F &&fnc)
     {
         _onArrival.push_back(fnc);
+    }
+
+    template <typename F> void OnArrivalOnce(F &&fnc)
+    {
+        _onArrivalOnce.push_back(fnc);
+    }
+
+    template <typename F> void OnDepartureOnce(F &&fnc)
+    {
+        _onDepartureOnce.push_back(fnc);
     }
 
     double avg_interArrival() const
