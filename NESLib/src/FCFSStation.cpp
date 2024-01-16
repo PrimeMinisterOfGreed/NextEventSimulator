@@ -28,8 +28,7 @@ void FCFSStation::ProcessArrival(Event &evt)
 void FCFSStation::ProcessDeparture(Event &evt)
 {
 
-    if (evt != *_eventUnderProcess)
-        panic(fmt::format("event {} is not equal to event under process {}", evt.Name, _eventUnderProcess->Name));
+    core_assert(evt == _eventUnderProcess.value(),"event {} is not equal to event under process {}", evt.Name, _eventUnderProcess->Name);
     if (_eventUnderProcess->SubType != MAINTENANCE)
         Station::ProcessDeparture(_eventUnderProcess.value());
     if (_sysClients > 0)

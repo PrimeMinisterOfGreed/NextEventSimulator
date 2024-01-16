@@ -33,3 +33,4 @@ TEST(TestStation, test_fcfs_arrival)
         sched.ProcessNext();
     ASSERT_EQ(2, stat->GetEventList().Count());
 }
+

@@ -19,7 +19,6 @@ void IOStation::ProcessDeparture(Event &evt)
 {
     FCFSStation::ProcessDeparture(evt);
     evt.Station = Stations::CPU;
-    evt.OccurTime = _clock;
     evt.Type = EventType::ARRIVAL;
     _scheduler->Schedule(evt);
 }

@@ -1,14 +1,17 @@
 #include "SimulationEnv.hpp"
 #include "Core.hpp"
 #include "Event.hpp"
+#include "ISimulator.hpp"
 #include "OperativeSystem.hpp"
 #include "Shell/SimulationShell.hpp"
 #include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
+#include "Usings.hpp"
 #include <cmath>
 #include <condition_variable>
 #include <cstring>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <memory>
 #include <sstream>
 #include <string.h>
@@ -135,7 +138,17 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         }
     });
     tgt.AddShellCommands(shell);
-    shell->AddCommand("lqueue", [this](auto s, auto c) { logger.Result("Scheduler Queue:{}", os->EventQueue()); });
+    shell->AddCommand("lqueue", [this](auto s, auto c) {
+        logger.Result("Scheduler Queue:{}", os->EventQueue());
+        for (auto s : os->GetStations())
+        {
+            auto p = std::dynamic_pointer_cast<IQueueHolder>(s);
+            if (p != nullptr)
+            {
+                logger.Result("Queue {}: {}", s->Name(), p->GetEventList());
+            }
+        }
+    });
     shell->AddCommand("scenario", [this](SimulationShell *shell, const char *ctx) {
         char buffer[64]{};
         std::stringstream read(ctx);
