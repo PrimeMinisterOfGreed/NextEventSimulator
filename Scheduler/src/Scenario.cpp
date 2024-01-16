@@ -17,7 +17,7 @@ SCENARIO(Simplified)
     auto &params = SystemParameters::Parameters();
     params.numclients = 1;
     params.cpuUseNegExp = true;
-    params.cpuQuantum = 2.7;
+    params.cpuQuantum = 2700;
     // params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         static int counter = 0;
