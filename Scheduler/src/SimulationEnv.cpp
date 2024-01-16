@@ -41,15 +41,22 @@ void SimulationManager::CollectMeasures()
 
 void SimulationManager::SetupScenario(std::string name)
 {
-    regPoint->Reset();
-    HReset();
-    for (auto s : _scenarios)
+    BaseScenario *s = nullptr;
+    for (auto rs : _scenarios)
     {
-        if (name == s->name)
+        if (rs->name == name)
         {
-            s->Setup(this);
+            s = rs;
         }
     }
+    if (s == nullptr)
+    {
+        logger.Exception("Cannot find scenario with name {}", name);
+        return;
+    }
+    regPoint->Reset();
+    HReset();
+    s->Setup(this);
     regPoint->AddAction([this](RegenerationPoint *point) {
         CollectMeasures();
         point->scheduler->Reset();

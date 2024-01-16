@@ -18,7 +18,7 @@ SCENARIO(Simplified)
     params.numclients = 1;
     params.cpuUseNegExp = true;
     params.cpuQuantum = 2.7;
-    //params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
+    // params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         static int counter = 0;
         counter++;
@@ -33,10 +33,11 @@ SCENARIO(Simplified)
 SCENARIO(Simplified_N20)
 {
     auto &params = SystemParameters::Parameters();
-    params.numclients = 1;
+    params.numclients = 20;
     params.cpuUseNegExp = true;
+    params.multiProgrammingDegree = 1000;
     params.cpuQuantum = 2.7;
-    //params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
+    // params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
     });
@@ -45,8 +46,7 @@ SCENARIO(Simplified_N20)
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 5; });
 }
 
 SCENARIO(Default) // first request
