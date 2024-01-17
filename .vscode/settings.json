@@ -1,7 +1,5 @@
 {
       "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-      "clangd.inactiveRegions.useBackgroundHighlight": true,
-      "clangd.inactiveRegions.opacity": 0.55,
       "files.associations": {
             "cmath": "cpp",
             "cstddef": "cpp",

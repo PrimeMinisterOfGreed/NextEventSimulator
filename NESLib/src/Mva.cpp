@@ -5,19 +5,17 @@ using Vector = std::vector<double>;
 Vector RouteToVisit(Matrix<double> &routings)
 {
     Vector visits(routings.Rows());
-    visits[0] = 1.0;
-    for (int i = 0; i < routings.Rows(); i++)
-    {
-        double sum = 0.0;
-        for (int k = 0; k < routings.Col(i).size(); k++)
-        {
-            double a = routings(k, i);
-            double b = routings(i, k);
-            sum += (a / visits[0]) * b;
-        }
-        visits[i] = sum;
-        sum = 0;
+    auto m = routings.Copy();
+    auto old = m.Copy();
+    for(int i = 0; i < 10000; i++){
+        m = old*old;
+        old = m;
     }
+    for(int i = 0 ; i < routings.Rows(); i++)
+        visits[i] = m(i,i);
+    for(int i = 1; i < visits.size(); i++)
+        visits[i] = visits[i]*(1/visits[0]);
+    visits[0] = 1;
     return visits;
 }
 
@@ -37,7 +35,7 @@ MVAResult MVALID(const Vector &visits, const Vector &serviceTimes, const std::ve
         for (int i = 0; i < M; i++)
         {
             result.meanWaits(i, k) =
-                types[i] == StationType::D ? serviceTimes[i] : serviceTimes[i] * (1 + result.meanWaits(i, k - 1));
+                types[i] == StationType::D ? serviceTimes[i] : serviceTimes[i] * (1 + result.meanClients(i, k - 1));
         }
         double sum = 0.0;
         for (int i = 0; i < M; i++)

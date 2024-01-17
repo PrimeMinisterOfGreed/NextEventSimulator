@@ -221,11 +221,20 @@ struct Matrix
 
     template <typename F> void Traverse(F &&fnc)
     {
-        for(int i = 0; i < Rows(); i++){
-            for(int j = 0; j < Row(i).size(); j++){
-                fnc(i,j,(*this)(i,j));
+        for (int i = 0; i < Rows(); i++)
+        {
+            for (int j = 0; j < Row(i).size(); j++)
+            {
+                fnc(i, j, (*this)(i, j));
             }
         }
+    }
+
+    Matrix<T> Copy()
+    {
+        Matrix<T> copy{Rows(), Columns()};
+        Traverse([&copy](int i, int j, T e) { copy(i, j) = e; });
+        return copy;
     }
 };
 

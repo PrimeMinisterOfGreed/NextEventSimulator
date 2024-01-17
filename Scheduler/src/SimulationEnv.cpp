@@ -248,3 +248,10 @@ void SimulationManager::SetupEnvironment()
     AddStationToCollectibles("SWAP_OUT");
     AddStationToCollectibles("RESERVE_STATION");
 }
+void SimulationManager::ResetAccumulators()
+{
+    for (auto a : _acc)
+    {
+        a.Reset();
+    }
+}

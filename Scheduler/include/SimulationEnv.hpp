@@ -60,6 +60,7 @@ struct SimulationManager
     void AddStationToCollectibles(std::string name);
     void SetupScenario(std::string name);
     void SetupEnvironment();
+    void ResetAccumulators();
 
 };
 
