@@ -15,7 +15,6 @@ class Cpu : public Station, public IQueueHolder
     std::optional<Event> _eventUnderProcess;
 
     IScheduler *_scheduler;
-    double _timeSlice;
 
     sptr<BaseStream> _burst;
 

@@ -8,8 +8,7 @@
 
 void FCFSStation::ProcessArrival(Event &evt)
 {
-    if (evt.SubType != MAINTENANCE)
-        Station::ProcessArrival(evt);
+    Station::ProcessArrival(evt);
     if (!_eventUnderProcess.has_value())
     {
         evt.CreateTime = _clock;
@@ -22,21 +21,23 @@ void FCFSStation::ProcessArrival(Event &evt)
     else
     {
         _eventList.Enqueue(evt);
+        core_assert((_eventList.Count() + 1) == _sysClients, "Size miss on sysclients {} and eventlist count {}",
+                    _sysClients, _eventList.Count());
     }
 }
 
 void FCFSStation::ProcessDeparture(Event &evt)
 {
-
-    core_assert(evt == _eventUnderProcess.value(),"event {} is not equal to event under process {}", evt.Name, _eventUnderProcess->Name);
-    if (_eventUnderProcess->SubType != MAINTENANCE)
-        Station::ProcessDeparture(_eventUnderProcess.value());
+    core_assert(evt == _eventUnderProcess.value(), "event {} is not equal to event under process {}", evt.Name,
+                _eventUnderProcess->Name);
+    Station::ProcessDeparture(_eventUnderProcess.value());
     if (_sysClients > 0)
     {
         _eventUnderProcess.emplace(_eventList.Dequeue());
         _eventUnderProcess->ArrivalTime = _clock;
         _eventUnderProcess->CreateTime = _clock;
         _eventUnderProcess->OccurTime = _clock + _eventUnderProcess->ServiceTime;
+        _eventUnderProcess->Station = stationIndex();
         _eventUnderProcess->Type = EventType::DEPARTURE;
         _scheduler->Schedule(_eventUnderProcess.value());
     }

@@ -46,7 +46,8 @@ SCENARIO(Simplified_N20)
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 3; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 }
 
 SCENARIO(Default) // first request

@@ -1,11 +1,12 @@
 #pragma once
 #define panic(message) _panic(message, __FILE_NAME__, __LINE__)
 #ifdef CORE_DEBUG
-#define core_assert(condition, failmessage, args...) \
-if(!(condition)) panic(fmt::format("{}{}",failmessage,args))
-#else 
-#define core_assert(condition,failmessage,args...) 
-#endif 
+#define core_assert(condition, failmessage, ...)                                                                       \
+    if (!(condition))                                                                                                  \
+        panic(fmt::format(failmessage, __VA_ARGS__));
+#else
+#define core_assert(condition, failmessage, args...)
+#endif
 #include <LogEngine.hpp>
 #include <fmt/core.h>
 #include <vector>

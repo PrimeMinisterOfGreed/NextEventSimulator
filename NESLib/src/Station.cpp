@@ -56,7 +56,6 @@ void BaseStation::Reset()
 {
     _arrivals = 0;
     _completions = 0;
-    _sysClients = 0;
     _maxClients = 0;
     _busyTime = 0.0;
     _observationPeriod = 0.0;
@@ -83,10 +82,7 @@ void Station::ProcessProbe(Event &evt)
 
 void BaseStation::Process(Event &event)
 {
-    if (event.OccurTime < _clock)
-    {
-        panic(fmt::format("Event {} occur at a lesser time of {} in station {}", event, _clock, _name));
-    }
+    core_assert(event.OccurTime >= _clock, "Event {} occur at a lesser time of {} in station {}", event, _clock, _name);
     _clock = event.OccurTime;
     _logger.Transfer("Processing:{}", event);
     double interval = _clock - _oldclock;

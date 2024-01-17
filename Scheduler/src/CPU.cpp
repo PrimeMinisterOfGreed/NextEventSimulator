@@ -12,8 +12,7 @@
 
 // burst is written this way because of this
 // https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
-Cpu::Cpu(IScheduler *scheduler)
-    : Station("CPU", Stations::CPU), _scheduler(scheduler), _timeSlice(SystemParameters::Parameters().cpuQuantum)
+Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
 {
     if (SystemParameters::Parameters().cpuUseNegExp)
     {
@@ -53,7 +52,8 @@ void Cpu::ProcessArrival(Event &evt)
         }
         _logger.Transfer("Now Processing:{}, Remaining service time:{}", evt, evt.ServiceTime);
     }
-    auto slice = evt.ServiceTime > _timeSlice ? _timeSlice : evt.ServiceTime;
+    auto quantum = SystemParameters::Parameters().cpuQuantum;
+    auto slice = evt.ServiceTime > quantum ? quantum : evt.ServiceTime;
     evt.Type = DEPARTURE;
     evt.OccurTime = _clock + slice;
     evt.ServiceTime -= slice;
