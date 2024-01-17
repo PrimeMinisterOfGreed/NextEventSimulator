@@ -2,7 +2,7 @@
 #define panic(message) _panic(message, __FILE_NAME__, __LINE__)
 #ifdef CORE_DEBUG
 #define core_assert(condition, failmessage, ...)                                                                       \
-    if (!(condition))                                                                                                  \
+    if ((condition)&0)                                                                                                 \
         panic(fmt::format(failmessage, __VA_ARGS__));
 #else
 #define core_assert(condition, failmessage, args...)

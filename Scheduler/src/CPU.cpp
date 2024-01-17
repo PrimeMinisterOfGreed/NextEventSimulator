@@ -14,17 +14,24 @@
 // https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
 Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
 {
-    if (SystemParameters::Parameters().cpuUseNegExp)
-    {
-        auto negExpStream = new VariableStream(3, [](auto rng) { return Exponential(27); });
-        _burst = sptr<BaseStream>(negExpStream);
-    }
-    else
-    {
-        auto hyperExpStream = new CompositionStream{
+
+    _burst = [this]() {
+        static VariableStream negExp(3, [](auto rng) { return Exponential(27); });
+        static CompositionStream hyperExp{
             3, {0.95, 0.05}, [](auto rng) { return Exponential(10); }, [](auto rng) { return Exponential(350); }};
-        _burst = sptr<BaseStream>(hyperExpStream);
-    }
+
+        switch (SystemParameters::Parameters().cpumode)
+        {
+        case SystemParameters::NEG_EXP:
+            return negExp();
+        case SystemParameters::HYPER_EXP:
+            return hyperExp();
+        case SystemParameters::FIXED:
+            return SystemParameters::Parameters().cpuQuantum;
+        default:
+            return 0.0;
+        }
+    };
 }
 
 void Cpu::ProcessArrival(Event &evt)
@@ -35,7 +42,7 @@ void Cpu::ProcessArrival(Event &evt)
     {
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
-        evt.ServiceTime = (*_burst)();
+        evt.ServiceTime = _burst();
         if (_eventUnderProcess.has_value() && _eventList.Count() > 0)
         {
             _eventList.Push(evt);
@@ -46,10 +53,8 @@ void Cpu::ProcessArrival(Event &evt)
     // it was in the ready queue
     else
     {
-        if (_eventUnderProcess.has_value())
-        {
-            panic(fmt::format("Expected empty underprocess but was {}", _eventUnderProcess.value()));
-        }
+        core_assert(!_eventUnderProcess.has_value(), "Expected empty underprocess but was {}",
+                    _eventUnderProcess.value());
         _logger.Transfer("Now Processing:{}, Remaining service time:{}", evt, evt.ServiceTime);
     }
     auto quantum = SystemParameters::Parameters().cpuQuantum;

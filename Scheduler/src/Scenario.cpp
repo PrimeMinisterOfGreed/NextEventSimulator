@@ -1,5 +1,6 @@
 #include "SimulationEnv.hpp"
 #include "Strategies/RegenerationPoint.hpp"
+#include "SystemParameters.hpp"
 
 #define SCENARIO(name)                                                                                                 \
     struct _Scenario_##name : public BaseScenario                                                                      \
@@ -16,9 +17,9 @@ SCENARIO(Simplified)
 {
     auto &params = SystemParameters::Parameters();
     params.numclients = 1;
-    params.cpuUseNegExp = true;
-    params.cpuQuantum = 2700;
-    // params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
+    params.cpumode = SystemParameters::FIXED;
+    params.cpuQuantum = 2.7;
+    params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         static int counter = 0;
         counter++;
@@ -34,10 +35,10 @@ SCENARIO(Simplified_N20)
 {
     auto &params = SystemParameters::Parameters();
     params.numclients = 20;
-    params.cpuUseNegExp = true;
+    params.cpumode = SystemParameters::FIXED;
     params.multiProgrammingDegree = 1000;
-    params.cpuQuantum = 2700;
-    // params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
+    params.cpuQuantum = 2.7;
+    params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
     });
@@ -47,13 +48,13 @@ SCENARIO(Simplified_N20)
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }
 
 SCENARIO(Default) // first request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpuUseNegExp = false;
+    params.cpumode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2.7;
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
@@ -68,7 +69,7 @@ SCENARIO(Default) // first request
 SCENARIO(Default_NOMPD)
 {
     auto &params = SystemParameters::Parameters();
-    params.cpuUseNegExp = false;
+    params.cpumode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2.7;
     params.multiProgrammingDegree = 1000;
     params.numclients = 20;
@@ -88,7 +89,7 @@ SCENARIO(Default_NOMPD)
 SCENARIO(NegExpCpu) // second request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpuUseNegExp = true;
+    params.cpumode = SystemParameters::NEG_EXP;
     params.cpuQuantum = 2.7;
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
@@ -104,7 +105,7 @@ SCENARIO(NegExpCpu) // second request
 SCENARIO(LTCpu) // third request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpuUseNegExp = false;
+    params.cpumode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2700;
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
@@ -114,7 +115,7 @@ SCENARIO(LTCpu) // third request
 SCENARIO(NegExpLt) // last request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpuUseNegExp = true;
+    params.cpumode = SystemParameters::NEG_EXP;
     params.cpuQuantum = 2700;
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();

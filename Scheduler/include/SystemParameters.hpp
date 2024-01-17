@@ -7,6 +7,12 @@
 #include <vector>
 struct SystemParameters
 {
+    enum CPUMODE
+    {
+        HYPER_EXP,
+        NEG_EXP,
+        FIXED
+    };
     double workStationThinkTime = 5000;
     double averageSwapIn = 210;
     double cpuQuantum = 2.7;
@@ -16,7 +22,7 @@ struct SystemParameters
     double swapOutChoice[2] = {0.4, 0.6};
     int multiProgrammingDegree = 10;
     int numclients = 20;
-    bool cpuUseNegExp = false;
+    int cpumode = 0;
 
     static SystemParameters &Parameters()
     {

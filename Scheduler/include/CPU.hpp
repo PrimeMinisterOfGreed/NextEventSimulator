@@ -5,6 +5,7 @@
 #include "FCFSStation.hpp"
 #include "ISimulator.hpp"
 #include "rngs.hpp"
+#include <functional>
 #include <memory>
 #include <optional>
 
@@ -16,7 +17,7 @@ class Cpu : public Station, public IQueueHolder
 
     IScheduler *_scheduler;
 
-    sptr<BaseStream> _burst;
+    std::function<double()> _burst;
 
   public:
     Cpu(IScheduler *scheduler);
