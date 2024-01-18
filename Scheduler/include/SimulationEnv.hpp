@@ -15,8 +15,10 @@
 #include <cstdlib>
 #include <fmt/core.h>
 #include <functional>
+#include <map>
 #include <memory>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 void SetupEnvironment();
@@ -24,9 +26,9 @@ struct BaseScenario;
 
 struct SimulationManager
 {
-    friend class BaseScenario;
+
     std::vector<BaseScenario *> _scenarios{};
-    std::vector<Accumulator<double>> _acc{};
+    std::map<std::string, Accumulator<>[4]> _acc;
     std::vector<std::function<void()>> _collectFunctions{};
     std::unique_ptr<OS> os;
     std::unique_ptr<RegenerationPoint> regPoint;
@@ -56,19 +58,18 @@ struct SimulationManager
     void HReset();
     void CollectMeasures();
 
-    private:
+  private:
     void AddStationToCollectibles(std::string name);
     void SetupScenario(std::string name);
     void SetupEnvironment();
     void ResetAccumulators();
-
 };
 
 struct BaseScenario
 {
-    virtual void Setup(SimulationManager* manager) = 0;
+    virtual void Setup(SimulationManager *manager) = 0;
     std::string name;
-    BaseScenario(std::string name): name(name)
+    BaseScenario(std::string name) : name(name)
     {
         SimulationManager::Instance().AddScenario(this);
     }

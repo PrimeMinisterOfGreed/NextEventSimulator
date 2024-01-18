@@ -1,6 +1,8 @@
 #include "MvaSolver.hpp"
 #include "Collections/Matrix.hpp"
+#include "Core.hpp"
 #include <Mva.hpp>
+#include <algorithm>
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fstream>
@@ -12,12 +14,12 @@ const Matrix<double> q{
     {{0, 1, 0, 0, 0}, {0, 0, 1, 0, 0}, {0.004, 0.006, 0.9, 0.065, 0.025}, {0, 0, 1, 0, 0}, {0, 0, 1, 0, 0}}};
 
 const std::vector<double> stimes = {5000, 210, 2.7, 40, 180};
-//delay,swap_in,cpu,io1,io2
+// delay,swap_in,cpu,io1,io2
 const std::vector<StationType> types = {D, I, I, I, I};
 
+const std::vector<std::string> stations = {"Delay", "SWAP_IN", "CPU", "IO1", "IO2"};
 
-
-
+MVAResult preloadResult{(int)stimes.size(), 30};
 
 std::string MVAToString(Matrix<double> result, std::string resultName)
 {
@@ -54,19 +56,60 @@ void MVAToFile(Matrix<double> result, std::string resultName)
     file.write(csv.c_str(), csv.size());
 }
 
+void PrintMVA()
+{
+    MVAToFile(preloadResult.meanClients, "meanClients");
+    MVAToFile(preloadResult.meanWaits, "meanWaits");
+    MVAToFile(preloadResult.throughputs, "throughputs");
+    MVAToFile(preloadResult.utilizations, "utilizations");
+}
+
 void DoMva(Matrix<double> transition)
 {
     auto visits = RouteToVisit(transition);
-    auto result = MVALID(visits, stimes, types, 30);
-    MVAToFile(result.meanClients, "meanClients");
-    MVAToFile(result.meanWaits, "meanWaits");
-    MVAToFile(result.throughputs, "throughputs");
-    MVAToFile(result.utilizations, "utilizations");
+    preloadResult = MVALID(visits, stimes, types, 30);
+}
+
+void MVASolver::PreloadModel()
+{
+    DoMva(q);
+}
+
+std::vector<std::string> MVASolver::Stations()
+{
+    return stations;
+}
+
+int peekStation(std::string &stationName)
+{
+    for (int i = 0; i < stations.size(); i++)
+        if (stationName == stations[i])
+            return i;
+    core_assert(false, "Station {} not found", stationName);
+    return -1;
+}
+
+std::vector<double> Throughputs(std::string stationName)
+{
+    return preloadResult.throughputs.Row(peekStation(stationName));
+}
+std::vector<double> Utilizations(std::string stationName)
+{
+    return preloadResult.utilizations.Row(peekStation(stationName));
+}
+std::vector<double> MeanClients(std::string stationName)
+{
+    return preloadResult.meanClients.Row(peekStation(stationName));
+}
+std::vector<double> MeanWaits(std::string stationName)
+{
+    return preloadResult.meanWaits.Row(peekStation(stationName));
 }
 
 #ifdef USE_MAIN
 int main()
 {
     DoMva(q);
+    PrintMVA();
 }
 #endif

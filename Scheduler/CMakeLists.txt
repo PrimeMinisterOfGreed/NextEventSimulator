@@ -9,6 +9,7 @@ set(SRC_FILES
     src/SimulationEnv.cpp
     src/Scenario.cpp
     src/MvaSolver.cpp
+    src/SimulationResult.cpp
 )
 
 

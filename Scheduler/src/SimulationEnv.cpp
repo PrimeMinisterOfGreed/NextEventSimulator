@@ -2,35 +2,40 @@
 #include "Core.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
+#include "Measure.hpp"
+#include "MvaSolver.hpp"
 #include "OperativeSystem.hpp"
 #include "Shell/SimulationShell.hpp"
 #include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
 #include "Usings.hpp"
+#include <algorithm>
 #include <cmath>
 #include <condition_variable>
 #include <cstring>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <string.h>
+#include <string>
+#include <vector>
 
 void SimulationManager::AddStationToCollectibles(std::string name)
 {
     using namespace fmt;
-    auto t = _acc.size();
-    _acc.push_back(Accumulator<>{format("{}_throughput", name), "j/s"});
-    auto u = _acc.size();
-    _acc.push_back(Accumulator<>{format("{}_utilization", name), ""});
-    auto n = _acc.size();
-    _acc.push_back(Accumulator<>{format("{}_meanclients", name), ""});
-    _collectFunctions.push_back([t, u, n, name, this] {
+    _acc[name][0] = Accumulator<>{format("throughput", name), "j/s"};
+    _acc[name][1] = Accumulator<>{format("utilization", name), ""};
+    _acc[name][2] = Accumulator<>{format("meanclients", name), ""};
+    _acc[name][3] = Accumulator<>{format("meanWaits", name), "ms"};
+    _collectFunctions.push_back([name, this] {
         auto station = os->GetStation(name).value();
         station->Update();
-        _acc[t](station->throughput());
-        _acc[u](station->utilization());
-        _acc[n](station->mean_customer_system());
+        _acc[name][0](station->throughput());
+        _acc[name][1](station->utilization());
+        _acc[name][2](station->mean_customer_system());
+        _acc[name][3](station->avg_waiting());
     });
 }
 
@@ -76,10 +81,7 @@ void SimulationManager::HReset()
 {
     os = std::unique_ptr<OS>(new OS());
     shell->SetControllers(os.get(), os.get());
-    for (auto m : _acc)
-    {
-        m.Reset();
-    }
+    ResetAccumulators();
 }
 
 SimulationManager::SimulationManager()
@@ -237,6 +239,10 @@ void SimulationManager::SetupShell(SimulationShell *shell)
 
     shell->AddCommand("na", [this, l](SimulationShell *shell, const char *context) { l(shell, context, true); });
     shell->AddCommand("nd", [l](auto s, auto ctx) { l(s, ctx, false); });
+    shell->AddCommand("confcheck", [](SimulationShell *shell, const char *ctx) {
+        char buffer[36]{};
+        std::stringstream stream{ctx};
+    });
 };
 
 void SimulationManager::SetupEnvironment()
@@ -252,6 +258,9 @@ void SimulationManager::ResetAccumulators()
 {
     for (auto a : _acc)
     {
-        a.Reset();
+        for (auto m : a.second)
+        {
+            m.Reset();
+        }
     }
 }

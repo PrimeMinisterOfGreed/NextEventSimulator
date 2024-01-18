@@ -41,6 +41,20 @@ struct Interval
     {
         return _delta / _mean;
     }
+
+    bool isInTval(double tval)
+    {
+        return lower() <= tval && tval <= higher();
+    }
+
+    double tvalDiff(double tval)
+    {
+        if (lower() < tval)
+            return lower() - tval;
+        if (tval > higher())
+            return higher() - tval;
+        return 0.0;
+    }
 };
 
 class BaseMeasure
@@ -156,6 +170,10 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
     {
     }
 
+    Accumulator<>() : Measure<T>("", "")
+    {
+    }
+
     Accumulator<> &WithConfidence(double confidence)
     {
         _confidence = confidence;
@@ -243,8 +261,9 @@ template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
 {
     auto format(Accumulator<> &m, format_context &ctx) -> format_context::iterator
     {
-        return fmt::format_to(ctx.out(), "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}",
-                              m.Name(), m.mean(), m.variance() ,m.confidence().precision(), m.Count(), m.confidence().lower(),
-                              m.confidence().higher(), m.Current());
+        return fmt::format_to(ctx.out(),
+                              "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}",
+                              m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(),
+                              m.confidence().lower(), m.confidence().higher(), m.Current());
     }
 };
