@@ -61,7 +61,6 @@ class RandomStream
     int stream = 0;                 /* stream index, 0 is the default */
     int initialized = 0;            /* test for stream initialization */
     int generatedStreams = 0;
-
   public:
     RandomStream()
     {

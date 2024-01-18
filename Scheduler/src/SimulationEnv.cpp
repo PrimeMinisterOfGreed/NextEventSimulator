@@ -9,9 +9,11 @@
 #include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
 #include "Usings.hpp"
+#include "rngs.hpp"
 #include <algorithm>
 #include <cmath>
 #include <condition_variable>
+#include <cstdlib>
 #include <cstring>
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -25,10 +27,10 @@
 void SimulationManager::AddStationToCollectibles(std::string name)
 {
     using namespace fmt;
-    _acc[name][0] = Accumulator<>{format("throughput", name), "j/s"};
-    _acc[name][1] = Accumulator<>{format("utilization", name), ""};
-    _acc[name][2] = Accumulator<>{format("meanclients", name), ""};
-    _acc[name][3] = Accumulator<>{format("meanWaits", name), "ms"};
+    _acc[name][0] = Accumulator<>{format("throughput", name), "j/s"}.WithConfidence(0.90);
+    _acc[name][1] = Accumulator<>{format("utilization", name), ""}.WithConfidence(0.90);
+    _acc[name][2] = Accumulator<>{format("meanclients", name), ""}.WithConfidence(0.90);
+    _acc[name][3] = Accumulator<>{format("meanWaits", name), "ms"}.WithConfidence(0.90);
     _collectFunctions.push_back([name, this] {
         auto station = os->GetStation(name).value();
         station->Update();
@@ -96,9 +98,14 @@ void SimulationManager::SetupShell(SimulationShell *shell)
     this->shell = shell;
     SetupScenario("Default");
     shell->AddCommand("lmeasures", [this](SimulationShell *shell, auto c) {
-        for (auto a : _acc)
+        for (auto s : _acc)
         {
-            shell->Log()->Result("{}", a);
+            std::string result = "";
+            for (int i = 0; i < 4; i++)
+            {
+                result += fmt::format("{}\n", s.second[i]);
+            }
+            shell->Log()->Result("Station:{}\n{}", s.first, result);
         }
     });
     shell->AddCommand("hreset", [this](SimulationShell *shell, auto ctx) mutable { HReset(); });
@@ -182,16 +189,7 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         int m = 1;
         if (strlen(buffer) > 0)
             m = atoi(buffer);
-        for (int i = 0; i < m; i++)
-        {
-            bool end = false;
-            regPoint->AddOneTimeAction([&end](auto regPoint) { end = true; });
-            while (!end)
-            {
-                os->Execute();
-            }
-            logger.Information("End of {} rengeneration cycle", i);
-        }
+        CollectSamples(m);
     });
 
     auto l = [this](SimulationShell *shell, const char *context, bool arrival) {
@@ -239,10 +237,47 @@ void SimulationManager::SetupShell(SimulationShell *shell)
 
     shell->AddCommand("na", [this, l](SimulationShell *shell, const char *context) { l(shell, context, true); });
     shell->AddCommand("nd", [l](auto s, auto ctx) { l(s, ctx, false); });
-    shell->AddCommand("confcheck", [](SimulationShell *shell, const char *ctx) {
+    shell->AddCommand("ns", [this](SimulationShell *shell, const char *ctx) {
         char buffer[36]{};
         std::stringstream stream{ctx};
+        stream >> buffer;
+        if (sizeof(buffer) == 0)
+        {
+            shell->Log()->Exception("Must specify a starter seed to init");
+            return;
+        }
+
+        long seed = atol(buffer);
+        memset(buffer, 0, sizeof(buffer));
+        stream >> buffer;
+        if (strlen(buffer) == 0)
+        {
+            shell->Log()->Exception("Must specify a number of simulation (-1 for use a seq stopping rule)");
+            return;
+        }
+
+        int nsim = atoi(buffer);
+        memset(buffer, 0, sizeof(buffer));
+
+        stream >> buffer;
+        if (strlen(buffer) == 0)
+        {
+            shell->Log()->Exception("Must specify a number of samples to collect");
+            return;
+        }
+        int samples = atoi(buffer);
+        for (int i = 0; i < nsim; i++)
+        {
+            RandomStream::Global().PlantSeeds(seed);
+            CollectSamples(samples);
+            results.AccumulateResult(_acc, tgt._meanTimes, seed);
+            seed++;
+            ResetAccumulators();
+            tgt._meanTimes.Reset();
+            shell->Log()->Debug("End of simulation {}", i);
+        }
     });
+    results.AddShellCommands(shell);
 };
 
 void SimulationManager::SetupEnvironment()
@@ -262,5 +297,19 @@ void SimulationManager::ResetAccumulators()
         {
             m.Reset();
         }
+    }
+}
+
+void SimulationManager::CollectSamples(int samples)
+{
+    for (int i = 0; i < samples; i++)
+    {
+        bool end = false;
+        regPoint->AddOneTimeAction([&end](auto regPoint) { end = true; });
+        while (!end)
+        {
+            os->Execute();
+        }
+        logger.Information("Collected {} samples (RegPoint end)", i);
     }
 }

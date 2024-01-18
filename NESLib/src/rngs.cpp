@@ -98,7 +98,6 @@ void RandomStream::PutSeed(long x)
  */
 {
     char ok = 0;
-
     if (x > 0)
         x = x % MODULUS; /* correct if x is too large  */
     if (x <= 0)

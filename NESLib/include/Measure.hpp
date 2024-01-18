@@ -170,7 +170,7 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
     {
     }
 
-    Accumulator<>() : Measure<T>("", "")
+    Accumulator() : Measure<T>("", "")
     {
     }
 

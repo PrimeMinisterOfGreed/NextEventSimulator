@@ -6,6 +6,7 @@
 #include "Measure.hpp"
 #include "OperativeSystem.hpp"
 #include "Shell/SimulationShell.hpp"
+#include "SimulationResult.hpp"
 #include "Station.hpp"
 #include "Strategies/RegenerationPoint.hpp"
 #include "Strategies/TaggedCustomer.hpp"
@@ -35,6 +36,7 @@ struct SimulationManager
     SimulationShell *shell;
     TaggedCustomer tgt{};
     TraceSource logger{"SIMManager", 4};
+    SimulationResult results{};
     bool hot = false;
     SimulationManager();
 
@@ -63,6 +65,7 @@ struct SimulationManager
     void SetupScenario(std::string name);
     void SetupEnvironment();
     void ResetAccumulators();
+    void CollectSamples(int samples);
 };
 
 struct BaseScenario

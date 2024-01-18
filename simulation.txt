@@ -33875,3 +33875,5 @@
 :3
 
 
+[Exception](LinkedList.hpp:139)Tryed to pull from the list but is empty
+
