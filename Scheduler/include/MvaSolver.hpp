@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Measure.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -13,4 +14,5 @@ struct MVASolver
     std::vector<double> MeanClients(std::string stationName);
     std::vector<double> MeanWaits(std::string stationName);
     std::vector<double> ActiveTimes();
+    double ExpectedForAccumulator(std::string stationName, Accumulator<> acc);
 };

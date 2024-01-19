@@ -30,14 +30,14 @@ void SimulationManager::AddStationToCollectibles(std::string name)
     _acc[name][0] = Accumulator<>{format("throughput", name), "j/s"}.WithConfidence(0.90);
     _acc[name][1] = Accumulator<>{format("utilization", name), ""}.WithConfidence(0.90);
     _acc[name][2] = Accumulator<>{format("meanclients", name), ""}.WithConfidence(0.90);
-    _acc[name][3] = Accumulator<>{format("meanWaits", name), "ms"}.WithConfidence(0.90);
+    _acc[name][3] = Accumulator<>{format("meanwaits", name), "ms"}.WithConfidence(0.90);
     _collectFunctions.push_back([name, this] {
         auto station = os->GetStation(name).value();
         station->Update();
         _acc[name][0](station->throughput());
         _acc[name][1](station->utilization());
         _acc[name][2](station->mean_customer_system());
-        _acc[name][3](station->avg_waiting());
+        _acc[name][3](station->avg_waiting() + station->avg_delay());
     });
 }
 
@@ -68,7 +68,7 @@ void SimulationManager::SetupScenario(std::string name)
     HReset();
     s->Setup(this);
     regPoint->AddAction([this](RegenerationPoint *point) {
-        os->Sync();
+        // os->Sync();
         CollectMeasures();
         point->scheduler->Reset();
     });
@@ -103,7 +103,8 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             std::string result = "";
             for (int i = 0; i < 4; i++)
             {
-                result += fmt::format("{}\n", s.second[i]);
+                result += fmt::format("{}, Expected Value:{}\n", s.second[i],
+                                      results.mva.ExpectedForAccumulator(s.first, s.second[i]));
             }
             shell->Log()->Result("Station:{}\n{}", s.first, result);
         }
@@ -287,7 +288,6 @@ void SimulationManager::SetupEnvironment()
     AddStationToCollectibles("IO2");
     AddStationToCollectibles("SWAP_IN");
     AddStationToCollectibles("SWAP_OUT");
-    AddStationToCollectibles("RESERVE_STATION");
 }
 void SimulationManager::ResetAccumulators()
 {
@@ -302,8 +302,7 @@ void SimulationManager::ResetAccumulators()
 
 void SimulationManager::CollectSamples(int samples)
 {
-    for (int i = 0; i < samples; i++)
-    {
+    auto p = [this](int i) {
         bool end = false;
         regPoint->AddOneTimeAction([&end](auto regPoint) { end = true; });
         while (!end)
@@ -311,5 +310,29 @@ void SimulationManager::CollectSamples(int samples)
             os->Execute();
         }
         logger.Information("Collected {} samples (RegPoint end)", i);
+    };
+    if (samples == -1)
+    {
+        int i = 0;
+        while (!AreAccReady(0.005) || i < 40)
+        {
+            p(i);
+            i++;
+        }
     }
+    for (int i = 0; i < samples; i++)
+    {
+        p(i);
+    }
+}
+
+bool SimulationManager::AreAccReady(double precision)
+{
+    for (auto s : _acc)
+    {
+        for (int i = 0; i < 4; i++)
+            if (s.second[i].confidence().precision() > precision)
+                return false;
+    }
+    return true;
 }

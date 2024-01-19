@@ -7,14 +7,15 @@ Vector RouteToVisit(Matrix<double> &routings)
     Vector visits(routings.Rows());
     auto m = routings.Copy();
     auto old = m.Copy();
-    for(int i = 0; i < 10000; i++){
-        m = old*old;
+    for (int i = 0; i < 10; i++)
+    {
+        m = old * old;
         old = m;
     }
-    for(int i = 0 ; i < routings.Rows(); i++)
-        visits[i] = m(i,i);
-    for(int i = 1; i < visits.size(); i++)
-        visits[i] = visits[i]*(1/visits[0]);
+    for (int i = 0; i < routings.Rows(); i++)
+        visits[i] = m(i, i);
+    for (int i = 1; i < visits.size(); i++)
+        visits[i] = visits[i] * (1 / visits[0]);
     visits[0] = 1;
     return visits;
 }

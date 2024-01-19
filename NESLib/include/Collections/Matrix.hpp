@@ -2,6 +2,7 @@
 
 #include "Core.hpp"
 #include "LogEngine.hpp"
+#include <cmath>
 #include <cstdarg>
 #include <cstddef>
 #include <fmt/core.h>
@@ -178,6 +179,16 @@ struct Matrix
             }
         }
         return res;
+    }
+
+    Matrix<T> &Round(int cipher)
+    {
+        Traverse([cipher](int i, int j, T &val) {
+            auto n = val * pow(10, cipher);
+            floor(n);
+            val = n / pow(10, cipher);
+        });
+        return *this;
     }
 
     Matrix<T> operator*(const Matrix<T> &oth)

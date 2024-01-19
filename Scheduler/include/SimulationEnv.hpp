@@ -66,6 +66,7 @@ struct SimulationManager
     void SetupEnvironment();
     void ResetAccumulators();
     void CollectSamples(int samples);
+    bool AreAccReady(double precision);
 };
 
 struct BaseScenario

@@ -111,12 +111,41 @@ std::vector<double> MVASolver::MeanWaits(std::string stationName)
 std::vector<double> MVASolver::ActiveTimes()
 {
     static std::vector<double> times{};
-    if(times.size() > 0) return times;
+    if (times.size() > 0)
+        return times;
     auto mat = preloadResult.meanWaits;
-    for(int k = 0; k < preloadResult.meanWaits.Columns(); k++){
-        times.push_back(mat(2,k) + mat(3,k) + mat(4,k));
+    for (int k = 0; k < preloadResult.meanWaits.Columns(); k++)
+    {
+        times.push_back(mat(2, k) + mat(3, k) + mat(4, k));
     }
     return times;
+}
+
+double MVASolver::ExpectedForAccumulator(std::string stationName, Accumulator<> acc)
+{
+    int n = SystemParameters::Parameters().numclients;
+    if (!inited)
+        PreloadModel();
+    if (std::find(stations.begin(), stations.end(), stationName) == stations.end())
+        return 0.0;
+    if (acc.Name() == "throughput")
+    {
+        return Throughputs(stationName)[n];
+    }
+    else if (acc.Name() == "utilization")
+    {
+        return Utilizations(stationName)[n];
+    }
+    else if (acc.Name() == "meanclients")
+    {
+        return MeanClients(stationName)[n];
+    }
+    else if (acc.Name() == "meanwaits")
+    {
+        return MeanWaits(stationName)[n];
+    }
+    else
+        return ActiveTimes()[n];
 }
 
 #ifdef USE_MAIN
