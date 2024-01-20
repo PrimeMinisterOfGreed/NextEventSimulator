@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Core.hpp"
 #include "EventHandler.hpp"
 #include "LogEngine.hpp"
 #include "rvms.h"
@@ -49,7 +50,7 @@ struct Interval
 
     double tvalDiff(double tval)
     {
-        if (lower() < tval)
+        if (tval < lower())
             return lower() - tval;
         if (tval > higher())
             return higher() - tval;
@@ -136,6 +137,7 @@ template <typename T> class Measure : public BaseMeasure
     void operator()(T value)
     {
         Accumulate(value);
+        core_assert(_lastAccumulatedValue != NAN, "Value {} is drifting", Name());
     }
 
     void Reset() override
@@ -150,6 +152,7 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 
   private:
     double _confidence = 0.95;
+    double _precision = 0.05;
     T _sum[Moments]{};
 
     T get(int moment) const
@@ -180,10 +183,19 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         return *this;
     }
 
+    Accumulator<> &WithPrecision(double precision)
+    {
+        _precision = precision;
+        return *this;
+    }
+
     void Accumulate(T value) override
     {
         Measure<T>::Accumulate(value);
-        ForMoment([value](T &val, int moment) { val += pow(value, moment); });
+        ForMoment([value](T &val, int moment) {
+            val += pow(value, moment);
+            core_assert(val != NAN, "Value {} is drifting in moment {}", val, moment);
+        });
     }
 
     std::string Heading() override

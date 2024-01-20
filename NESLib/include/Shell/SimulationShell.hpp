@@ -60,10 +60,14 @@ class SimulationShell
     }
     void RemoveCommand(const char *command)
     {
-        std::erase_if(_cmds,[command](Command&cmd){return strcmp(cmd.command, command) == 0;});
+        std::erase_if(_cmds, [command](Command &cmd) { return strcmp(cmd.command, command) == 0; });
     }
     void ClearCommands()
     {
         _cmds.clear();
+    }
+    template <typename T> std::stringstream& Parse(std::stringstream& stream, T*val)
+    {
+        return stream;
     }
 };

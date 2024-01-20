@@ -103,8 +103,9 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             std::string result = "";
             for (int i = 0; i < 4; i++)
             {
-                result += fmt::format("{}, Expected Value:{}\n", s.second[i],
-                                      results.mva.ExpectedForAccumulator(s.first, s.second[i]));
+                auto expected =   results.mva.ExpectedForAccumulator(s.first, s.second[i]);
+                result += fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n", s.second[i],
+                                    expected,s.second[i].confidence().tvalDiff(expected));
             }
             shell->Log()->Result("Station:{}\n{}", s.first, result);
         }
