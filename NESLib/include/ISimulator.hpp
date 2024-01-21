@@ -1,7 +1,6 @@
 #pragma once
 #include "DataCollector.hpp"
 #include "Event.hpp"
-#include "EventHandler.hpp"
 #include "Station.hpp"
 #include "Usings.hpp"
 #include <memory>

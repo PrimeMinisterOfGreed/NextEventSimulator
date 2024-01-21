@@ -36,7 +36,7 @@ TEST(TestRandom, test_composition)
                              {0.95, 0.05},
                              [](RandomStream &rng) { return Exponential(10); },
                              [](RandomStream &rng) { return Exponential(19010); }};
-    Accumulator<double> _mean{"mean", ""};
+    Accumulator<> _mean{"mean", ""};
     for (int i = 0; i < 100000; i++)
     {
         _mean(stream());

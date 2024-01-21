@@ -147,7 +147,7 @@ class BaseStation
     }
     double mean_customer_service() const
     {
-        return _busyTime / _observationPeriod;
+        return _busyTime / _completions;
     }
 
     double mean_customer_system() const

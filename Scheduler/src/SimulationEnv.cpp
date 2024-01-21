@@ -26,19 +26,7 @@
 
 void SimulationManager::AddStationToCollectibles(std::string name)
 {
-    using namespace fmt;
-    _acc[name][0] = Accumulator<>{format("throughput", name), "j/s"}.WithConfidence(0.90);
-    _acc[name][1] = Accumulator<>{format("utilization", name), ""}.WithConfidence(0.90);
-    _acc[name][2] = Accumulator<>{format("meanclients", name), ""}.WithConfidence(0.90);
-    _acc[name][3] = Accumulator<>{format("meanwaits", name), "ms"}.WithConfidence(0.90);
-    _collectFunctions.push_back([name, this] {
-        auto station = os->GetStation(name).value();
-        station->Update();
-        _acc[name][0](station->throughput());
-        _acc[name][1](station->utilization());
-        _acc[name][2](station->mean_customer_system());
-        _acc[name][3](station->avg_waiting() + station->avg_delay());
-    });
+    
 }
 
 void SimulationManager::CollectMeasures()
@@ -97,19 +85,7 @@ void SimulationManager::SetupShell(SimulationShell *shell)
 {
     this->shell = shell;
     SetupScenario("Default");
-    shell->AddCommand("lmeasures", [this](SimulationShell *shell, auto c) {
-        for (auto s : _acc)
-        {
-            std::string result = "";
-            for (int i = 0; i < 4; i++)
-            {
-                auto expected =   results.mva.ExpectedForAccumulator(s.first, s.second[i]);
-                result += fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n", s.second[i],
-                                    expected,s.second[i].confidence().tvalDiff(expected));
-            }
-            shell->Log()->Result("Station:{}\n{}", s.first, result);
-        }
-    });
+
     shell->AddCommand("hreset", [this](SimulationShell *shell, auto ctx) mutable { HReset(); });
     shell->AddCommand("exit", [](auto s, auto c) { exit(0); });
     shell->AddCommand("regstats", [this](SimulationShell *s, auto c) {
@@ -292,13 +268,7 @@ void SimulationManager::SetupEnvironment()
 }
 void SimulationManager::ResetAccumulators()
 {
-    for (auto a : _acc)
-    {
-        for (auto m : a.second)
-        {
-            m.Reset();
-        }
-    }
+   
 }
 
 void SimulationManager::CollectSamples(int samples)

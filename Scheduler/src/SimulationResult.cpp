@@ -1,4 +1,5 @@
 #include "SimulationResult.hpp"
+#include "Core.hpp"
 #include "Measure.hpp"
 #include "Shell/SimulationShell.hpp"
 #include "SystemParameters.hpp"
@@ -18,7 +19,8 @@ void ConfidenceHits::Accumulate(bool x_in, bool u_in, bool n_in, bool w_in, bool
     activeTimes += activeTime_in;
 }
 
-void SimulationResult::AccumulateResult(std::map<std::string, Accumulator<>[4]> accumulators,Accumulator<> activeTime ,int seed)
+void SimulationResult::AccumulateResult(std::map<std::string, Accumulator<>[4]> accumulators, Accumulator<> activeTime,
+                                        int seed)
 {
     if (!mva.inited)
         mva.PreloadModel();
@@ -26,13 +28,16 @@ void SimulationResult::AccumulateResult(std::map<std::string, Accumulator<>[4]> 
     {
         auto station = value.first;
         bool found = false;
-        for(auto s : mva.Stations()){
-            if(s == station) {
+        for (auto s : mva.Stations())
+        {
+            if (s == station)
+            {
                 found = true;
                 break;
             }
         }
-        if(!found) return;
+        if (!found)
+            return;
         int n = SystemParameters::Parameters().numclients;
         double t_throughput = mva.Throughputs(station)[n];
         double t_utilization = mva.Utilizations(station)[n];
@@ -44,12 +49,11 @@ void SimulationResult::AccumulateResult(std::map<std::string, Accumulator<>[4]> 
 
         _confidenceHits[station].Accumulate(
             ref[0].confidence().isInTval(t_throughput), ref[1].confidence().isInTval(t_utilization),
-            ref[2].confidence().isInTval(t_meanclients), ref[3].confidence().isInTval(t_meanwait),activeTime.confidence().isInTval(t_activeTime));
+            ref[2].confidence().isInTval(t_meanclients), ref[3].confidence().isInTval(t_meanwait),
+            activeTime.confidence().isInTval(t_activeTime));
         seeds.push_back(seed);
     }
 }
-
-
 
 SimulationResult::SimulationResult()
 {
@@ -63,12 +67,73 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             shell->Log()->Result("Station:{}\n{}", s, _confidenceHits[s]);
         }
     });
+
+    shell->AddCommand("lmeasures", [this](SimulationShell *shell, auto c) {
+        for (auto s : _acc)
+        {
+            std::string result = "";
+            for (int i = 0; i < StationStats::MeasureType::size; i++)
+            {
+                auto expected = mva.ExpectedForAccumulator(s.first, s.second[(StationStats::MeasureType)i]);
+                result += fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n",
+                                      s.second[(StationStats::MeasureType)i], expected,
+                                      s.second[(StationStats::MeasureType)i].confidence().tvalDiff(expected));
+            }
+            shell->Log()->Result("Station:{}\n{}", s.first, result);
+        }
+    });
+}
+
+void SimulationResult::Reset()
+{
 }
 
 auto format_as(ConfidenceHits b)
 {
-    return fmt::format(
-        "Name   Hits   Last\n Throughput {}  {} \n Utilization  {}  {} \n MeanWaits  {}  {}\n MeanClients  {}   {}\n ActiveTime {} {}",
-        b.throughput, b.throughput_in, b.utilization, b.utilization_in, b.meanwaits, b.meanWaits_in, b.meanclients,
-        b.meanClients_in,b.activeTimes, b.activeTime_in);
+    return fmt::format("Name   Hits   Last\n Throughput {}  {} \n Utilization  {}  {} \n MeanWaits  {}  {}\n "
+                       "MeanClients  {}   {}\n ActiveTime {} {}",
+                       b.throughput, b.throughput_in, b.utilization, b.utilization_in, b.meanwaits, b.meanWaits_in,
+                       b.meanclients, b.meanClients_in, b.activeTimes, b.activeTime_in);
+}
+
+void StationStats::Collect(BaseStation *station)
+{
+    auto &self = *this;
+    self[throughput](station->throughput());
+    self[utilization](station->utilization());
+    self[meanwait](station->avg_waiting() + station->avg_delay());
+    self[meancustomer](station->mean_customer_system());
+}
+
+StationStats::StationStats()
+{
+    _acc[throughput] = Accumulator<>{"throughput", "j/s"}.WithConfidence(0.90);
+    _acc[utilization] = Accumulator<>{"utilization", ""}.WithConfidence(0.90);
+    _acc[meancustomer] = Accumulator<>{"meanclients", ""}.WithConfidence(0.90);
+    _acc[meanwait] = Accumulator<>{"meanwaits", "ms"}.WithConfidence(0.90);
+}
+
+Accumulator<> &StationStats::operator[](StationStats::MeasureType measure)
+{
+    switch (measure)
+    {
+    case throughput:
+        return _acc[0];
+    case utilization:
+        return _acc[1];
+    case meancustomer:
+        return _acc[2];
+    case meanwait:
+        return _acc[3];
+        case size: panic("Index out of bounds");
+        break;
+    }
+}
+
+void StationStats::Reset()
+{
+    for (int i = 0; i < size; i++)
+    {
+        _acc[i].Reset();
+    }
 }

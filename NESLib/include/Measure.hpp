@@ -5,14 +5,18 @@
 #pragma once
 
 #include "Core.hpp"
-#include "EventHandler.hpp"
 #include "LogEngine.hpp"
 #include "rvms.h"
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <fmt/core.h>
+#include <functional>
+#include <iterator>
 #include <stdexcept>
 #include <string>
+#include <valarray>
+#include <vector>
 
 struct Interval
 {
@@ -147,33 +151,33 @@ template <typename T> class Measure : public BaseMeasure
     }
 };
 
-template <typename T = double, int Moments = 2> class Accumulator : public Measure<T>
+template <int Moments = 2> class Accumulator : public Measure<double>
 {
 
   private:
     double _confidence = 0.95;
     double _precision = 0.05;
-    T _sum[Moments]{};
+    double _sum[Moments]{};
 
-    T get(int moment) const
+    double get(int moment) const
     {
         if (moment >= Moments)
             throw std::invalid_argument("moment selected is over Moments stored");
         return _sum[moment];
     }
 
-    void constexpr ForMoment(std::function<void(T &, int)> operation)
+    void constexpr ForMoment(std::function<void(double &, int)> &&operation)
     {
         for (int i = 0; i < Moments; i++)
             operation(_sum[i], i + 1);
     }
 
   public:
-    Accumulator(std::string name, std::string unit) : Measure<T>(name, unit)
+    Accumulator(std::string name, std::string unit) : Measure<double>(name, unit)
     {
     }
 
-    Accumulator() : Measure<T>("", "")
+    Accumulator() : Measure<double>("", "")
     {
     }
 
@@ -189,10 +193,10 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         return *this;
     }
 
-    void Accumulate(T value) override
+    void Accumulate(double value) override
     {
-        Measure<T>::Accumulate(value);
-        ForMoment([value](T &val, int moment) {
+        Measure<double>::Accumulate(value);
+        ForMoment([value](double &val, int moment) {
             val += pow(value, moment);
             core_assert(val != NAN, "Value {} is drifting in moment {}", val, moment);
         });
@@ -200,8 +204,8 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 
     std::string Heading() override
     {
-        std::string head = fmt::format("{};", Measure<T>::Heading());
-        auto name = Measure<T>::Name();
+        std::string head = fmt::format("{};", Measure<double>::Heading());
+        auto name = Measure<double>::Name();
         head += fmt::format("meanOf{};", name);
         head += fmt::format("varianceOf{};", name);
         head += fmt::format("lowerBoundOf{};", name);
@@ -211,7 +215,7 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 
     std::string Csv() override
     {
-        std::string csv = fmt::format("{};", Measure<T>::Csv());
+        std::string csv = fmt::format("{};", Measure<double>::Csv());
         csv += fmt::format("{};", mean());
         csv += fmt::format("{};", variance());
         csv += fmt::format("{};", confidence().higher());
@@ -229,21 +233,21 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
 
     virtual void Reset() override
     {
-        Measure<T>::Reset();
-        ForMoment([](T &val, int moment) { val = 0; });
+        Measure<double>::Reset();
+        ForMoment([](double &val, int moment) { val = 0; });
     }
 
-    inline T mean(int moment = 0) const
+    inline double mean(int moment = 0) const
     {
-        return get(moment) / this->Count();
+        return get(moment) / Count();
     }
 
-    inline T variance() const
+    inline double variance() const
     {
         return mean(1) - pow(mean(0), 2); // this can lead to catastrophic cancellation
     }
 
-    inline T sum() const
+    inline double sum() const
     {
         return _sum[0];
     }
@@ -254,7 +258,7 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         double u = mean(0);
         double sigma = variance();
         double alpha = 1 - _confidence;
-        auto count = this->Count();
+        auto count = Count();
         double delta = 0.0;
         if (count < 40)
         {
@@ -267,6 +271,19 @@ template <typename T = double, int Moments = 2> class Accumulator : public Measu
         delta = (delta * variance()) / sqrtf(count);
         return {u, delta};
     }
+};
+
+
+
+template <int BufferSize, int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
+{
+    double data[BufferSize];
+    virtual void Accumulate(double value){
+        data[this->_count] = value;
+        Accumulator<Moments>::Accumulate(value);
+    }
+
+    BufferedMeasure(std::string name, std::string unit):Accumulator<Moments>(name,unit){}
 };
 
 template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>

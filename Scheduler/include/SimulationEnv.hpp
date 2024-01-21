@@ -29,7 +29,6 @@ struct SimulationManager
 {
 
     std::vector<BaseScenario *> _scenarios{};
-    std::map<std::string, Accumulator<>[4]> _acc;
     std::vector<std::function<void()>> _collectFunctions{};
     std::unique_ptr<OS> os;
     std::unique_ptr<RegenerationPoint> regPoint;

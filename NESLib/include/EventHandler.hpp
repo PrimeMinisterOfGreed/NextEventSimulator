@@ -1,24 +1,16 @@
-//
-// Created by drfaust on 28/01/23.
-//
 #pragma once
-
-#include <functional>
-#include <vector>
-
-template <typename... Args> struct EventHandler;
-
-template <typename... Args> struct Slot
-{
-    friend class EventHandler<Args...>;
-
-  private:
-  public:
-    ~Slot()
+#include <concepts>
+template <typename F, typename R, typename... Args>
+concept has_return_value = requires(F a, Args... args) {
     {
-    }
+        a(args...)
+    } -> std::same_as<R>;
 };
 
-template <typename... Args> struct EventHandler
+struct Slot
+{
+};
+
+struct EventHandler
 {
 };

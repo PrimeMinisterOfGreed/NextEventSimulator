@@ -138,19 +138,19 @@ Station::Station(std::string name, int station) : BaseStation(name), _stationInd
     collector.AddMeasure(Measure<double>{"arrivals", "unit"});
     collector.AddMeasure(Measure<double>{"sysClients", "unit"});
     collector.AddMeasure(Measure<double>{"maxClients", "unit"});
-    collector.AddMeasure(Accumulator<double>{"avgInterArrival", "t"});
-    collector.AddMeasure(Accumulator<double>{"avgServiceTime", "t"});
-    collector.AddMeasure(Accumulator<double>{"avgDelay", "t"});
-    collector.AddMeasure(Accumulator<double>{"avgWaiting", "t"});
-    collector.AddMeasure(Accumulator<double>{"utilization", ""});
-    collector.AddMeasure(Accumulator<double>{"throughput", "job/t"});
-    collector.AddMeasure(Accumulator<double>{"inputRate", ""});
-    collector.AddMeasure(Accumulator<double>{"arrivalRate", ""});
-    collector.AddMeasure(Accumulator<double>{"serviceRate", ""});
-    collector.AddMeasure(Accumulator<double>{"traffic", ""});
-    collector.AddMeasure(Accumulator<double>{"meanCustomerInQueue", "unit"});
-    collector.AddMeasure(Accumulator<double>{"meanCustomerInService", ""});
-    collector.AddMeasure(Accumulator<double>{"meanCustomerInSystem", ""});
+    collector.AddMeasure(Accumulator<>{"avgInterArrival", "t"});
+    collector.AddMeasure(Accumulator<>{"avgServiceTime", "t"});
+    collector.AddMeasure(Accumulator<>{"avgDelay", "t"});
+    collector.AddMeasure(Accumulator<>{"avgWaiting", "t"});
+    collector.AddMeasure(Accumulator<>{"utilization", ""});
+    collector.AddMeasure(Accumulator<>{"throughput", "job/t"});
+    collector.AddMeasure(Accumulator<>{"inputRate", ""});
+    collector.AddMeasure(Accumulator<>{"arrivalRate", ""});
+    collector.AddMeasure(Accumulator<>{"serviceRate", ""});
+    collector.AddMeasure(Accumulator<>{"traffic", ""});
+    collector.AddMeasure(Accumulator<>{"meanCustomerInQueue", "unit"});
+    collector.AddMeasure(Accumulator<>{"meanCustomerInService", ""});
+    collector.AddMeasure(Accumulator<>{"meanCustomerInSystem", ""});
 }
 
 void Station::Initialize()

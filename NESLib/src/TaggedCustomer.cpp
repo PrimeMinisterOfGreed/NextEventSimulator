@@ -1,8 +1,12 @@
 #include "Core.hpp"
 #include "Event.hpp"
+#include "Measure.hpp"
 #include "Shell/SimulationShell.hpp"
+#include "rngs.hpp"
 #include <Strategies/TaggedCustomer.hpp>
+#include <algorithm>
 #include <fmt/core.h>
+#include <functional>
 
 void TaggedCustomer::ConnectEntrance(BaseStation *station, bool arrival)
 {
@@ -31,11 +35,22 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
 void TaggedCustomer::AddShellCommands(SimulationShell *shell)
 {
     shell->AddCommand("ltgtstats",
-                      [this](SimulationShell *s, auto ctx) { s->Log()->Result("{}\n{}", _meanTimes, _regCycle); });
+                      [this](SimulationShell *s, auto ctx) { s->Log()->Result("{}\n{}\n{}", _meanTimes, _regCycle,ComputeGrandMean()); });
 }
 
 void TaggedCustomer::CompleteRegCycle()
 {
-    _meanTimes(_regCycle.mean());
+    if (RandomStream::Global().antitethic)
+        _antitetichMeanTimes(_regCycle.mean());
+    else
+        _meanTimes(_regCycle.mean());
     _regCycle.Reset();
+}
+Accumulator<> TaggedCustomer::ComputeGrandMean()
+{
+    Accumulator<> acc{"GrandMean","ms"};
+    for(int i = 0 ; i < std::min(_meanTimes.Count(),_antitetichMeanTimes.Count()); i++){
+        acc((_meanTimes.data[i] + _antitetichMeanTimes.data[i])/2);
+    }
+    return acc;
 }

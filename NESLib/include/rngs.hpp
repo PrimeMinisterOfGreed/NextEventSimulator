@@ -62,6 +62,8 @@ class RandomStream
     int initialized = 0;            /* test for stream initialization */
     int generatedStreams = 0;
   public:
+    bool antitethic = false;
+
     RandomStream()
     {
     }
@@ -70,6 +72,7 @@ class RandomStream
     void GetSeed(long *x);
     void PutSeed(long x);
     void SelectStream(int index);
+    void SetAntitetich(){antitethic = true;}
     static RandomStream &Global();
     std::unique_ptr<VariableStream> GetStream(std::function<double(RandomStream &)> lambda);
 };

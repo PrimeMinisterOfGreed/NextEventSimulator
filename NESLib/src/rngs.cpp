@@ -54,7 +54,8 @@ double RandomStream::Random(void)
         seed[stream] = t;
     else
         seed[stream] = t + MODULUS;
-    return ((double)seed[stream] / MODULUS);
+    double n =  ((double)seed[stream] / MODULUS);
+    return antitethic? 1-n:n;
 }
 
 void RandomStream::PlantSeeds(long x)
