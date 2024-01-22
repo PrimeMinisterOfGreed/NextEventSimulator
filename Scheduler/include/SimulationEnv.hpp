@@ -60,12 +60,8 @@ struct SimulationManager
     void CollectMeasures();
 
   private:
-    void AddStationToCollectibles(std::string name);
     void SetupScenario(std::string name);
     void SetupEnvironment();
-    void ResetAccumulators();
-    void CollectSamples(int samples);
-    bool AreAccReady(double precision);
 };
 
 struct BaseScenario

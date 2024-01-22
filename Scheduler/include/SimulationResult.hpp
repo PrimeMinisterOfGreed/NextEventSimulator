@@ -1,6 +1,7 @@
 #pragma once
 #include "Measure.hpp"
 #include "MvaSolver.hpp"
+#include "Scheduler.hpp"
 #include "Shell/SimulationShell.hpp"
 #include "Station.hpp"
 #include "Strategies/TaggedCustomer.hpp"
@@ -29,9 +30,10 @@ auto format_as(ConfidenceHits b);
 struct StationStats
 {
     Accumulator<> _acc[4];
-    void Collect(BaseStation* station);
+    void Collect(BaseStation *station);
     StationStats();
-    enum MeasureType{
+    enum MeasureType
+    {
         throughput,
         utilization,
         meancustomer,
@@ -39,8 +41,9 @@ struct StationStats
         size
     };
 
-    Accumulator<>& operator[](StationStats::MeasureType measure);
+    Accumulator<> &operator[](StationStats::MeasureType measure);
     void Reset();
+    bool Ready();
 };
 
 struct SimulationResult
@@ -53,4 +56,6 @@ struct SimulationResult
     SimulationResult();
     void AddShellCommands(SimulationShell *shell);
     void Reset();
+    void Collect(BaseStation *station);
+    bool PrecisionReached();
 };

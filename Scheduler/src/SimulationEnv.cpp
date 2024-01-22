@@ -24,17 +24,13 @@
 #include <string>
 #include <vector>
 
-void SimulationManager::AddStationToCollectibles(std::string name)
-{
-    
-}
-
 void SimulationManager::CollectMeasures()
 {
-    for (auto f : _collectFunctions)
-    {
-        f();
-    }
+    results.Collect(os->GetStation("CPU")->get());
+    results.Collect(os->GetStation("IO1")->get());
+    results.Collect(os->GetStation("IO2")->get());
+    results.Collect(os->GetStation("SWAP_IN")->get());
+    results.Collect(os->GetStation("SWAP_OUT")->get());
 }
 
 void SimulationManager::SetupScenario(std::string name)
@@ -71,7 +67,7 @@ void SimulationManager::HReset()
 {
     os = std::unique_ptr<OS>(new OS());
     shell->SetControllers(os.get(), os.get());
-    ResetAccumulators();
+    results.Reset();
 }
 
 SimulationManager::SimulationManager()
@@ -258,19 +254,6 @@ void SimulationManager::SetupShell(SimulationShell *shell)
     results.AddShellCommands(shell);
 };
 
-void SimulationManager::SetupEnvironment()
-{
-    AddStationToCollectibles("CPU");
-    AddStationToCollectibles("IO1");
-    AddStationToCollectibles("IO2");
-    AddStationToCollectibles("SWAP_IN");
-    AddStationToCollectibles("SWAP_OUT");
-}
-void SimulationManager::ResetAccumulators()
-{
-   
-}
-
 void SimulationManager::CollectSamples(int samples)
 {
     auto p = [this](int i) {
@@ -295,15 +278,4 @@ void SimulationManager::CollectSamples(int samples)
     {
         p(i);
     }
-}
-
-bool SimulationManager::AreAccReady(double precision)
-{
-    for (auto s : _acc)
-    {
-        for (int i = 0; i < 4; i++)
-            if (s.second[i].confidence().precision() > precision)
-                return false;
-    }
-    return true;
 }

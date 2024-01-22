@@ -40,90 +40,6 @@ void SimulationShell::Pause()
     _started = false;
 }
 
-void SimulationShell::SetupDefaultCmds()
-{
-    AddCommand("verbosity", [](SimulationShell *shell, const char *context) {
-        char buffer[64]{};
-        std::stringstream buf{context};
-        buf.get(buffer, sizeof(buffer), ' ');
-        if (isdigit(buffer[0]))
-        {
-            int verbosity = atoi(buffer);
-            for (auto s : LogEngine::Instance()->GetSources())
-            {
-                s->verbosity = verbosity;
-            }
-            shell->Log()->Information("Setted all sources to {} verbosity", verbosity);
-        }
-        else
-        {
-            std::string srcName{buffer};
-            if (srcName == "list")
-            {
-                for (auto s : LogEngine::Instance()->GetSources())
-                {
-                    shell->Log()->Information("SourceName:{}, Verbosity:{}", s->sourceName, s->verbosity);
-                }
-                return;
-            }
-            buf.ignore();
-            buf.get(buffer, sizeof(buffer), ' ');
-            int verbosity = atoi(buffer);
-            for (auto s : LogEngine::Instance()->GetSources())
-            {
-                if (s->sourceName == srcName)
-                {
-                    s->verbosity = verbosity;
-                    shell->Log()->Information("Setted {} to verbosity {}", s->sourceName, verbosity);
-                    return;
-                }
-            }
-            shell->Log()->Exception("SourceName {} not found", srcName);
-        }
-    });
-
-    AddCommand("start", [](SimulationShell *s, auto ctx) { s->Start(); });
-
-    AddCommand("pause", [](SimulationShell *shell, auto ctx) { shell->Pause(); });
-
-    AddCommand("init", [](SimulationShell *shell, auto ctx) { shell->_simulator->Initialize(); });
-
-    AddCommand("clock", [this](SimulationShell *shell, auto ctx) {
-        _logger.Result("Clock is {}", shell->_scheduler->GetClock());
-    });
-
-    AddCommand("ne", [](SimulationShell *shell, auto ctx) {
-        std::stringstream stream{ctx};
-        char arg[12];
-        stream.get(arg, 12, ' ');
-        int value = atoi(arg);
-        if (value == 0)
-            value = 1;
-        for (int i = 0; i < value; i++)
-            shell->_simulator->Execute();
-    });
-
-    AddCommand("help", [this](auto s, auto ctx) {
-        fmt::print("List of available commands:");
-        for (auto c : _cmds)
-        {
-            fmt::println("Command :{}", c.command);
-        }
-    });
-
-    AddCommand("seed", [this](auto s, const char *ctx) {
-        char buffer[36]{};
-        std::istringstream stream{ctx};
-        stream >> buffer;
-        if(strlen(buffer) == 0){
-            _logger.Exception("Seed must be called with argument");
-            return;
-        }
-        int seed = atoi(buffer);
-        RandomStream::Global().PlantSeeds(seed);
-    });
-}
-
 void SimulationShell::Execute()
 {
     bool execend = false;
@@ -173,3 +89,98 @@ void SimulationShell::Command::operator()(const char *context)
     stream.read(buffer, 256);
     _fnc(_shell, buffer);
 }
+
+ShellCommand(verbosity)
+{
+    char buffer[64]{};
+    std::stringstream buf{context};
+    buf.get(buffer, sizeof(buffer), ' ');
+    if (isdigit(buffer[0]))
+    {
+        int verbosity = atoi(buffer);
+        for (auto s : LogEngine::Instance()->GetSources())
+        {
+            s->verbosity = verbosity;
+        }
+        shell->Log()->Information("Setted all sources to {} verbosity", verbosity);
+    }
+    else
+    {
+        std::string srcName{buffer};
+        if (srcName == "list")
+        {
+            for (auto s : LogEngine::Instance()->GetSources())
+            {
+                shell->Log()->Information("SourceName:{}, Verbosity:{}", s->sourceName, s->verbosity);
+            }
+            return;
+        }
+        buf.ignore();
+        buf.get(buffer, sizeof(buffer), ' ');
+        int verbosity = atoi(buffer);
+        for (auto s : LogEngine::Instance()->GetSources())
+        {
+            if (s->sourceName == srcName)
+            {
+                s->verbosity = verbosity;
+                shell->Log()->Information("Setted {} to verbosity {}", s->sourceName, verbosity);
+                return;
+            }
+        }
+        shell->Log()->Exception("SourceName {} not found", srcName);
+    }
+};
+
+ShellCommand(start)
+{
+    shell->Start();
+};
+
+ShellCommand(pause)
+{
+    shell->Pause();
+};
+
+ShellCommand(init)
+{
+    shell->Simulator()->Initialize();
+};
+
+ShellCommand(clock)
+{
+    shell->Log()->Result("Clock is {}", shell->Scheduler()->GetClock());
+}
+
+ShellCommand(ne)
+{
+    std::stringstream stream{context};
+    char arg[12];
+    stream.get(arg, 12, ' ');
+    int value = atoi(arg);
+    if (value == 0)
+        value = 1;
+    for (int i = 0; i < value; i++)
+        shell->Simulator()->Execute();
+};
+
+ShellCommand(help)
+{
+    fmt::print("List of available commands:");
+    for (auto c : shell->Cmds())
+    {
+        fmt::println("Command :{}", c.command);
+    }
+};
+ShellCommand(seed)
+{
+    char buffer[36]{};
+    std::istringstream stream{context};
+    stream >> buffer;
+    if (strlen(buffer) == 0)
+    {
+        shell->Log()->Exception("Seed must be called with argument");
+        return;
+    }
+    int seed = atoi(buffer);
+    RandomStream::Global().PlantSeeds(seed);
+};

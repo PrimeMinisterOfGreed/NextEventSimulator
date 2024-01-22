@@ -1,6 +1,8 @@
 #pragma once
 #include "ISimulator.hpp"
 #include "LogEngine.hpp"
+#include "Shell/SimulationShell.hpp"
+#include "Station.hpp"
 #include <cstring>
 #include <functional>
 #include <map>
@@ -11,6 +13,7 @@
 
 class SimulationShell
 {
+
   private:
     TraceSource _logger{"Shell", 4};
     friend class Command;
@@ -36,12 +39,23 @@ class SimulationShell
   public:
     SimulationShell()
     {
-        SetupDefaultCmds();
     }
     void SetControllers(IScheduler *scheduler, ISimulator *simulator)
     {
         _scheduler = scheduler;
         _simulator = simulator;
+    }
+    ISimulator *Simulator()
+    {
+        return _simulator;
+    }
+    IScheduler *Scheduler()
+    {
+        return _scheduler;
+    }
+    const std::vector<Command> &Cmds()
+    {
+        return _cmds;
     }
     void Start();
     void Pause();
@@ -49,6 +63,11 @@ class SimulationShell
     void Execute();
     void ShowLog(bool show);
     void ExecuteCommand(const char *command);
+    static SimulationShell &Instance()
+    {
+        static SimulationShell instance{};
+        return instance;
+    }
     TraceSource *Log()
     {
         return &_logger;
@@ -66,8 +85,32 @@ class SimulationShell
     {
         _cmds.clear();
     }
-    template <typename T> std::stringstream& Parse(std::stringstream& stream, T*val)
-    {
-        return stream;
-    }
 };
+
+namespace shell::detail
+{
+struct _Auto_Command
+{
+    const char *name;
+    _Auto_Command(const char *name) : name(name)
+    {
+        SimulationShell::Instance().AddCommand(name, *this);
+    }
+    void operator()(SimulationShell *shell, const char *context)
+    {
+        Execution(shell, context);
+    }
+    virtual void Execution(SimulationShell *shell, const char *context) = 0;
+};
+} // namespace shell::detail
+
+#define ShellCommand(name)                                                                                             \
+    struct __ShellCmd__##name : public shell::detail::_Auto_Command                                                    \
+    {                                                                                                                  \
+        __ShellCmd__##name(const char *cmdname) : _Auto_Command(cmdname)                                               \
+        {                                                                                                              \
+        }                                                                                                              \
+        virtual void Execution(SimulationShell *shell, const char *context) override;                                  \
+    };                                                                                                                 \
+    __ShellCmd__##name __cmd__##name = __ShellCmd__##name{#name};                                                      \
+    void __ShellCmd__##name::Execution(SimulationShell *shell, const char *context)

@@ -86,6 +86,25 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
 
 void SimulationResult::Reset()
 {
+    for (auto v : _acc)
+    {
+        v.second.Reset();
+    }
+}
+
+void SimulationResult::Collect(BaseStation *station)
+{
+    _acc[station->Name()].Collect(station);
+}
+
+bool SimulationResult::PrecisionReached()
+{
+    for (auto v : _acc)
+    {
+        if (!v.second.Ready())
+            return false;
+    }
+    return true;
 }
 
 auto format_as(ConfidenceHits b)
@@ -94,6 +113,17 @@ auto format_as(ConfidenceHits b)
                        "MeanClients  {}   {}\n ActiveTime {} {}",
                        b.throughput, b.throughput_in, b.utilization, b.utilization_in, b.meanwaits, b.meanWaits_in,
                        b.meanclients, b.meanClients_in, b.activeTimes, b.activeTime_in);
+}
+
+bool StationStats::Ready()
+{
+    for (int i = 0; i < size; i++)
+    {
+        auto a = (*this)[(MeasureType)i];
+        if (a.confidence().precision() > 0.005 || a.Count() < 40)
+            return false;
+    }
+    return true;
 }
 
 void StationStats::Collect(BaseStation *station)
@@ -125,7 +155,8 @@ Accumulator<> &StationStats::operator[](StationStats::MeasureType measure)
         return _acc[2];
     case meanwait:
         return _acc[3];
-        case size: panic("Index out of bounds");
+    case size:
+        panic("Index out of bounds");
         break;
     }
 }
