@@ -136,7 +136,7 @@ ShellCommand(start)
     shell->Start();
 };
 
-ShellCommand(pause)
+ShellCommand(stop)
 {
     shell->Pause();
 };

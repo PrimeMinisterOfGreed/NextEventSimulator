@@ -50,7 +50,7 @@ Accumulator<> TaggedCustomer::ComputeGrandMean()
 {
     Accumulator<> acc{"GrandMean","ms"};
     for(int i = 0 ; i < std::min(_meanTimes.Count(),_antitetichMeanTimes.Count()); i++){
-        acc((_meanTimes.data[i] + _antitetichMeanTimes.data[i])/2);
+        acc((_meanTimes.Data()[i] + _antitetichMeanTimes.Data()[i])/2);
     }
     return acc;
 }

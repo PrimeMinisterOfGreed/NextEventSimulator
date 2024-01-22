@@ -273,17 +273,27 @@ template <int Moments = 2> class Accumulator : public Measure<double>
     }
 };
 
-
-
-template <int BufferSize, int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
+template <int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
 {
-    double data[BufferSize];
-    virtual void Accumulate(double value){
-        data[this->_count] = value;
+    private:
+    std::vector<double> data{};
+    public:
+    virtual void Accumulate(double value) override
+    {
         Accumulator<Moments>::Accumulate(value);
+        data.push_back(value);
     }
 
-    BufferedMeasure(std::string name, std::string unit):Accumulator<Moments>(name,unit){}
+    BufferedMeasure(std::string name, std::string unit) : Accumulator<Moments>(name, unit)
+    {
+    }
+
+    virtual void Reset() override
+    {
+        Accumulator<>::Reset();
+        data.clear();
+    }
+    const std::vector<double>& Data(){return data;}
 };
 
 template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
@@ -296,3 +306,16 @@ template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
                               m.confidence().lower(), m.confidence().higher(), m.Current());
     }
 };
+
+
+template <> struct fmt::formatter<BufferedMeasure<>> : fmt::formatter<string_view>
+{
+    auto format(BufferedMeasure<> &m, format_context &ctx) -> format_context::iterator
+    {
+        return fmt::format_to(ctx.out(),
+                              "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{},BufferSize:{}",
+                              m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(),
+                              m.confidence().lower(), m.confidence().higher(), m.Current(),m.Data().size());
+    }
+};
+

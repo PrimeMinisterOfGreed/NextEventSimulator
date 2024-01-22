@@ -58,9 +58,9 @@ void SimulationManager::SetupScenario(std::string name)
     });
     regPoint->scheduler = os.get();
     regPoint->simulator = os.get();
-    tgt.WithRegPoint(regPoint.get());
-    tgt.ConnectEntrance(os->GetStation("SWAP_IN").value().get(), false);
-    tgt.ConnectLeave(os->GetStation("SWAP_OUT").value().get(), true);
+    results.tgt.WithRegPoint(regPoint.get());
+    results.tgt.ConnectEntrance(os->GetStation("SWAP_IN").value().get(), false);
+    results.tgt.ConnectLeave(os->GetStation("SWAP_OUT").value().get(), true);
 }
 
 void SimulationManager::HReset()
@@ -74,7 +74,6 @@ SimulationManager::SimulationManager()
 {
     os = std::unique_ptr<OS>(new OS());
     regPoint = std::unique_ptr<RegenerationPoint>(new RegenerationPoint(os.get(), os.get()));
-    SetupEnvironment();
 }
 
 void SimulationManager::SetupShell(SimulationShell *shell)
@@ -120,7 +119,6 @@ void SimulationManager::SetupShell(SimulationShell *shell)
                           stat->avg_serviceTime(), stat->avg_delay(), stat->avg_interArrival(), stat->avg_waiting());
         }
     });
-    tgt.AddShellCommands(shell);
     shell->AddCommand("lqueue", [this](auto s, auto c) {
         logger.Result("Scheduler Queue:{}", os->EventQueue());
         for (auto s : os->GetStations())
@@ -244,10 +242,9 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         {
             RandomStream::Global().PlantSeeds(seed);
             CollectSamples(samples);
-            results.AccumulateResult(_acc, tgt._meanTimes, seed);
+            results.CollectResult(seed);
             seed++;
-            ResetAccumulators();
-            tgt._meanTimes.Reset();
+            results.Reset();
             shell->Log()->Debug("End of simulation {}", i);
         }
     });
@@ -268,7 +265,7 @@ void SimulationManager::CollectSamples(int samples)
     if (samples == -1)
     {
         int i = 0;
-        while (!AreAccReady(0.005) || i < 40)
+        while (!results.PrecisionReached() || i < 40)
         {
             p(i);
             i++;

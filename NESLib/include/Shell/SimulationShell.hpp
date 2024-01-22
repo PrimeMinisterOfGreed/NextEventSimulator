@@ -94,7 +94,7 @@ struct _Auto_Command
     const char *name;
     _Auto_Command(const char *name) : name(name)
     {
-        SimulationShell::Instance().AddCommand(name, *this);
+        SimulationShell::Instance().AddCommand(name, [this](auto s, auto c){(*this)(s,c);});
     }
     void operator()(SimulationShell *shell, const char *context)
     {
@@ -114,3 +114,5 @@ struct _Auto_Command
     };                                                                                                                 \
     __ShellCmd__##name __cmd__##name = __ShellCmd__##name{#name};                                                      \
     void __ShellCmd__##name::Execution(SimulationShell *shell, const char *context)
+
+#pragma once

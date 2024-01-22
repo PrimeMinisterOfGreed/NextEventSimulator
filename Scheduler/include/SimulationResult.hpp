@@ -52,7 +52,9 @@ struct SimulationResult
     MVASolver mva{};
     std::map<std::string, ConfidenceHits> _confidenceHits{};
     std::vector<int> seeds;
-    void AccumulateResult(std::map<std::string, Accumulator<>[4]> accumulators, Accumulator<> activeTime, int seed);
+    TaggedCustomer tgt{};
+
+    void CollectResult(int seed);
     SimulationResult();
     void AddShellCommands(SimulationShell *shell);
     void Reset();

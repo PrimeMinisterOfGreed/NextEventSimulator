@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     LogEngine::CreateInstance("simulation.txt");
     RandomStream::Global().PlantSeeds(123456789);
-    SimulationShell shell{};
+    SimulationShell& shell = SimulationShell::Instance();
     SimulationManager::Instance().SetupShell(&shell);
     shell.Execute();
 }

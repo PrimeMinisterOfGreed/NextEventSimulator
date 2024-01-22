@@ -8,8 +8,8 @@
 #include <utility>
 struct TaggedCustomer
 {
-    BufferedMeasure<1000> _meanTimes{"meanTimes", "ms"};
-    BufferedMeasure<1000> _antitetichMeanTimes{"antitetichMeanTimes","ms"};
+    BufferedMeasure<> _meanTimes{"meanTimes", "ms"};
+    BufferedMeasure<> _antitetichMeanTimes{"antitetichMeanTimes","ms"};
 
     Accumulator<> _regCycle{"regCycleTime", "ms"};
 

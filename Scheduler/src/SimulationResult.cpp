@@ -19,12 +19,12 @@ void ConfidenceHits::Accumulate(bool x_in, bool u_in, bool n_in, bool w_in, bool
     activeTimes += activeTime_in;
 }
 
-void SimulationResult::AccumulateResult(std::map<std::string, Accumulator<>[4]> accumulators, Accumulator<> activeTime,
-                                        int seed)
-{
-    if (!mva.inited)
+
+
+void SimulationResult::CollectResult(int seed) {
+     if (!mva.inited)
         mva.PreloadModel();
-    for (auto value : accumulators)
+    for (auto value : _acc)
     {
         auto station = value.first;
         bool found = false;
@@ -45,12 +45,12 @@ void SimulationResult::AccumulateResult(std::map<std::string, Accumulator<>[4]> 
         double t_meanwait = mva.MeanWaits(station)[n];
         double t_activeTime = mva.ActiveTimes()[n];
 
-        auto ref = accumulators[station];
+        auto ref = _acc[station];
 
         _confidenceHits[station].Accumulate(
-            ref[0].confidence().isInTval(t_throughput), ref[1].confidence().isInTval(t_utilization),
-            ref[2].confidence().isInTval(t_meanclients), ref[3].confidence().isInTval(t_meanwait),
-            activeTime.confidence().isInTval(t_activeTime));
+            ref[StationStats::throughput].confidence().isInTval(t_throughput), ref[StationStats::utilization].confidence().isInTval(t_utilization),
+            ref[StationStats::meancustomer].confidence().isInTval(t_meanclients), ref[StationStats::meanwait].confidence().isInTval(t_meanwait),
+            tgt._meanTimes.confidence().isInTval(t_activeTime));
         seeds.push_back(seed);
     }
 }
@@ -67,7 +67,7 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             shell->Log()->Result("Station:{}\n{}", s, _confidenceHits[s]);
         }
     });
-
+    tgt.AddShellCommands(shell);
     shell->AddCommand("lmeasures", [this](SimulationShell *shell, auto c) {
         for (auto s : _acc)
         {

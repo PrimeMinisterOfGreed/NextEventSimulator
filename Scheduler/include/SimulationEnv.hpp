@@ -33,7 +33,6 @@ struct SimulationManager
     std::unique_ptr<OS> os;
     std::unique_ptr<RegenerationPoint> regPoint;
     SimulationShell *shell;
-    TaggedCustomer tgt{};
     TraceSource logger{"SIMManager", 4};
     SimulationResult results{};
     bool hot = false;
@@ -62,6 +61,7 @@ struct SimulationManager
   private:
     void SetupScenario(std::string name);
     void SetupEnvironment();
+    void CollectSamples(int samples);
 };
 
 struct BaseScenario
