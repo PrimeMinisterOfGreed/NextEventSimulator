@@ -116,13 +116,16 @@ bool SimulationResult::PrecisionReached()
     {
         if (tg == "active_time")
         {
-            if (tgt.ComputeGrandMean().confidence().precision() > 0.05)
+            if (tgt.ComputeGrandMean().confidence().precision() > requiredPrecision)
             {
                 return false;
             }
         }
         else if (!_acc[tg].Ready())
         {
+            return false;
+        }
+        else if(_customMeasure.contains(tg) && _customMeasure[tg].confidence().precision() > requiredPrecision){
             return false;
         }
     }
@@ -142,7 +145,7 @@ bool StationStats::Ready()
     for (int i = 0; i < size; i++)
     {
         auto a = (*this)[(MeasureType)i];
-        if (a.confidence().precision() > 0.005 || a.Count() < 40)
+        if (a.confidence().precision() > SimulationResult::requiredPrecision || a.Count() < 40)
             return false;
     }
     return true;
@@ -159,10 +162,10 @@ void StationStats::Collect(BaseStation *station)
 
 StationStats::StationStats()
 {
-    _acc[throughput] = Accumulator<>{"throughput", "j/s"}.WithConfidence(0.90);
-    _acc[utilization] = Accumulator<>{"utilization", ""}.WithConfidence(0.90);
-    _acc[meancustomer] = Accumulator<>{"meanclients", ""}.WithConfidence(0.90);
-    _acc[meanwait] = Accumulator<>{"meanwaits", "ms"}.WithConfidence(0.90);
+    _acc[throughput] = Accumulator<>{"throughput", "j/s"}.WithConfidence(SimulationResult::confidence);
+    _acc[utilization] = Accumulator<>{"utilization", ""}.WithConfidence(SimulationResult::confidence);
+    _acc[meancustomer] = Accumulator<>{"meanclients", ""}.WithConfidence(SimulationResult::confidence);
+    _acc[meanwait] = Accumulator<>{"meanwaits", "ms"}.WithConfidence(SimulationResult::confidence);
 }
 
 Accumulator<> &StationStats::operator[](StationStats::MeasureType measure)
@@ -187,6 +190,7 @@ void StationStats::Reset()
 {
     for (int i = 0; i < size; i++)
     {
+        _acc[i].WithConfidence(SimulationResult::confidence);
         _acc[i].Reset();
     }
 }
