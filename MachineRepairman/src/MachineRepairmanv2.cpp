@@ -21,10 +21,10 @@ Event gen_maintenance(double clock, double occurTime, double serviceTime)
 
 MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 {
-    auto delay_station = new DelayStation(this, "delay_station", 10, []() {
+    auto delay_station = new DelayStation(this, "delay_station",  []() {
         static VariableStream delay(1, [](auto rng) { return Exponential(3000); });
         return delay();
-    });
+    }, [](){return 10;});
 
     delay_station->OnDeparture([this](auto s, Event &evt) {
         evt.Station = 1;

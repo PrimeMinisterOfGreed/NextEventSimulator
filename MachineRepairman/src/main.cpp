@@ -15,16 +15,16 @@
 
 TraceSource _logger{""};
 
-std::vector<Accumulator<double>> _acc{
-    Accumulator<double>{"failedMachines", "unit"},
-    Accumulator<double>{"repairedMachines", "unit"},
-    Accumulator<double>("long_repair_avg", "min"),
-    Accumulator<double>("avg_clients", "unit"),
+std::vector<Accumulator<>> _acc{
+    Accumulator<>{"failedMachines", "unit"},
+    Accumulator<>{"repairedMachines", "unit"},
+    Accumulator<>("long_repair_avg", "min"),
+    Accumulator<>("avg_clients", "unit"),
 };
 
 bool ShouldStop()
 {
-    if (std::any_of(_acc.begin(), _acc.end(), [](Accumulator<double> &acc) { return acc.Count() < 40; }))
+    if (std::any_of(_acc.begin(), _acc.end(), [](Accumulator<> &acc) { return acc.Count() < 40; }))
         return false;
     return _acc[2].confidence().precision() < 0.05;
 };

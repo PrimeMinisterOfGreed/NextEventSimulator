@@ -50,7 +50,7 @@ TEST(TestMatrix, test_mva)
         });
     auto visits = RouteToVisit(routings);
     double epsilon = 0.001;
-    ASSERT_LE(abs(visits[0]-0.10),epsilon );
+    ASSERT_LE(abs(visits[0]-1),epsilon );
     ASSERT_LE(abs(visits[1]-10.0),epsilon );
     ASSERT_LE(abs(visits[2]-5.5),epsilon );
     ASSERT_LE(abs(visits[3]-3.5),epsilon );

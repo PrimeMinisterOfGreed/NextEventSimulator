@@ -13,10 +13,10 @@
 
 MachineRepairman::MachineRepairman() : Scheduler("Scheduler")
 {
-    auto delay_station = new DelayStation(this, "delay_station", 10, [this]() {
+    auto delay_station = new DelayStation(this, "delay_station", [this]() {
         static VariableStream delay{1, [](auto rand) { return Exponential(400); }};
         return delay();
-    });
+    },[](){return 10;});
 
     delay_station->OnDeparture([this](auto s, Event &evt) {
         static VariableStream repairTime(2, [](auto rand) { return Exponential(15); });
