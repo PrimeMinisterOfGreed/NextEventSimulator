@@ -182,5 +182,11 @@ ShellCommand(seed)
         return;
     }
     int seed = atoi(buffer);
-    RandomStream::Global().PlantSeeds(seed);
+    if (seed == -1)
+        RandomStream::Global().SetAntitetich(true);
+    else
+    {
+        RandomStream::Global().SetAntitetich(false);
+        RandomStream::Global().PlantSeeds(seed);
+    }
 };

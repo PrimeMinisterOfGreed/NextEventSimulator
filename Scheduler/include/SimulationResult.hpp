@@ -49,6 +49,8 @@ struct StationStats
 struct SimulationResult
 {
     std::map<std::string, StationStats> _acc;
+    std::map<std::string, Accumulator<>> _customMeasure;
+    std::vector<std::string> _precisionTargets;
     MVASolver mva{};
     std::map<std::string, ConfidenceHits> _confidenceHits{};
     std::vector<int> seeds;
@@ -59,5 +61,10 @@ struct SimulationResult
     void AddShellCommands(SimulationShell *shell);
     void Reset();
     void Collect(BaseStation *station);
+    void CollectCustomMeasure(std::string name, double value);
     bool PrecisionReached();
+    void AddPrecisionTarget(std::string name)
+    {
+        _precisionTargets.push_back(name);
+    }
 };

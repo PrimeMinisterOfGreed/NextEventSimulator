@@ -4,6 +4,8 @@
 #include "Shell/SimulationShell.hpp"
 #include "SystemParameters.hpp"
 #include <fmt/core.h>
+#include <fmt/format.h>
+#include <vector>
 
 void ConfidenceHits::Accumulate(bool x_in, bool u_in, bool n_in, bool w_in, bool activeTime_in)
 {
@@ -19,10 +21,9 @@ void ConfidenceHits::Accumulate(bool x_in, bool u_in, bool n_in, bool w_in, bool
     activeTimes += activeTime_in;
 }
 
-
-
-void SimulationResult::CollectResult(int seed) {
-     if (!mva.inited)
+void SimulationResult::CollectResult(int seed)
+{
+    if (!mva.inited)
         mva.PreloadModel();
     for (auto value : _acc)
     {
@@ -47,10 +48,11 @@ void SimulationResult::CollectResult(int seed) {
 
         auto ref = _acc[station];
 
-        _confidenceHits[station].Accumulate(
-            ref[StationStats::throughput].confidence().isInTval(t_throughput), ref[StationStats::utilization].confidence().isInTval(t_utilization),
-            ref[StationStats::meancustomer].confidence().isInTval(t_meanclients), ref[StationStats::meanwait].confidence().isInTval(t_meanwait),
-            tgt._meanTimes.confidence().isInTval(t_activeTime));
+        _confidenceHits[station].Accumulate(ref[StationStats::throughput].confidence().isInTval(t_throughput),
+                                            ref[StationStats::utilization].confidence().isInTval(t_utilization),
+                                            ref[StationStats::meancustomer].confidence().isInTval(t_meanclients),
+                                            ref[StationStats::meanwait].confidence().isInTval(t_meanwait),
+                                            tgt._meanTimes.confidence().isInTval(t_activeTime));
         seeds.push_back(seed);
     }
 }
@@ -81,6 +83,10 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             }
             shell->Log()->Result("Station:{}\n{}", s.first, result);
         }
+        for (auto m : _customMeasure)
+        {
+            shell->Log()->Result("{}", m.second);
+        }
     });
 }
 
@@ -97,12 +103,28 @@ void SimulationResult::Collect(BaseStation *station)
     _acc[station->Name()].Collect(station);
 }
 
+void SimulationResult::CollectCustomMeasure(std::string name, double value)
+{
+    if (!_customMeasure.contains(name))
+        _customMeasure[name] = Accumulator<>{name, ""};
+    _customMeasure[name](value);
+}
+
 bool SimulationResult::PrecisionReached()
 {
-    for (auto v : _acc)
+    for (std::string tg : _precisionTargets)
     {
-        if (!v.second.Ready())
+        if (tg == "active_time")
+        {
+            if (tgt.ComputeGrandMean().confidence().precision() > 0.05)
+            {
+                return false;
+            }
+        }
+        else if (!_acc[tg].Ready())
+        {
             return false;
+        }
     }
     return true;
 }

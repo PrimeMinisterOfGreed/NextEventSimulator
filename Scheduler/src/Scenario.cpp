@@ -23,7 +23,7 @@ SCENARIO(Simplified)
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         static int counter = 0;
         counter++;
-        if (counter == 100)
+        if (counter == 10)
         {
             manager->regPoint->Trigger();
             counter = 0;
@@ -64,6 +64,8 @@ SCENARIO(Default) // first request
     // first CPU must have 0 clients because is hyperexp
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 };
 
 SCENARIO(Default_NOMPD)
@@ -82,7 +84,7 @@ SCENARIO(Default_NOMPD)
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 4; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }
 

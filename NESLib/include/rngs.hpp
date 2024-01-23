@@ -46,8 +46,8 @@ struct CompositionStream : public BaseStream
     }
 };
 
-
-struct Router{
+struct Router
+{
     std::vector<int> _indexes;
     std::vector<double> _p;
     int operator()();
@@ -61,6 +61,7 @@ class RandomStream
     int stream = 0;                 /* stream index, 0 is the default */
     int initialized = 0;            /* test for stream initialization */
     int generatedStreams = 0;
+
   public:
     bool antitethic = false;
 
@@ -72,7 +73,10 @@ class RandomStream
     void GetSeed(long *x);
     void PutSeed(long x);
     void SelectStream(int index);
-    void SetAntitetich(){antitethic = true;}
+    void SetAntitetich(bool value)
+    {
+        antitethic = value;
+    }
     static RandomStream &Global();
     std::unique_ptr<VariableStream> GetStream(std::function<double(RandomStream &)> lambda);
 };

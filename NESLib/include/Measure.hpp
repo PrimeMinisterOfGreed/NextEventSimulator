@@ -275,9 +275,10 @@ template <int Moments = 2> class Accumulator : public Measure<double>
 
 template <int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
 {
-    private:
+  private:
     std::vector<double> data{};
-    public:
+
+  public:
     virtual void Accumulate(double value) override
     {
         Accumulator<Moments>::Accumulate(value);
@@ -293,7 +294,10 @@ template <int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
         Accumulator<>::Reset();
         data.clear();
     }
-    const std::vector<double>& Data(){return data;}
+    const std::vector<double> &Data()
+    {
+        return data;
+    }
 };
 
 template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
@@ -307,15 +311,28 @@ template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
     }
 };
 
-
 template <> struct fmt::formatter<BufferedMeasure<>> : fmt::formatter<string_view>
 {
     auto format(BufferedMeasure<> &m, format_context &ctx) -> format_context::iterator
     {
-        return fmt::format_to(ctx.out(),
-                              "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{},BufferSize:{}",
-                              m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(),
-                              m.confidence().lower(), m.confidence().higher(), m.Current(),m.Data().size());
+        return fmt::format_to(
+            ctx.out(),
+            "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{},BufferSize:{}",
+            m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(), m.confidence().lower(),
+            m.confidence().higher(), m.Current(), m.Data().size());
     }
 };
 
+namespace helper
+{
+template <typename T, typename K, typename F> std::vector<T> take(K item, F &&fnc)
+{
+    std::vector<T> res{};
+    for (auto e : item)
+    {
+        res.push_back(fnc(e));
+    }
+    return res;
+};
+
+} // namespace helper

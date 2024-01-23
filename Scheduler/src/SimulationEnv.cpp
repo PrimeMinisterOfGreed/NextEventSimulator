@@ -31,6 +31,9 @@ void SimulationManager::CollectMeasures()
     results.Collect(os->GetStation("IO2")->get());
     results.Collect(os->GetStation("SWAP_IN")->get());
     results.Collect(os->GetStation("SWAP_OUT")->get());
+    results.CollectCustomMeasure("activeTimes", os->GetStation("CPU").value()->avg_waiting() +
+                                                    os->GetStation("IO1").value()->avg_waiting() +
+                                                    os->GetStation("IO2").value()->avg_waiting());
 }
 
 void SimulationManager::SetupScenario(std::string name)
@@ -148,11 +151,6 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             fmt::println("Setup for scenario:{} completed", sc);
         }
     });
-    shell->AddCommand("activetimes", [this](auto s, auto ctx) {
-        double sum = os->GetStation("CPU").value()->avg_waiting() + os->GetStation("IO1").value()->avg_waiting() +
-                     os->GetStation("IO2").value()->avg_waiting();
-        logger.Result("Sum of active times {}", sum);
-    });
 
     shell->AddCommand("nr", [this](SimulationShell *shell, auto ctx) {
         char buffer[12]{};
@@ -243,8 +241,14 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             RandomStream::Global().PlantSeeds(seed);
             CollectSamples(samples);
             results.CollectResult(seed);
-            seed++;
             results.Reset();
+            shell->Log()->Debug("Perform antitetich evaluation");
+            RandomStream::Global().SetAntitetich(true);
+            CollectSamples(samples);
+            results.CollectResult(seed);
+            results.Reset();
+            RandomStream::Global().SetAntitetich(false);
+            seed++;
             shell->Log()->Debug("End of simulation {}", i);
         }
     });

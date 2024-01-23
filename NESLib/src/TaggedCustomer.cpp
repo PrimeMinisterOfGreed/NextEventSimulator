@@ -34,8 +34,9 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
 
 void TaggedCustomer::AddShellCommands(SimulationShell *shell)
 {
-    shell->AddCommand("ltgtstats",
-                      [this](SimulationShell *s, auto ctx) { s->Log()->Result("{}\n{}\n{}", _meanTimes, _regCycle,ComputeGrandMean()); });
+    shell->AddCommand("ltgtstats", [this](SimulationShell *s, auto ctx) {
+        s->Log()->Result("{}\n{}\n{}\n{}", _meanTimes, _antitetichMeanTimes, _regCycle, ComputeGrandMean());
+    });
 }
 
 void TaggedCustomer::CompleteRegCycle()
@@ -48,9 +49,10 @@ void TaggedCustomer::CompleteRegCycle()
 }
 Accumulator<> TaggedCustomer::ComputeGrandMean()
 {
-    Accumulator<> acc{"GrandMean","ms"};
-    for(int i = 0 ; i < std::min(_meanTimes.Count(),_antitetichMeanTimes.Count()); i++){
-        acc((_meanTimes.Data()[i] + _antitetichMeanTimes.Data()[i])/2);
+    Accumulator<> acc{"GrandMean", "ms"};
+    for (int i = 0; i < std::min(_meanTimes.Count(), _antitetichMeanTimes.Count()); i++)
+    {
+        acc((_meanTimes.Data()[i] + _antitetichMeanTimes.Data()[i]) / 2);
     }
     return acc;
 }
