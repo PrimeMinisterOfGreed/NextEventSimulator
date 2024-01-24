@@ -3,8 +3,11 @@
 #include "Measure.hpp"
 #include "Shell/SimulationShell.hpp"
 #include "SystemParameters.hpp"
+#include <cstring>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <sstream>
+#include <string>
 #include <vector>
 
 void ConfidenceHits::Accumulate(bool x_in, bool u_in, bool n_in, bool w_in, bool activeTime_in)
@@ -70,22 +73,17 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
         }
     });
     tgt.AddShellCommands(shell);
-    shell->AddCommand("lmeasures", [this](SimulationShell *shell, auto c) {
-        for (auto s : _acc)
+    shell->AddCommand("lmeasures", [this](SimulationShell *shell, const char *ctx) {
+        char buffer[36]{};
+        std::stringstream stream{ctx};
+        stream >> buffer;
+        if (strlen(buffer) == 0)
         {
-            std::string result = "";
-            for (int i = 0; i < StationStats::MeasureType::size; i++)
-            {
-                auto expected = mva.ExpectedForAccumulator(s.first, s.second[(StationStats::MeasureType)i][0]);
-                result += fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n",
-                                      s.second[(StationStats::MeasureType)i], expected,
-                                      s.second[(StationStats::MeasureType)i].confidence().tvalDiff(expected));
-            }
-            shell->Log()->Result("Station:{}\n{}", s.first, result);
+            LogResult();
         }
-        for (auto m : _customMeasure)
+        else
         {
-            shell->Log()->Result("{}", m.second);
+            LogResult(std::string{buffer});
         }
     });
     shell->AddCommand("reset_measures", [this](auto s, auto ctx) { Reset(); });
@@ -140,12 +138,50 @@ bool SimulationResult::PrecisionReached()
     return true;
 }
 
+void SimulationResult::LogResult(std::string name)
+{
+    if (name == "ALL")
+    {
+        for (auto s : _acc)
+        {
+            std::string result = "";
+            for (int i = 0; i < StationStats::MeasureType::size; i++)
+            {
+                auto expected = mva.ExpectedForAccumulator(s.first, s.second[(StationStats::MeasureType)i][0]);
+                result += fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n",
+                                      s.second[(StationStats::MeasureType)i], expected,
+                                      s.second[(StationStats::MeasureType)i].confidence().tvalDiff(expected));
+            }
+            SimulationShell::Instance().Log()->Result("Station:{}\n{}", s.first, result);
+        }
+        for (auto m : _customMeasure)
+        {
+            SimulationShell::Instance().Log()->Result("{}", m.second);
+        }
+    }
+    else
+    {
+        if (_customMeasure.contains(name))
+        {
+            SimulationShell::Instance().Log()->Result("{}", _customMeasure[name]);
+        }
+        else if (_acc.contains(name))
+        {
+            SimulationShell::Instance().Log()->Result("{}", _acc[name]);
+        }
+    }
+}
+
 auto format_as(ConfidenceHits b)
 {
     return fmt::format("Name   Hits   Last\n Throughput {}  {} \n Utilization  {}  {} \n MeanWaits  {}  {}\n "
                        "MeanClients  {}   {}\n ActiveTime {} {}",
                        b.throughput, b.throughput_in, b.utilization, b.utilization_in, b.meanwaits, b.meanWaits_in,
                        b.meanclients, b.meanClients_in, b.activeTimes, b.activeTime_in);
+}
+
+auto format_as(StationStats stats) {
+    //TODO add fmt
 }
 
 bool StationStats::Ready()

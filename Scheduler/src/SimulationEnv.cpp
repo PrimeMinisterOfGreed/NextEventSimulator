@@ -253,6 +253,7 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             RandomStream::Global().SetAntitetich(false);
             seed++;
             shell->Log()->Debug("End of simulation {}", i);
+            shell->Log()->Result("{}", results._customMeasure["activeTimes"]);
         }
     });
     results.AddShellCommands(shell);

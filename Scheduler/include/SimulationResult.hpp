@@ -46,6 +46,8 @@ struct StationStats
     bool Ready();
 };
 
+auto format_as(StationStats stats);
+
 struct SimulationResult
 {
     static inline double requiredPrecision = 0.05;
@@ -69,4 +71,5 @@ struct SimulationResult
     {
         _precisionTargets.push_back(name);
     }
+    void LogResult(std::string name = "ALL");
 };
