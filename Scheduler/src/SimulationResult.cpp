@@ -48,11 +48,11 @@ void SimulationResult::CollectResult(int seed)
 
         auto ref = _acc[station];
 
-        _confidenceHits[station].Accumulate(ref[StationStats::throughput].confidence().isInTval(t_throughput),
-                                            ref[StationStats::utilization].confidence().isInTval(t_utilization),
-                                            ref[StationStats::meancustomer].confidence().isInTval(t_meanclients),
-                                            ref[StationStats::meanwait].confidence().isInTval(t_meanwait),
-                                            tgt._meanTimes.confidence().isInTval(t_activeTime));
+        _confidenceHits[station].Accumulate(ref[StationStats::throughput][0].confidence().isInTval(t_throughput),
+                                            ref[StationStats::utilization][0].confidence().isInTval(t_utilization),
+                                            ref[StationStats::meancustomer][0].confidence().isInTval(t_meanclients),
+                                            ref[StationStats::meanwait][0].confidence().isInTval(t_meanwait),
+                                            tgt._mean.confidence().isInTval(t_activeTime));
         seeds.push_back(seed);
     }
 }
@@ -76,7 +76,7 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             std::string result = "";
             for (int i = 0; i < StationStats::MeasureType::size; i++)
             {
-                auto expected = mva.ExpectedForAccumulator(s.first, s.second[(StationStats::MeasureType)i]);
+                auto expected = mva.ExpectedForAccumulator(s.first, s.second[(StationStats::MeasureType)i][0]);
                 result += fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n",
                                       s.second[(StationStats::MeasureType)i], expected,
                                       s.second[(StationStats::MeasureType)i].confidence().tvalDiff(expected));
@@ -88,13 +88,20 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             shell->Log()->Result("{}", m.second);
         }
     });
+    shell->AddCommand("reset_measures", [this](auto s, auto ctx) { Reset(); });
 }
 
 void SimulationResult::Reset()
 {
-    for (auto v : _acc)
+    for (auto &v : _acc)
     {
         v.second.Reset();
+    }
+    for (auto &m : _customMeasure)
+    {
+        m.second.WithConfidence(SimulationResult::confidence);
+        m.second.MoveEsemble(1);
+        m.second[0].Reset();
     }
 }
 
@@ -106,7 +113,7 @@ void SimulationResult::Collect(BaseStation *station)
 void SimulationResult::CollectCustomMeasure(std::string name, double value)
 {
     if (!_customMeasure.contains(name))
-        _customMeasure[name] = Accumulator<>{name, ""};
+        _customMeasure[name] = EsembledMeasure<>{name, ""};
     _customMeasure[name](value);
 }
 
@@ -116,7 +123,7 @@ bool SimulationResult::PrecisionReached()
     {
         if (tg == "active_time")
         {
-            if (tgt.ComputeGrandMean().confidence().precision() > requiredPrecision)
+            if (tgt._mean.confidence().precision() > requiredPrecision)
             {
                 return false;
             }
@@ -125,7 +132,8 @@ bool SimulationResult::PrecisionReached()
         {
             return false;
         }
-        else if(_customMeasure.contains(tg) && _customMeasure[tg].confidence().precision() > requiredPrecision){
+        else if (_customMeasure.contains(tg) && _customMeasure[tg][0].confidence().precision() > requiredPrecision)
+        {
             return false;
         }
     }
@@ -145,7 +153,7 @@ bool StationStats::Ready()
     for (int i = 0; i < size; i++)
     {
         auto a = (*this)[(MeasureType)i];
-        if (a.confidence().precision() > SimulationResult::requiredPrecision || a.Count() < 40)
+        if (a[0].confidence().precision() > SimulationResult::requiredPrecision || a.Count() < 40)
             return false;
     }
     return true;
@@ -162,13 +170,13 @@ void StationStats::Collect(BaseStation *station)
 
 StationStats::StationStats()
 {
-    _acc[throughput] = Accumulator<>{"throughput", "j/s"}.WithConfidence(SimulationResult::confidence);
-    _acc[utilization] = Accumulator<>{"utilization", ""}.WithConfidence(SimulationResult::confidence);
-    _acc[meancustomer] = Accumulator<>{"meanclients", ""}.WithConfidence(SimulationResult::confidence);
-    _acc[meanwait] = Accumulator<>{"meanwaits", "ms"}.WithConfidence(SimulationResult::confidence);
+    _acc[throughput] = EsembledMeasure<>{"throughput", "j/s"}.WithConfidence(SimulationResult::confidence);
+    _acc[utilization] = EsembledMeasure<>{"utilization", ""}.WithConfidence(SimulationResult::confidence);
+    _acc[meancustomer] = EsembledMeasure<>{"meanclients", ""}.WithConfidence(SimulationResult::confidence);
+    _acc[meanwait] = EsembledMeasure<>{"meanwaits", "ms"}.WithConfidence(SimulationResult::confidence);
 }
 
-Accumulator<> &StationStats::operator[](StationStats::MeasureType measure)
+EsembledMeasure<> &StationStats::operator[](StationStats::MeasureType measure)
 {
     switch (measure)
     {
@@ -191,6 +199,7 @@ void StationStats::Reset()
     for (int i = 0; i < size; i++)
     {
         _acc[i].WithConfidence(SimulationResult::confidence);
-        _acc[i].Reset();
+        _acc[i].MoveEsemble(1);
+        _acc[i][0].Reset();
     }
 }

@@ -29,7 +29,7 @@ auto format_as(ConfidenceHits b);
 
 struct StationStats
 {
-    Accumulator<> _acc[4];
+    EsembledMeasure<> _acc[4];
     void Collect(BaseStation *station);
     StationStats();
     enum MeasureType
@@ -41,7 +41,7 @@ struct StationStats
         size
     };
 
-    Accumulator<> &operator[](StationStats::MeasureType measure);
+    EsembledMeasure<> &operator[](StationStats::MeasureType measure);
     void Reset();
     bool Ready();
 };
@@ -49,9 +49,9 @@ struct StationStats
 struct SimulationResult
 {
     static inline double requiredPrecision = 0.05;
-    static inline double confidence= 0.90;
+    static inline double confidence = 0.90;
     std::map<std::string, StationStats> _acc;
-    std::map<std::string, Accumulator<>> _customMeasure;
+    std::map<std::string, EsembledMeasure<>> _customMeasure;
     std::vector<std::string> _precisionTargets;
     MVASolver mva{};
     std::map<std::string, ConfidenceHits> _confidenceHits{};

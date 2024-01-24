@@ -49,6 +49,8 @@ SCENARIO(Simplified_N20)
 
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
+    regPoint->AddRule(
+        [](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 1; });
 }
 
 SCENARIO(Default) // first request

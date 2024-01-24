@@ -8,10 +8,7 @@
 #include <utility>
 struct TaggedCustomer
 {
-    BufferedMeasure<> _meanTimes{"meanTimes", "ms"};
-    BufferedMeasure<> _antitetichMeanTimes{"antitetichMeanTimes","ms"};
-
-    Accumulator<> _regCycle{"regCycleTime", "ms"};
+    EsembledMeasure<3> _mean{"cycleTime", "ms"};
 
     TaggedCustomer()
     {
@@ -28,5 +25,5 @@ struct TaggedCustomer
     void ConnectLeave(BaseStation *station, bool arrival = false);
     void AddShellCommands(SimulationShell *shell);
     void CompleteRegCycle();
-    Accumulator<> ComputeGrandMean();
+    void CompleteSimulation();
 };

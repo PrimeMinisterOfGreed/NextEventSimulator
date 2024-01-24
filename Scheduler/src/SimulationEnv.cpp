@@ -31,9 +31,10 @@ void SimulationManager::CollectMeasures()
     results.Collect(os->GetStation("IO2")->get());
     results.Collect(os->GetStation("SWAP_IN")->get());
     results.Collect(os->GetStation("SWAP_OUT")->get());
-    results.CollectCustomMeasure("activeTimes", os->GetStation("CPU").value()->avg_waiting() +
-                                                    os->GetStation("IO1").value()->avg_waiting() +
-                                                    os->GetStation("IO2").value()->avg_waiting());
+    results.CollectCustomMeasure("activeTimes", (os->GetStation("CPU").value()->mean_customer_system() +
+                                                 os->GetStation("IO1").value()->mean_customer_system() +
+                                                 os->GetStation("IO2").value()->mean_customer_system()) /
+                                                    os->GetStation("SWAP_OUT").value()->throughput());
 }
 
 void SimulationManager::SetupScenario(std::string name)
@@ -240,11 +241,13 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         {
             RandomStream::Global().PlantSeeds(seed);
             CollectSamples(samples);
+            results.tgt.CompleteSimulation();
             results.CollectResult(seed);
             results.Reset();
             shell->Log()->Debug("Perform antitetich evaluation");
             RandomStream::Global().SetAntitetich(true);
             CollectSamples(samples);
+            results.tgt.CompleteSimulation();
             results.CollectResult(seed);
             results.Reset();
             RandomStream::Global().SetAntitetich(false);

@@ -47,12 +47,28 @@ TEST(TestRandom, test_composition)
 TEST(TestRandom, test_routing)
 {
     RandomStream::Global().PlantSeeds(123456789);
-    Router router(2,{0.33,0.33,0.34},{0,1,2});
-    std::vector<double> hits{0,0,0};
-    for(int i = 0; i < 1000000; i++)
+    Router router(2, {0.33, 0.33, 0.34}, {0, 1, 2});
+    std::vector<double> hits{0, 0, 0};
+    for (int i = 0; i < 1000000; i++)
         hits[router()]++;
-    hits.push_back(hits[0]/hits[1]);
-    hits.push_back(hits[1]/hits[2]);
-    hits.push_back(hits[2]/hits[0]);
-    fmt::print("Hits: {}",fmt::join(hits,","));
+    hits.push_back(hits[0] / hits[1]);
+    hits.push_back(hits[1] / hits[2]);
+    hits.push_back(hits[2] / hits[0]);
+    fmt::print("Hits: {}", fmt::join(hits, ","));
+}
+
+TEST(TestRandom, test_measure_esemble)
+{
+    int seed = 123456789;
+    EsembledMeasure<> measure{"someMeasure", ""};
+    for (int i = 0; i < 100; i++)
+    {
+        for (int k = 0; k < 120; k++)
+        {
+            measure(Exponential(20));
+        }
+        measure.MoveEsemble(1);
+        measure[0].Reset();
+    }
+    fmt::print("{}", measure);
 }

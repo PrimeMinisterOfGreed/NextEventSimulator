@@ -6,6 +6,7 @@
 
 #include "Core.hpp"
 #include "LogEngine.hpp"
+#include "Measure.hpp"
 #include "rvms.h"
 #include <array>
 #include <cmath>
@@ -320,6 +321,85 @@ template <> struct fmt::formatter<BufferedMeasure<>> : fmt::formatter<string_vie
             "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{},BufferSize:{}",
             m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(), m.confidence().lower(),
             m.confidence().higher(), m.Current(), m.Data().size());
+    }
+};
+
+template <int Esembles = 2> struct EsembledMeasure : public Measure<double>
+{
+  public:
+    Accumulator<> accs[Esembles];
+    EsembledMeasure() : Measure("", "")
+    {
+    }
+    EsembledMeasure(std::string name, std::string unit) : Measure(name, unit)
+    {
+        for (int i = 0; i < Esembles; i++)
+            accs[i] = Accumulator<>{name, unit};
+    }
+
+    void Accumulate(double value) override
+    {
+        Measure<double>::Accumulate(value);
+        accs[0](value);
+    }
+
+    virtual void Reset() override
+    {
+        for (int i = 0; i < Esembles; i++)
+            accs[i].Reset();
+    }
+
+    virtual void MoveEsemble(int esemble)
+    {
+        core_assert(esemble < Esembles, "Targeting unexsisting esemble");
+        if (esemble > 0)
+        {
+            MoveEsemble(esemble - 1);
+            if (accs[esemble - 1].Count() > 0)
+                accs[esemble](accs[esemble - 1].mean());
+        }
+    }
+
+    EsembledMeasure &WithConfidence(double confidence)
+    {
+        for (int i = 0; i < Esembles; i++)
+            accs[i].WithConfidence(confidence);
+        return *this;
+    }
+
+    EsembledMeasure &WithPrecision(double precision)
+    {
+        for (int i = 0; i < Esembles; i++)
+            accs[i].WithPrecision(precision);
+        return *this;
+    }
+
+    Accumulator<> &operator[](int esemble)
+    {
+        return accs[esemble];
+    }
+
+    Interval confidence()
+    {
+        return accs[Esembles - 1].confidence();
+    }
+};
+
+template <int Esemble> struct fmt::formatter<EsembledMeasure<Esemble>>
+{
+    constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
+    {
+        return ctx.begin();
+    }
+
+    auto format(EsembledMeasure<Esemble> &m, format_context &ctx) -> format_context::iterator
+    {
+        format_context::iterator it = fmt::format_to(ctx.out(), "Measure:{},unit:{} ########\n", m.Name(), m.Unit());
+        for (int i = 0; i < Esemble; i++)
+        {
+            fmt::format_to(it, "Ensemble:{}#########\n{}\n", i, m[i]);
+        }
+        return it;
     }
 };
 
