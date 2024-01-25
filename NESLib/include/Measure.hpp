@@ -443,9 +443,15 @@ struct CovariatedMeasure : BaseMeasure
         return {_current[0], _current[1]};
     }
 
-    void operator()(double value, double time)
+    void operator()(double value, double time, bool notResetted = true)
     {
-        Accumulate(value, time);
+        if (notResetted)
+        {
+            double interval = time - _times[0];
+            Accumulate(value, interval);
+        }
+        else 
+            Accumulate(value, time);
     }
 
     void Reset() override

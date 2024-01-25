@@ -22,14 +22,13 @@ std::vector<double> slice(std::vector<double>::iterator begin, std::vector<doubl
 void CovariatedMeasure::Accumulate(double value, double time)
 {
     _count++;
-    double interval = time - _times[0];
     _current[0] = value;
-    _current[1] = interval;
+    _current[1] = time;
     _sum[0] += value;
     _sum[1] += pow(value, 2);
-    _times[0] += interval;
-    _times[1] += pow(interval, 2);
-    _weightedsum += (value * interval);
+    _times[0] += time;
+    _times[1] += pow(time, 2);
+    _weightedsum += (value * time);
 }
 
 double CovariatedMeasure::mean()

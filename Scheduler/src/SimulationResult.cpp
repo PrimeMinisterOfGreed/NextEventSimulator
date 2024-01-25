@@ -205,7 +205,7 @@ void StationStats::Collect(BaseStation *station)
     auto &self = *this;
     self[throughput](station->throughput(), station->clock());
     self[utilization](station->utilization(), station->clock());
-    self[meanwait](station->avg_waiting(), station->clock());
+    self[meanwait](station->avg_waiting(),station->clock());
     self[meancustomer](station->mean_customer_system(), station->clock());
 }
 
