@@ -16,6 +16,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <valarray>
 #include <vector>
 
@@ -400,6 +401,75 @@ template <int Esemble> struct fmt::formatter<EsembledMeasure<Esemble>>
             fmt::format_to(it, "Ensemble:{}#########\n{}\n", i, m[i]);
         }
         return it;
+    }
+};
+
+struct CovariatedMeasure : BaseMeasure
+{
+    double _confidence = 0.95;
+    double _precision = 0.05;
+    double _current[2]{};
+    double _sum[2]{};
+    double _times[2]{};
+    double _weightedsum{};
+    virtual void Accumulate(double value, double time);
+
+    double mean();
+    double variance();
+    Interval confidence();
+
+    CovariatedMeasure(std::string name, std::string unit) : BaseMeasure(name, unit)
+    {
+    }
+
+    CovariatedMeasure() : BaseMeasure("", "")
+    {
+    }
+
+    CovariatedMeasure &WithConfidence(double confidence)
+    {
+        _confidence = confidence;
+        return *this;
+    }
+
+    CovariatedMeasure &WithPrecision(double precision)
+    {
+        _precision = precision;
+        return *this;
+    }
+
+    std::pair<double, double> Current()
+    {
+        return {_current[0], _current[1]};
+    }
+
+    void operator()(double value, double time)
+    {
+        Accumulate(value, time);
+    }
+
+    void Reset() override
+    {
+        memset(_sum, 0, sizeof(double) * 2);
+        memset(_times, 0, sizeof(double) * 2);
+        _weightedsum = 0;
+    }
+};
+
+template <> struct fmt::formatter<CovariatedMeasure>
+{
+    constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
+    {
+        return ctx.begin();
+    }
+
+    auto format(CovariatedMeasure &m, format_context &ctx) -> format_context::iterator
+    {
+        return fmt::format_to(
+            ctx.out(),
+            "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}, LastTime:{}",
+            m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(), m.confidence().lower(),
+            m.confidence().higher(), m.Current().first, m.Current().second);
     }
 };
 

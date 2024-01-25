@@ -14,5 +14,5 @@ struct MVASolver
     std::vector<double> MeanClients(std::string stationName);
     std::vector<double> MeanWaits(std::string stationName);
     std::vector<double> ActiveTimes();
-    double ExpectedForAccumulator(std::string stationName, Accumulator<> acc);
+    double ExpectedForAccumulator(std::string stationName, const BaseMeasure *acc);
 };

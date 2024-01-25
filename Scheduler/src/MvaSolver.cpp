@@ -1,6 +1,7 @@
 #include "MvaSolver.hpp"
 #include "Collections/Matrix.hpp"
 #include "Core.hpp"
+#include "Measure.hpp"
 #include "SystemParameters.hpp"
 #include <Mva.hpp>
 #include <algorithm>
@@ -121,26 +122,26 @@ std::vector<double> MVASolver::ActiveTimes()
     return times;
 }
 
-double MVASolver::ExpectedForAccumulator(std::string stationName, Accumulator<> acc)
+double MVASolver::ExpectedForAccumulator(std::string stationName, const BaseMeasure *acc)
 {
     int n = SystemParameters::Parameters().numclients;
     if (!inited)
         PreloadModel();
     if (std::find(stations.begin(), stations.end(), stationName) == stations.end())
         return 0.0;
-    if (acc.Name() == "throughput")
+    if (acc->Name() == "throughput")
     {
         return Throughputs(stationName)[n];
     }
-    else if (acc.Name() == "utilization")
+    else if (acc->Name() == "utilization")
     {
         return Utilizations(stationName)[n];
     }
-    else if (acc.Name() == "meanclients")
+    else if (acc->Name() == "meanclients")
     {
         return MeanClients(stationName)[n];
     }
-    else if (acc.Name() == "meanwaits")
+    else if (acc->Name() == "meanwaits")
     {
         return MeanWaits(stationName)[n];
     }

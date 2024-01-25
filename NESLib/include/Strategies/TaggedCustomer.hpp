@@ -8,15 +8,15 @@
 #include <utility>
 struct TaggedCustomer
 {
-    EsembledMeasure<3> _mean{"cycleTime", "ms"};
-
+    CovariatedMeasure _mean{"cycleTime", "ms"};
+    Accumulator<> _regCycle{"regCycleTime", "ms"};
     TaggedCustomer()
     {
     }
 
     TaggedCustomer &WithRegPoint(RegenerationPoint *regPoint)
     {
-        regPoint->AddAction([this](RegenerationPoint *) { CompleteRegCycle(); });
+        regPoint->AddAction([this](RegenerationPoint *pt) { CompleteRegCycle(pt->scheduler->GetClock()); });
         return *this;
     }
 
@@ -24,6 +24,6 @@ struct TaggedCustomer
     void ConnectEntrance(BaseStation *station, bool arrival = false);
     void ConnectLeave(BaseStation *station, bool arrival = false);
     void AddShellCommands(SimulationShell *shell);
-    void CompleteRegCycle();
+    void CompleteRegCycle(double actualClock);
     void CompleteSimulation();
 };
