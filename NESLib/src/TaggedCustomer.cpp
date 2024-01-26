@@ -10,7 +10,12 @@
 
 void TaggedCustomer::ConnectEntrance(BaseStation *station, bool arrival)
 {
-    auto l = [this, station](auto s, Event &e) { _times[e.Name] = {station->clock(), 0}; };
+    auto l = [this, station](auto s, Event &e) {
+        if (target_client == "")
+            target_client = e.Name;
+        if (e.Name == target_client)
+            time = e.OccurTime;
+    };
     if (arrival)
         station->OnArrival(l);
     else
@@ -20,11 +25,11 @@ void TaggedCustomer::ConnectEntrance(BaseStation *station, bool arrival)
 void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
 {
     auto l = [this, station](auto s, Event &e) {
-        if (_times.count(e.Name) == 0)
-            panic(fmt::format("Event with name {} not registered at entrance", e.Name));
-        _times[e.Name].second = station->clock();
-        auto pair = _times.at(e.Name);
-        _regCycle(pair.second - pair.first);
+        if (e.Name == target_client)
+        {
+            double interval = e.OccurTime - time;
+            _acc.Accumulate(interval);
+        }
     };
     if (arrival)
         station->OnArrival(l);
@@ -39,8 +44,8 @@ void TaggedCustomer::AddShellCommands(SimulationShell *shell)
 
 void TaggedCustomer::CompleteRegCycle(double actualclock)
 {
-    _mean(_regCycle.mean(), actualclock);
-    _regCycle.Reset();
+    _mean(_acc.sum(), _acc.Count(), false);
+    _acc.Reset();
 }
 
 void TaggedCustomer::CompleteSimulation()

@@ -23,7 +23,7 @@ SCENARIO(Simplified)
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         static int counter = 0;
         counter++;
-        if (counter == 10)
+        if (counter == 100)
         {
             manager->regPoint->Trigger();
             counter = 0;

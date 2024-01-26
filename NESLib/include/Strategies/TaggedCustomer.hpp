@@ -9,7 +9,8 @@
 struct TaggedCustomer
 {
     CovariatedMeasure _mean{"cycleTime", "ms"};
-    Accumulator<> _regCycle{"regCycleTime", "ms"};
+    Accumulator<> _acc{"regTime", "ms"};
+    std::string target_client = "";
     TaggedCustomer()
     {
     }
@@ -20,7 +21,7 @@ struct TaggedCustomer
         return *this;
     }
 
-    std::map<std::string, std::pair<double, double>> _times;
+    double time = 0;
     void ConnectEntrance(BaseStation *station, bool arrival = false);
     void ConnectLeave(BaseStation *station, bool arrival = false);
     void AddShellCommands(SimulationShell *shell);
