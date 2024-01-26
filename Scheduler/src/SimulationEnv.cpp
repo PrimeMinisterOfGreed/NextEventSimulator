@@ -31,12 +31,12 @@ void SimulationManager::CollectMeasures()
     results.Collect(os->GetStation("IO2")->get());
     results.Collect(os->GetStation("SWAP_IN")->get());
     results.Collect(os->GetStation("SWAP_OUT")->get());
-    results.CollectCustomMeasure("activeTimes",
-                                 ((os->GetStation("CPU").value()->mean_customer_system() +
-                                   os->GetStation("IO1").value()->mean_customer_system() +
-                                   os->GetStation("IO2").value()->mean_customer_system()) /
-                                  os->GetStation("SWAP_OUT").value()->throughput()),
-                                 os->GetClock());
+    results.CollectCustomMeasure(
+        "activeTimes",
+        ((os->GetStation("CPU").value()->avg_waiting() + os->GetStation("IO1").value()->avg_waiting() +
+          os->GetStation("IO2").value()->avg_waiting()) /
+         os->GetStation("SWAP_OUT").value()->throughput()),
+        os->GetClock());
 }
 
 void SimulationManager::SetupScenario(std::string name)

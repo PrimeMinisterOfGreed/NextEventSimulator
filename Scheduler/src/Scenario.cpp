@@ -1,4 +1,5 @@
 #include "SimulationEnv.hpp"
+#include "Station.hpp"
 #include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
 
@@ -18,16 +19,29 @@ SCENARIO(Simplified)
     auto &params = SystemParameters::Parameters();
     params.numclients = 1;
     params.cpumode = SystemParameters::FIXED;
+    auto &regPoint = manager->regPoint;
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        static int counter = 0;
-        counter++;
-        if (counter == 100)
+        manager->regPoint->Trigger();
+    });
+    regPoint->AddRule([](RegenerationPoint *r) {
+        auto cpu = r->scheduler->GetStation("CPU").value();
+        auto io1 = r->scheduler->GetStation("IO1").value();
+        auto io2 = r->scheduler->GetStation("IO2").value();
+        auto ac = [](BaseStation *s) { return s->arrivals() == s->completions(); };
+        return ac(cpu.get()) && ac(io1.get()) && ac(io2.get());
+    });
+
+    static int counter = 0;
+    regPoint->AddRule([](RegenerationPoint *r) {
+        if (counter >= 10)
         {
-            manager->regPoint->Trigger();
             counter = 0;
+            return true;
         }
+        counter++;
+        return false;
     });
 };
 
