@@ -154,6 +154,15 @@ class BaseStation
     {
         return _areaN / _observationPeriod;
     }
+
+    double areaN() const
+    {
+        return _areaN;
+    }
+    double areaS() const
+    {
+        return _areaS;
+    }
 };
 
 class Station : public BaseStation

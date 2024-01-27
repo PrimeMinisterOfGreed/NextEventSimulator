@@ -53,7 +53,7 @@ struct SimulationResult
     static inline double requiredPrecision = 0.05;
     static inline double confidence = 0.90;
     std::map<std::string, StationStats> _acc;
-    std::map<std::string, CovariatedMeasure> _customMeasure;
+    Accumulator<> _activeTime{"activeTime","ms"};
     std::vector<std::string> _precisionTargets;
     MVASolver mva{};
     std::map<std::string, ConfidenceHits> _confidenceHits{};

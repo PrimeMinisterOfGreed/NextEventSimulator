@@ -33,13 +33,13 @@ void CovariatedMeasure::Accumulate(double value, double time)
 
 double CovariatedMeasure::mean()
 {
-    return _weightedsum / _times[0];
+    return _sum[0]/_times[0];
 }
 
 double CovariatedMeasure::variance()
 {
     double r = _sum[0] / _times[0];
-    double a = _sum[1] - (2 * r * _weightedsum) + pow(r, 2) * _times[1];
+    double a = _sum[1] - (2 * r * _weightedsum) + (pow(r, 2) * _times[1]);
     return a / (_count - 1);
 }
 
@@ -47,7 +47,7 @@ Interval CovariatedMeasure::confidence()
 {
     double r = _sum[0] / _times[0];
     double a = sqrt(((double)_count / (_count - 1.0)));
-    double b = (sqrt(_sum[1] - 2 * r * _weightedsum + pow(r, 2) * _times[1]));
+    double b = (sqrt(_sum[1] - (2 * r * _weightedsum) + (pow(r, 2) * _times[1])));
     double delta = a * (b / _times[0]);
     return Interval(mean(), delta);
 }

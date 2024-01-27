@@ -37,9 +37,9 @@ Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(sche
 void Cpu::ProcessArrival(Event &evt)
 {
     // it's a new process
-    Station::ProcessArrival(evt);
     if (evt.SubType != 'E')
     {
+        Station::ProcessArrival(evt);
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
         evt.ServiceTime = _burst();
@@ -71,11 +71,10 @@ void Cpu::ProcessDeparture(Event &evt)
 
     static Router router(4, SystemParameters::Parameters().cpuChoice, {IO_1, IO_2, SWAP_OUT, CPU});
     // process has finished
-    Station::ProcessDeparture(evt);
 
     if (evt.ServiceTime == 0)
     {
-
+        Station::ProcessDeparture(evt);
         evt.Type = ARRIVAL;
         evt.Station = router();
         evt.SubType = 0;

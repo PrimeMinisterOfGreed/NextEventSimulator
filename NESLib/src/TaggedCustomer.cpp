@@ -44,7 +44,7 @@ void TaggedCustomer::AddShellCommands(SimulationShell *shell)
 
 void TaggedCustomer::CompleteRegCycle(double actualclock)
 {
-    _mean(_acc.sum(), _acc.Count(), false);
+    _mean(_acc.sum(), _acc.Count(),false);
     _acc.Reset();
 }
 

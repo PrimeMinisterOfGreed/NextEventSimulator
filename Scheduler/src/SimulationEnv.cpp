@@ -1,11 +1,14 @@
 #include "SimulationEnv.hpp"
 #include "Core.hpp"
+#include "Enums.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
 #include "Measure.hpp"
 #include "MvaSolver.hpp"
 #include "OperativeSystem.hpp"
 #include "Shell/SimulationShell.hpp"
+#include "SimulationResult.hpp"
+#include "Station.hpp"
 #include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
 #include "Usings.hpp"
@@ -31,12 +34,13 @@ void SimulationManager::CollectMeasures()
     results.Collect(os->GetStation("IO2")->get());
     results.Collect(os->GetStation("SWAP_IN")->get());
     results.Collect(os->GetStation("SWAP_OUT")->get());
-    results.CollectCustomMeasure(
-        "activeTimes",
-        ((os->GetStation("CPU").value()->avg_waiting() + os->GetStation("IO1").value()->avg_waiting() +
-          os->GetStation("IO2").value()->avg_waiting()) /
-         os->GetStation("SWAP_OUT").value()->throughput()),
-        os->GetClock());
+
+    auto activeTime = [this](std::string name) {
+        auto s = os->GetStation(name).value();
+        return results._acc[name][StationStats::meanwait].mean() *
+               ((double)s->completions() / os->GetStation("delay_station").value()->completions());
+    };
+    results._activeTime( activeTime("CPU") + activeTime("IO1") + activeTime("IO2"));
 }
 
 void SimulationManager::SetupScenario(std::string name)
@@ -255,7 +259,7 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             RandomStream::Global().SetAntitetich(false);
             seed++;
             shell->Log()->Debug("End of simulation {}", i);
-            shell->Log()->Result("{}", results._customMeasure["activeTimes"]);
+            shell->Log()->Result("{}", results._activeTime);
         }
     });
     results.AddShellCommands(shell);

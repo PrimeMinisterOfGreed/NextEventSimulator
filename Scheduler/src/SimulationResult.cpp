@@ -95,11 +95,7 @@ void SimulationResult::Reset()
     {
         v.second.Reset();
     }
-    for (auto &m : _customMeasure)
-    {
-        m.second.WithConfidence(SimulationResult::confidence);
-        m.second.Reset();
-    }
+    _activeTime.Reset();
 }
 
 void SimulationResult::Collect(BaseStation *station)
@@ -107,12 +103,6 @@ void SimulationResult::Collect(BaseStation *station)
     _acc[station->Name()].Collect(station);
 }
 
-void SimulationResult::CollectCustomMeasure(std::string name, double value, double time)
-{
-    if (!_customMeasure.contains(name))
-        _customMeasure[name] = CovariatedMeasure{name, ""};
-    _customMeasure[name](value, time);
-}
 
 bool SimulationResult::PrecisionReached()
 {
@@ -126,10 +116,6 @@ bool SimulationResult::PrecisionReached()
             }
         }
         else if (!_acc[tg].Ready())
-        {
-            return false;
-        }
-        else if (_customMeasure.contains(tg) && _customMeasure[tg].confidence().precision() > requiredPrecision)
         {
             return false;
         }
@@ -153,21 +139,8 @@ void SimulationResult::LogResult(std::string name)
             }
             SimulationShell::Instance().Log()->Result("Station:{}\n{}", s.first, result);
         }
-        for (auto m : _customMeasure)
-        {
-            SimulationShell::Instance().Log()->Result("{}", m.second);
-        }
-    }
-    else
-    {
-        if (_customMeasure.contains(name))
-        {
-            SimulationShell::Instance().Log()->Result("{}", _customMeasure[name]);
-        }
-        else if (_acc.contains(name))
-        {
-            SimulationShell::Instance().Log()->Result("{}", _acc[name]);
-        }
+
+        SimulationShell::Instance().Log()->Result("{}", _activeTime);
     }
 }
 
@@ -203,10 +176,10 @@ bool StationStats::Ready()
 void StationStats::Collect(BaseStation *station)
 {
     auto &self = *this;
-    self[throughput](station->throughput(), station->clock());
-    self[utilization](station->utilization(), station->clock());
-    self[meanwait](station->avg_waiting(),station->clock());
-    self[meancustomer](station->mean_customer_system(), station->clock());
+    self[throughput](station->completions(), station->clock());
+    self[utilization](station->busyTime(), station->clock());
+    self[meanwait](station->areaN(), station->completions(), false);
+    self[meancustomer](station->areaN(), station->clock());
 }
 
 StationStats::StationStats()

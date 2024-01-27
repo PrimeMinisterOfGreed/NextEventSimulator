@@ -22,14 +22,14 @@ SCENARIO(Simplified)
     auto &regPoint = manager->regPoint;
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
-    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
+    manager->os->GetStation("SWAP_OUT").value()->OnArrival([&regPoint](auto s ,auto e){
+        regPoint->Trigger();
     });
     regPoint->AddRule([](RegenerationPoint *r) {
         auto cpu = r->scheduler->GetStation("CPU").value();
         auto io1 = r->scheduler->GetStation("IO1").value();
         auto io2 = r->scheduler->GetStation("IO2").value();
-        auto ac = [](BaseStation *s) { return s->arrivals() == s->completions(); };
+        auto ac = [](BaseStation *s) { return s->arrivals() == s->completions() && s->completions()>1; };
         return ac(cpu.get()) && ac(io1.get()) && ac(io2.get());
     });
 
