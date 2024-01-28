@@ -13,15 +13,15 @@ class Cpu : public Station, public IQueueHolder
 {
 
   private:
-    std::optional<Event> _eventUnderProcess;
+    std::optional<Event> _eventUnderProcess{};
 
     IScheduler *_scheduler;
 
-    std::function<double()> _burst;
 
   public:
     Cpu(IScheduler *scheduler);
 
     void ProcessArrival(Event &evt) override;
     void ProcessDeparture(Event &evt) override;
+    double Burst();
 };

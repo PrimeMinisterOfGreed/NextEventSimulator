@@ -14,24 +14,6 @@
 // https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
 Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
 {
-
-    _burst = [this]() {
-        static VariableStream negExp(3, [](auto rng) { return Exponential(27); });
-        static CompositionStream hyperExp{
-            3, {0.95, 0.05}, [](auto rng) { return Exponential(10); }, [](auto rng) { return Exponential(350); }};
-
-        switch (SystemParameters::Parameters().cpumode)
-        {
-        case SystemParameters::NEG_EXP:
-            return negExp();
-        case SystemParameters::HYPER_EXP:
-            return hyperExp();
-        case SystemParameters::FIXED:
-            return SystemParameters::Parameters().cpuQuantum;
-        default:
-            return 0.0;
-        }
-    };
 }
 
 void Cpu::ProcessArrival(Event &evt)
@@ -42,8 +24,8 @@ void Cpu::ProcessArrival(Event &evt)
         Station::ProcessArrival(evt);
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
-        evt.ServiceTime = _burst();
-        if (_eventUnderProcess.has_value() && _eventList.Count() > 0)
+        evt.ServiceTime = Burst();
+        if (_eventUnderProcess.has_value()) //there are other process in ready queue
         {
             _eventList.Push(evt);
             return;
@@ -62,7 +44,7 @@ void Cpu::ProcessArrival(Event &evt)
     evt.Type = DEPARTURE;
     evt.OccurTime = _clock + slice;
     evt.ServiceTime -= slice;
-    _eventUnderProcess = evt;
+    _eventUnderProcess.emplace(evt);
     _scheduler->Schedule(evt);
 }
 
@@ -71,13 +53,14 @@ void Cpu::ProcessDeparture(Event &evt)
 
     static Router router(4, SystemParameters::Parameters().cpuChoice, {IO_1, IO_2, SWAP_OUT, CPU});
     // process has finished
-
+    core_assert(evt == _eventUnderProcess.value(), "Event {} scheduled for departure but other event in process {}",evt,_eventUnderProcess.value());
+    _eventUnderProcess.reset();
     if (evt.ServiceTime == 0)
     {
-        Station::ProcessDeparture(evt);
+       Station::ProcessDeparture(evt);
         evt.Type = ARRIVAL;
         evt.Station = router();
-        evt.SubType = 0;
+        evt.SubType = NO_EVENT;
         _logger.Debug("CPU Departure, send event to {}", _scheduler->GetStation(evt.Station).value()->Name());
         _scheduler->Schedule(evt);
     }
@@ -90,7 +73,25 @@ void Cpu::ProcessDeparture(Event &evt)
         auto newEvt = _eventList.Dequeue();
         newEvt.Type = ARRIVAL;
         newEvt.OccurTime = _clock;
-        _scheduler->Schedule(newEvt);
+        Process(newEvt);
     }
-    _eventUnderProcess.reset();
+}
+
+double Cpu::Burst()
+{
+    static VariableStream negExp(3, [](auto rng) { return Exponential(27); });
+    static CompositionStream hyperExp{
+        3, {0.95, 0.05}, [](auto rng) { return Exponential(10); }, [](auto rng) { return Exponential(350); }};
+
+    switch (SystemParameters::Parameters().cpumode)
+    {
+    case SystemParameters::NEG_EXP:
+        return negExp();
+    case SystemParameters::HYPER_EXP:
+        return hyperExp();
+    case SystemParameters::FIXED:
+        return SystemParameters::Parameters().cpuQuantum;
+    default:
+        return 0.0;
+    };
 }

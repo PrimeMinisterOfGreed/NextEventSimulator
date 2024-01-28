@@ -116,6 +116,11 @@ class BaseStation
         return _busyTime / _observationPeriod;
     }
 
+    int max_sys_clients()
+    {
+        return _maxClients;
+    }
+
     double throughput() const
     {
         return _completions / _observationPeriod;
@@ -168,17 +173,11 @@ class BaseStation
 class Station : public BaseStation
 {
   protected:
-    DataCollector collector;
 
     int _stationIndex{};
 
   public:
     virtual void Initialize();
-    void Update();
-    DataCollector &Data()
-    {
-        return collector;
-    }
     virtual void Reset() override;
     Station(std::string name, int station);
 

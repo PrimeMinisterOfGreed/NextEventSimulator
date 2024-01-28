@@ -31,24 +31,29 @@ TEST(TestCpu, test_arrival)
 TEST(TestCpu, test_flooding)
 {
     Scheduler sched{"scheduler"};
+    auto &params = SystemParameters::Parameters();
     auto cpu = new Cpu(&sched);
     auto io1 = new MockStation(Stations::IO_1);
     auto io2 = new MockStation(Stations::IO_2);
     auto swap_out = new MockStation(Stations::SWAP_OUT);
+    params.cpumode = SystemParameters::FIXED;
+    params.cpuQuantum = 2.7;
+    params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     sched.AddStation(io1);
     sched.AddStation(io2);
     sched.AddStation(swap_out);
     sched.AddStation(cpu);
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 10; i++)
     {
-        auto evt = sched.Create(i * 5, 27);
+        auto evt = sched.Create(1, 27);
         evt.Station = CPU;
         sched.Schedule(evt);
     }
     while (sched.HasEvents())
+    {
         sched.ProcessNext();
-    cpu->Update();
-    fmt::print("Cpu U:{}", cpu->Data()["utilization"].value()->Current());
+        fmt::println("Cpu U:{}, W:{}, N:{}", cpu->utilization(), cpu->avg_waiting(),cpu->sysClients());
+    }
 }
 
 TEST(TestIO, test_arrival)

@@ -107,9 +107,8 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             for (auto s : os->GetStations())
             {
                 os->Sync();
-                s->Update();
-                logger.Result("S:{},B:{},O:{},A:{},S:{},N:{},W:{}", s->Name(), s->busyTime(), s->observation(),
-                              s->arrivals(), s->completions(), s->sysClients(), s->avg_waiting());
+                logger.Result("S:{},B:{},O:{},A:{},C:{},N:{},W:{},MAXN:{},AN:{},AS:{}", s->Name(), s->busyTime(), s->observation(),
+                              s->arrivals(), s->completions(), s->sysClients(), s->avg_waiting(),s->max_sys_clients(),s->areaN(),s->areaS());
             }
         }
         else
