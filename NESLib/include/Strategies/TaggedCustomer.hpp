@@ -24,7 +24,6 @@ struct TaggedCustomer
     double time = 0;
     void ConnectEntrance(BaseStation *station, bool arrival = false);
     void ConnectLeave(BaseStation *station, bool arrival = false);
-    void AddShellCommands(SimulationShell *shell);
     void CompleteRegCycle(double actualClock);
     void CompleteSimulation();
 };

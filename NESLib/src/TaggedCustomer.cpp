@@ -37,11 +37,6 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
         station->OnDeparture(l);
 }
 
-void TaggedCustomer::AddShellCommands(SimulationShell *shell)
-{
-    shell->AddCommand("ltgtstats", [this](SimulationShell *s, auto ctx) { s->Log()->Result("{}", _mean); });
-}
-
 void TaggedCustomer::CompleteRegCycle(double actualclock)
 {
     _mean(_acc.sum(), _acc.Count(),false);

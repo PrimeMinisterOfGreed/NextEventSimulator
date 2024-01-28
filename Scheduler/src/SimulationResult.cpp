@@ -72,7 +72,8 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             shell->Log()->Result("Station:{}\n{}", s, _confidenceHits[s]);
         }
     });
-    tgt.AddShellCommands(shell);
+    shell->AddCommand("ltgtstats", [this](SimulationShell *s, auto ctx) { s->Log()->Result("{},Expected:{}", tgt._mean,mva.ActiveTimes()[SystemParameters::Parameters().numclients]); });
+    
     shell->AddCommand("lmeasures", [this](SimulationShell *shell, const char *ctx) {
         char buffer[36]{};
         std::stringstream stream{ctx};
@@ -140,7 +141,7 @@ void SimulationResult::LogResult(std::string name)
             SimulationShell::Instance().Log()->Result("Station:{}\n{}", s.first, result);
         }
 
-        SimulationShell::Instance().Log()->Result("{}", _activeTime);
+        SimulationShell::Instance().Log()->Result("{},Expected:{}", _activeTime,mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
     }
 }
 

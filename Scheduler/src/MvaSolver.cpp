@@ -1,6 +1,7 @@
 #include "MvaSolver.hpp"
 #include "Collections/Matrix.hpp"
 #include "Core.hpp"
+#include "Enums.hpp"
 #include "Measure.hpp"
 #include "SystemParameters.hpp"
 #include <Mva.hpp>
@@ -21,6 +22,7 @@ const std::vector<StationType> types{D, I, I, I, I};
 
 const std::vector<std::string> stations{"Delay", "SWAP_IN", "CPU", "IO1", "IO2"};
 
+std::vector<double> visits;
 MVAResult preloadResult{(int)stimes.size(), 30};
 
 std::string MVAToString(Matrix<double> result, std::string resultName)
@@ -68,7 +70,8 @@ void PrintMVA()
 
 void DoMva(Matrix<double> transition)
 {
-    auto visits = RouteToVisit(transition);
+    auto calc = RouteToVisit(transition);
+    visits = calc;
     preloadResult = MVALID(std::vector{visits}, std::vector{stimes}, std::vector{types}, 30);
 }
 
@@ -83,7 +86,7 @@ std::vector<std::string> MVASolver::Stations()
     return stations;
 }
 
-int peekStation(std::string &stationName)
+int peekStation(std::string stationName)
 {
     for (int i = 0; i < stations.size(); i++)
         if (stationName == stations[i])
@@ -117,7 +120,9 @@ std::vector<double> MVASolver::ActiveTimes()
     auto mat = preloadResult.meanWaits;
     for (int k = 0; k < preloadResult.meanWaits.Columns(); k++)
     {
-        times.push_back(mat(2, k) + mat(3, k) + mat(4, k));
+        times.push_back(mat(2, k)*visits[peekStation("CPU")] + 
+        mat(3, k)*visits[peekStation("IO1")] + 
+        mat(4, k)*visits[peekStation("IO2")]);
     }
     return times;
 }
