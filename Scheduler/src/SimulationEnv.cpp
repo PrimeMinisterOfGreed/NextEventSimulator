@@ -37,10 +37,12 @@ void SimulationManager::CollectMeasures()
 
     auto activeTime = [this](std::string name) {
         auto s = os->GetStation(name).value();
-        return results._acc[name][StationStats::meanwait].mean() *
-               ((double)s->completions() / os->GetStation("delay_station").value()->completions());
+      //  return results._acc[name][StationStats::meanwait].mean() *
+        //       ((double)s->completions() / os->GetStation("delay_station").value()->completions());
+
+        return results._acc[name][StationStats::meancustomer].mean();
     };
-    results._activeTime( activeTime("CPU") + activeTime("IO1") + activeTime("IO2"));
+    results._activeTime( (activeTime("CPU") + activeTime("IO1") + activeTime("IO2"))/results._acc["SWAP_IN"][StationStats::throughput].mean());
 }
 
 void SimulationManager::SetupScenario(std::string name)
