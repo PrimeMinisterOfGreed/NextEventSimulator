@@ -72,8 +72,10 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             shell->Log()->Result("Station:{}\n{}", s, _confidenceHits[s]);
         }
     });
-    shell->AddCommand("ltgtstats", [this](SimulationShell *s, auto ctx) { s->Log()->Result("{},Expected:{}", tgt._mean,mva.ActiveTimes()[SystemParameters::Parameters().numclients]); });
-    
+    shell->AddCommand("ltgtstats", [this](SimulationShell *s, auto ctx) {
+        s->Log()->Result("{},Expected:{}", tgt._mean, mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+    });
+
     shell->AddCommand("lmeasures", [this](SimulationShell *shell, const char *ctx) {
         char buffer[36]{};
         std::stringstream stream{ctx};
@@ -104,23 +106,24 @@ void SimulationResult::Collect(BaseStation *station)
     _acc[station->Name()].Collect(station);
 }
 
-
 bool SimulationResult::PrecisionReached()
 {
+    auto logger = SimulationShell::Instance().Log();
     for (std::string tg : _precisionTargets)
     {
-        if (tg == "active_time")
+        if (tg == "ActiveTime" && tgt._mean.confidence().precision() > requiredPrecision)
         {
-            if (tgt._mean.confidence().precision() > requiredPrecision)
-            {
-                return false;
-            }
+            logger->Information("Target:{} not reached precision", tg);
+            return false;
         }
         else if (!_acc[tg].Ready())
         {
+            logger->Information("Target:{} not reached precision", tg);
+
             return false;
         }
     }
+    logger->Information("All target reached required precision {} ", requiredPrecision);
     return true;
 }
 
@@ -141,7 +144,26 @@ void SimulationResult::LogResult(std::string name)
             SimulationShell::Instance().Log()->Result("Station:{}\n{}", s.first, result);
         }
 
-        SimulationShell::Instance().Log()->Result("{},Expected:{}", _activeTime,mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+        SimulationShell::Instance().Log()->Result("{},Expected:{}", tgt._mean,
+                                                  mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+    }
+    else if (name == "ActiveTime")
+    {
+        SimulationShell::Instance().Log()->Result("{},Expected:{}", tgt._mean,
+                                                  mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+    }
+    else
+    {
+        auto acc = _acc[name];
+        std::string result = "";
+        for (int i = 0; i < StationStats::MeasureType::size; i++)
+        {
+            auto expected = mva.ExpectedForAccumulator(name, &acc[(StationStats::MeasureType)i]);
+            result +=
+                fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n", acc[(StationStats::MeasureType)i],
+                            expected, acc[(StationStats::MeasureType)i].confidence().tvalDiff(expected));
+        }
+        SimulationShell::Instance().Log()->Result("Station:{}\n{}", name, result);
     }
 }
 
@@ -168,8 +190,10 @@ bool StationStats::Ready()
     for (int i = 0; i < size; i++)
     {
         auto a = (*this)[(MeasureType)i];
-        if (a.confidence().precision() > SimulationResult::requiredPrecision || a.Count() < 40)
+        if (a.confidence().precision() > SimulationResult::requiredPrecision || a.Count() < 2)
+        {
             return false;
+        }
     }
     return true;
 }

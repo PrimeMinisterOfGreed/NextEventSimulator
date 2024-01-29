@@ -22,14 +22,12 @@ SCENARIO(Simplified)
     auto &regPoint = manager->regPoint;
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
-    manager->os->GetStation("SWAP_OUT").value()->OnArrival([&regPoint](auto s ,auto e){
-        regPoint->Trigger();
-    });
+    manager->os->GetStation("SWAP_OUT").value()->OnArrival([&regPoint](auto s, auto e) { regPoint->Trigger(); });
     regPoint->AddRule([](RegenerationPoint *r) {
         auto cpu = r->scheduler->GetStation("CPU").value();
         auto io1 = r->scheduler->GetStation("IO1").value();
         auto io2 = r->scheduler->GetStation("IO2").value();
-        auto ac = [](BaseStation *s) { return s->arrivals() == s->completions() && s->completions()>1; };
+        auto ac = [](BaseStation *s) { return s->arrivals() == s->completions() && s->completions() > 1; };
         return ac(cpu.get()) && ac(io1.get()) && ac(io2.get());
     });
 
@@ -100,7 +98,7 @@ SCENARIO(Default_NOMPD)
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }
 
@@ -116,7 +114,7 @@ SCENARIO(NegExpCpu) // second request
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }
 
@@ -128,6 +126,12 @@ SCENARIO(LTCpu) // third request
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
     });
+    auto &regPoint = manager->regPoint;
+    regPoint->AddRule(
+        [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }
 
 SCENARIO(NegExpLt) // last request
@@ -138,4 +142,10 @@ SCENARIO(NegExpLt) // last request
     manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
         manager->regPoint->Trigger();
     });
+    auto &regPoint = manager->regPoint;
+    regPoint->AddRule(
+        [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }

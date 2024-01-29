@@ -33,16 +33,16 @@ void SimulationManager::CollectMeasures()
     results.Collect(os->GetStation("IO1")->get());
     results.Collect(os->GetStation("IO2")->get());
     results.Collect(os->GetStation("SWAP_IN")->get());
-    results.Collect(os->GetStation("SWAP_OUT")->get());
 
     auto activeTime = [this](std::string name) {
         auto s = os->GetStation(name).value();
-      //  return results._acc[name][StationStats::meanwait].mean() *
+        //  return results._acc[name][StationStats::meanwait].mean() *
         //       ((double)s->completions() / os->GetStation("delay_station").value()->completions());
 
         return results._acc[name][StationStats::meancustomer].mean();
     };
-    results._activeTime( (activeTime("CPU") + activeTime("IO1") + activeTime("IO2"))/results._acc["SWAP_IN"][StationStats::throughput].mean());
+    results._activeTime((activeTime("CPU") + activeTime("IO1") + activeTime("IO2")) /
+                        results._acc["SWAP_IN"][StationStats::throughput].mean());
 }
 
 void SimulationManager::SetupScenario(std::string name)
@@ -109,8 +109,9 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             for (auto s : os->GetStations())
             {
                 os->Sync();
-                logger.Result("S:{},B:{},O:{},A:{},C:{},N:{},W:{},MAXN:{},AN:{},AS:{}", s->Name(), s->busyTime(), s->observation(),
-                              s->arrivals(), s->completions(), s->sysClients(), s->avg_waiting(),s->max_sys_clients(),s->areaN(),s->areaS());
+                logger.Result("S:{},B:{},O:{},A:{},C:{},N:{},W:{},MAXN:{},AN:{},AS:{}", s->Name(), s->busyTime(),
+                              s->observation(), s->arrivals(), s->completions(), s->sysClients(), s->avg_waiting(),
+                              s->max_sys_clients(), s->areaN(), s->areaS());
             }
         }
         else
@@ -280,10 +281,14 @@ void SimulationManager::CollectSamples(int samples)
     if (samples == -1)
     {
         int i = 0;
-        while (!results.PrecisionReached() || i < 40)
+        while (!results.PrecisionReached())
         {
             p(i);
             i++;
+            for (auto tg : results._precisionTargets)
+            {
+                results.LogResult(tg);
+            }
         }
     }
     for (int i = 0; i < samples; i++)

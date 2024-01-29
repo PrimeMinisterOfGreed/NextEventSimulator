@@ -117,12 +117,11 @@ std::vector<double> MVASolver::ActiveTimes()
     static std::vector<double> times{};
     if (times.size() > 0)
         return times;
-    auto mat = preloadResult.meanWaits;
+    auto mat = preloadResult.meanClients;
+    auto t = preloadResult.throughputs;
     for (int k = 0; k < preloadResult.meanWaits.Columns(); k++)
     {
-        times.push_back(mat(2, k)*visits[peekStation("CPU")] + 
-        mat(3, k)*visits[peekStation("IO1")] + 
-        mat(4, k)*visits[peekStation("IO2")]);
+        times.push_back((mat(2, k) + mat(3, k) + mat(4, k)) / t(1, k));
     }
     return times;
 }

@@ -53,8 +53,8 @@ struct SimulationResult
     static inline double requiredPrecision = 0.05;
     static inline double confidence = 0.90;
     std::map<std::string, StationStats> _acc;
-    Accumulator<> _activeTime{"activeTime","ms"};
-    std::vector<std::string> _precisionTargets;
+    Accumulator<> _activeTime{"activeTime", "ms"};
+    std::vector<std::string> _precisionTargets = {"CPU", "IO1", "IO2", "ActiveTime"};
     MVASolver mva{};
     std::map<std::string, ConfidenceHits> _confidenceHits{};
     std::vector<int> seeds;
