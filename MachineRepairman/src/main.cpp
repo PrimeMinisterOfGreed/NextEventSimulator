@@ -10,32 +10,23 @@
 #include "rngs.hpp"
 #include <algorithm>
 #include <cmath>
+#include <fmt/core.h>
 #include <regex>
 #include <vector>
 
 TraceSource _logger{""};
 
-std::vector<Accumulator<>> _acc{
-    Accumulator<>{"failedMachines", "unit"},
-    Accumulator<>{"repairedMachines", "unit"},
-    Accumulator<>("long_repair_avg", "min"),
-    Accumulator<>("avg_clients", "unit"),
-};
-
+CovariatedMeasure acc{"lrepwaittimes", "min"};
+CovariatedMeasure nclient{"nclients","unit"};
 bool ShouldStop()
 {
-    if (std::any_of(_acc.begin(), _acc.end(), [](Accumulator<> &acc) { return acc.Count() < 40; }))
-        return false;
-    return _acc[2].confidence().precision() < 0.05;
+    return false;
 };
 
-void CollectStat(MachineRepairmanv2 &simulator)
-{
-    _acc[0](simulator["delay_station"].value()->completions());
-    _acc[1](simulator["delay_station"].value()->arrivals());
-    _acc[2](simulator["long_repair"].value()->Data()["avgWaiting"].value()->Current());
-    _acc[3](simulator["long_repair"].value()->Data()["meanCustomerInSystem"].value()->Current());
-    _logger.Information("Current Precision:{}, Current Mean: {}", _acc[2].confidence().precision(), _acc[2].mean());
+void CollectStat(MachineRepairmanv2 &simulator){
+    auto lrep = simulator.GetStation("long_repair").value();
+    acc(lrep->areaN(),lrep->completions(),false);
+    nclient(lrep->areaN(),simulator.GetClock());
 };
 
 void ExecuteRun()
@@ -43,18 +34,36 @@ void ExecuteRun()
     static int seed = 123456789;
     RandomStream::Global().PlantSeeds(seed);
     MachineRepairmanv2 simulator{};
+    RegenerationPoint regPoint{&simulator, &simulator};
 
-    simulator["long_repair"].value()->OnDeparture([&simulator](auto s, Event &evt) {
-        simulator.Update();
-        CollectStat(simulator);
-        if (ShouldStop())
-            simulator.Stop();
-        else
-            simulator.Reset();
+    simulator.GetStation("long_repair").value()->OnDeparture([&simulator, &regPoint](auto s, auto e) {
+        regPoint.Trigger();
     });
 
+    regPoint.AddRule([](RegenerationPoint *pt) {
+        auto srepair = pt->scheduler->GetStation("short_repair").value();
+        auto dstat = pt->scheduler->GetStation("delay_station").value();
+        auto lrep = pt->scheduler->GetStation("long_repair").value();
+        return srepair->sysClients() == 0&&  lrep->sysClients() == 5;
+    });
+    regPoint.AddAction([&simulator](RegenerationPoint *pt) {
+        for (auto s : simulator.GetStations())
+        {
+            fmt::println("S:{},N:{},A:{},C:{}", s->Name(), s->sysClients(), s->arrivals(), s->completions());
+        }
+        CollectStat(simulator);
+        fmt::println("Measure:{}",acc);
+        fmt::println("Measure:{}",nclient);
+        simulator.Reset();
+    });
+
+
+
     simulator.Initialize();
-    simulator.Execute();
+    while (!ShouldStop())
+    {
+        simulator.Execute();
+    }
 
     seed++;
 }
@@ -64,7 +73,5 @@ int main()
     LogEngine::CreateInstance("machinerepairman.txt");
     _logger = TraceSource{"main"};
     ExecuteRun();
-    _logger.Result("Average waiting at long {}, precision {}", _acc[2].mean(), _acc[2].confidence().precision());
-    _logger.Result("Average customers at long {}, precision {}", _acc[3].mean(), _acc[3].confidence().precision());
     LogEngine::Instance()->Flush();
 }

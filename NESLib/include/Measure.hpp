@@ -473,7 +473,7 @@ template <> struct fmt::formatter<CovariatedMeasure>
     {
         return fmt::format_to(
             ctx.out(),
-            "Measure: {}, Mean: {},LB:{}, LH:{}, Samples:{},  Variance:{}, Precision:{},LastValue:{}, LastTime:{}",
+            "Measure: {}, R: {},LB:{}, LH:{}, Samples:{},  Variance:{}, Precision:{},LastValue:{}, LastTime:{}",
             m.Name(), m.mean(), m.confidence().lower(), m.confidence().higher(), m.Count(), m.variance(),
             m.confidence().precision(), m.Current().first, m.Current().second);
     }

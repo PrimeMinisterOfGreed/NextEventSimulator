@@ -13,9 +13,10 @@ RepairStation::RepairStation(IScheduler *scheduler, std::string name, int index)
 
 void RepairStation::ProcessProbe(Event &evt)
 {
-    FCFSStation::ProcessProbe(evt);
-    for (auto &measure : Data().GetAccumulators())
-    {
-        _logger.Result("{}:[{}]", measure->Name(), measure->Csv());
-    }
+    Station::ProcessProbe(evt);
+}
+
+void RepairStation::ProcessMaintenance(Event &evt)
+{
+    
 }
