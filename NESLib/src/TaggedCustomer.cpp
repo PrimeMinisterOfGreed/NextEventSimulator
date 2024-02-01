@@ -14,7 +14,11 @@ void TaggedCustomer::ConnectEntrance(BaseStation *station, bool arrival)
         if (target_client == "")
             target_client = e.Name;
         if (e.Name == target_client)
+        {
             time = e.OccurTime;
+            if (_onEntrance.has_value())
+                _onEntrance.value()(e);
+        }
     };
     if (arrival)
         station->OnArrival(l);
@@ -29,6 +33,8 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
         {
             double interval = e.OccurTime - time;
             _acc.Accumulate(interval);
+            if (_onLeave.has_value())
+                _onLeave.value()(e);
         }
     };
     if (arrival)
@@ -39,7 +45,7 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
 
 void TaggedCustomer::CompleteRegCycle(double actualclock)
 {
-    _mean(_acc.sum(), _acc.Count(),false);
+    _mean(_acc.sum(), _acc.Count(), false);
     _acc.Reset();
 }
 

@@ -2,6 +2,7 @@
 #include "Station.hpp"
 #include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
+#include <fmt/core.h>
 
 #define SCENARIO(name)                                                                                                 \
     struct _Scenario_##name : public BaseScenario                                                                      \
@@ -70,16 +71,24 @@ SCENARIO(Default) // first request
     auto &params = SystemParameters::Parameters();
     params.cpumode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2.7;
-    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
-    });
 
     auto &regPoint = manager->regPoint;
     // first CPU must have 0 clients because is hyperexp
-    regPoint->AddRule(
-        [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
+
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
+    /* regPoint->AddRule(
+         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
+     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
+     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
+     */
+    regPoint->AddAction([os = manager->shell->Scheduler()](auto r) {
+        for (auto s : os->GetStations())
+        {
+            os->Sync();
+            fmt::println("S:{},N:{},MN:{},A:{},C:{}", s->Name(), s->sysClients(), s->max_sys_clients(), s->arrivals(),
+                         s->completions());
+        }
+    });
 };
 
 SCENARIO(Default_NOMPD)
@@ -89,16 +98,15 @@ SCENARIO(Default_NOMPD)
     params.cpuQuantum = 2.7;
     params.multiProgrammingDegree = 1000;
     params.numclients = 20;
-    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
-    });
 
     auto &regPoint = manager->regPoint;
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
+
     // first CPU must have 0 clients because is hyperexp
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 6; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 14; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
 }
 
@@ -107,10 +115,10 @@ SCENARIO(NegExpCpu) // second request
     auto &params = SystemParameters::Parameters();
     params.cpumode = SystemParameters::NEG_EXP;
     params.cpuQuantum = 2.7;
-    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
-    });
+
     auto &regPoint = manager->regPoint;
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
+
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
@@ -123,10 +131,10 @@ SCENARIO(LTCpu) // third request
     auto &params = SystemParameters::Parameters();
     params.cpumode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2700;
-    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
-    });
+
     auto &regPoint = manager->regPoint;
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
+
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
