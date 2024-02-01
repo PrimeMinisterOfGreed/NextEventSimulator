@@ -17,16 +17,17 @@
 TraceSource _logger{""};
 
 CovariatedMeasure acc{"lrepwaittimes", "min"};
-CovariatedMeasure nclient{"nclients","unit"};
+CovariatedMeasure nclient{"nclients", "unit"};
 bool ShouldStop()
 {
     return false;
 };
 
-void CollectStat(MachineRepairmanv2 &simulator){
+void CollectStat(MachineRepairmanv2 &simulator)
+{
     auto lrep = simulator.GetStation("long_repair").value();
-    acc(lrep->areaN(),lrep->completions(),false);
-    nclient(lrep->areaN(),simulator.GetClock());
+    acc(lrep->areaN(), lrep->completions(), false);
+    nclient(lrep->areaN(), simulator.GetClock());
 };
 
 void ExecuteRun()
@@ -44,7 +45,7 @@ void ExecuteRun()
         auto srepair = pt->scheduler->GetStation("short_repair").value();
         auto dstat = pt->scheduler->GetStation("delay_station").value();
         auto lrep = pt->scheduler->GetStation("long_repair").value();
-        return srepair->sysClients() == 0&&  lrep->sysClients() == 5;
+        return srepair->sysClients() == 0 && lrep->sysClients() == 5;
     });
     regPoint.AddAction([&simulator](RegenerationPoint *pt) {
         for (auto s : simulator.GetStations())
@@ -52,12 +53,10 @@ void ExecuteRun()
             fmt::println("S:{},N:{},A:{},C:{}", s->Name(), s->sysClients(), s->arrivals(), s->completions());
         }
         CollectStat(simulator);
-        fmt::println("Measure:{}",acc);
-        fmt::println("Measure:{}",nclient);
+        fmt::println("Measure:{}", acc);
+        fmt::println("Measure:{}", nclient);
         simulator.Reset();
     });
-
-
 
     simulator.Initialize();
     while (!ShouldStop())
@@ -71,6 +70,8 @@ void ExecuteRun()
 int main()
 {
     LogEngine::CreateInstance("machinerepairman.txt");
+    acc.WithConfidence(0.95).WithPrecision(0.05);
+    nclient.WithConfidence(0.95).WithPrecision(0.05);
     _logger = TraceSource{"main"};
     ExecuteRun();
     LogEngine::Instance()->Flush();

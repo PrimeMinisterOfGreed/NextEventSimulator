@@ -39,10 +39,10 @@ void SimulationManager::CollectMeasures()
         //  return results._acc[name][StationStats::meanwait].mean() *
         //       ((double)s->completions() / os->GetStation("delay_station").value()->completions());
 
-        return results._acc[name][StationStats::meancustomer].mean();
+        return results._acc[name][StationStats::meancustomer].R();
     };
     results._activeTime((activeTime("CPU") + activeTime("IO1") + activeTime("IO2")) /
-                        results._acc["SWAP_IN"][StationStats::throughput].mean());
+                        results._acc["SWAP_IN"][StationStats::throughput].R());
 }
 
 void SimulationManager::SetupScenario(std::string name)

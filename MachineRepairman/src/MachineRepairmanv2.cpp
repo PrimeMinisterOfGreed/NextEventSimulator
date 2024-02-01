@@ -11,7 +11,6 @@
 #include "rngs.hpp"
 #include "rvgs.h"
 #include <fmt/core.h>
-#include <sched.h>
 
 MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
 {
@@ -46,7 +45,6 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
         evt.Station = router();
         evt.Type = ARRIVAL;
         Schedule(evt);
-
     });
     AddStation(srepstation);
 
@@ -61,8 +59,6 @@ MachineRepairmanv2::MachineRepairmanv2() : Scheduler("Scheduler")
         Schedule(evt);
     });
     AddStation(lrepstation);
-
-  
 }
 
 void MachineRepairmanv2::Initialize()

@@ -414,7 +414,7 @@ struct CovariatedMeasure : BaseMeasure
     double _weightedsum{};
     virtual void Accumulate(double value, double time);
 
-    double mean();
+    double R();
     double variance();
     Interval confidence();
 
@@ -471,11 +471,11 @@ template <> struct fmt::formatter<CovariatedMeasure>
 
     auto format(CovariatedMeasure &m, format_context &ctx) -> format_context::iterator
     {
-        return fmt::format_to(
-            ctx.out(),
-            "Measure: {}, R: {},LB:{}, LH:{}, Samples:{},  Variance:{}, Precision:{},LastValue:{}, LastTime:{}",
-            m.Name(), m.mean(), m.confidence().lower(), m.confidence().higher(), m.Count(), m.variance(),
-            m.confidence().precision(), m.Current().first, m.Current().second);
+        return fmt::format_to(ctx.out(),
+                              "Measure: {}, R: {},LB:{}, LH:{}, Samples:{},  Variance:{}, "
+                              "Precision:{},LastValue:{}, LastTime:{}",
+                              m.Name(), m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(), m.variance(),
+                              m.confidence().precision(), m.Current().first, m.Current().second);
     }
 };
 
