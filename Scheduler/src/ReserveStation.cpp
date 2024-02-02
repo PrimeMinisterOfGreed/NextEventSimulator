@@ -18,6 +18,16 @@ ReserveStation::ReserveStation(IScheduler *scheduler)
 {
     static_cast<Scheduler *>(scheduler)->GetStation(Stations::SWAP_OUT).value()->OnDeparture([this](auto s, auto evt) {
         _counter--;
+        if (_eventList.Count() > 0 && _counter < SystemParameters::Parameters().multiProgrammingDegree)
+        {
+            auto ev = _eventList.Dequeue();
+            ev.Station = SWAP_IN;
+            ev.Type = ARRIVAL;
+            ev.OccurTime = evt.OccurTime;
+            _scheduler->Schedule(ev);
+            _counter++;
+            Station::ProcessDeparture(ev);
+        }
     });
 }
 
@@ -25,20 +35,13 @@ void ReserveStation::ProcessArrival(Event &evt)
 {
     evt.ServiceTime = 0;
     Station::ProcessArrival(evt);
-    if (_counter <= SystemParameters::Parameters().multiProgrammingDegree)
+    if (_counter < SystemParameters::Parameters().multiProgrammingDegree)
     {
-        Event &tgt = evt;
-        Station::ProcessDeparture(evt);
-        if (_eventList.Count() > 0)
-        {
-            tgt = _eventList.Dequeue();
-            _eventList.Enqueue(evt);
-        }
-        tgt.Type = ARRIVAL;
-        tgt.OccurTime = _clock;
-        tgt.Station = SWAP_IN;
-        _scheduler->Schedule(tgt);
         _counter++;
+        evt.OccurTime = clock();
+        evt.Station = SWAP_IN;
+        _scheduler->Schedule(evt);
+        Station::ProcessDeparture(evt);
     }
     else
     {
