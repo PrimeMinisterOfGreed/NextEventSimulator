@@ -14,18 +14,19 @@
 // https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
 Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
 {
+    _logger.verbosity = 4;
 }
 
 void Cpu::ProcessArrival(Event &evt)
 {
+
     // it's a new process
     if (evt.SubType != 'E')
     {
-        Station::ProcessArrival(evt);
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
         evt.ServiceTime = Burst();
-        if (_eventUnderProcess.has_value()) //there are other process in ready queue
+        if (_eventUnderProcess.has_value()) // there are other process in ready queue
         {
             _eventList.Push(evt);
             return;
@@ -39,6 +40,8 @@ void Cpu::ProcessArrival(Event &evt)
                     _eventUnderProcess.value());
         _logger.Transfer("Now Processing:{}, Remaining service time:{}", evt, evt.ServiceTime);
     }
+    Station::ProcessArrival(evt);
+
     auto quantum = SystemParameters::Parameters().cpuQuantum;
     auto slice = evt.ServiceTime > quantum ? quantum : evt.ServiceTime;
     evt.Type = DEPARTURE;
@@ -53,19 +56,24 @@ void Cpu::ProcessDeparture(Event &evt)
 
     static Router router(4, SystemParameters::Parameters().cpuChoice, {IO_1, IO_2, SWAP_OUT, CPU});
     // process has finished
-    core_assert(evt == _eventUnderProcess.value(), "Event {} scheduled for departure but other event in process {}",evt,_eventUnderProcess.value());
+    core_assert(_eventUnderProcess.has_value(), "Event {} in departure but no event under process", evt);
+    core_assert(evt == _eventUnderProcess.value(), "Event {} scheduled for departure but other event in process {}",
+                evt, _eventUnderProcess.value());
     _eventUnderProcess.reset();
+    Station::ProcessDeparture(evt);
+
     if (evt.ServiceTime == 0)
     {
-       Station::ProcessDeparture(evt);
         evt.Type = ARRIVAL;
         evt.Station = router();
         evt.SubType = NO_EVENT;
+        evt.OccurTime = clock();
         _logger.Debug("CPU Departure, send event to {}", _scheduler->GetStation(evt.Station).value()->Name());
         _scheduler->Schedule(evt);
     }
     else
     {
+        evt.Type = ARRIVAL;
         _eventList.Enqueue(evt);
     }
     if (_eventList.Count() > 0)
@@ -73,7 +81,7 @@ void Cpu::ProcessDeparture(Event &evt)
         auto newEvt = _eventList.Dequeue();
         newEvt.Type = ARRIVAL;
         newEvt.OccurTime = _clock;
-        Process(newEvt);
+        _scheduler->Schedule(newEvt);
     }
 }
 

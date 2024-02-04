@@ -2,6 +2,7 @@
 #include "Core.hpp"
 #include "Measure.hpp"
 #include "Shell/SimulationShell.hpp"
+#include "Station.hpp"
 #include "SystemParameters.hpp"
 #include <cstring>
 #include <fmt/core.h>
@@ -134,12 +135,11 @@ void SimulationResult::LogResult(std::string name)
         for (auto s : _acc)
         {
             std::string result = "";
-            for (int i = 0; i < StationStats::MeasureType::size; i++)
+            for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
             {
                 auto expected = mva.ExpectedForAccumulator(s.first, &s.second[(StationStats::MeasureType)i]);
-                result += fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n",
-                                      s.second[(StationStats::MeasureType)i], expected,
-                                      s.second[(StationStats::MeasureType)i].confidence().tvalDiff(expected));
+                result += fmt::format("{}, Expected Value:{}\n",
+                                      s.second[(StationStats::MeasureType)i], expected);
             }
             SimulationShell::Instance().Log()->Result("Station:{}\n{}", s.first, result);
         }
@@ -156,12 +156,12 @@ void SimulationResult::LogResult(std::string name)
     {
         auto acc = _acc[name];
         std::string result = "";
-        for (int i = 0; i < StationStats::MeasureType::size; i++)
+        for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
         {
             auto expected = mva.ExpectedForAccumulator(name, &acc[(StationStats::MeasureType)i]);
             result +=
-                fmt::format("{}, Expected Value:{}, Diff from conf interval:{}\n", acc[(StationStats::MeasureType)i],
-                            expected, acc[(StationStats::MeasureType)i].confidence().tvalDiff(expected));
+                fmt::format("{}, Expected Value:{}\n", acc[(StationStats::MeasureType)i],
+                            expected);
         }
         SimulationShell::Instance().Log()->Result("Station:{}\n{}", name, result);
     }

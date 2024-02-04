@@ -61,7 +61,7 @@ struct SimulationManager
   private:
     void SetupScenario(std::string name);
     void SetupEnvironment();
-    void CollectSamples(int samples);
+    void CollectSamples(int samples, bool logMeasures = false, bool logActualState = false);
 };
 
 struct BaseScenario

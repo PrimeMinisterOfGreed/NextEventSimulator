@@ -20,7 +20,7 @@ CovariatedMeasure acc{"lrepwaittimes", "min"};
 CovariatedMeasure nclient{"nclients", "unit"};
 bool ShouldStop()
 {
-    return false;
+    return acc.confidence().precision() < 0.05 && acc.Count() > 40;
 };
 
 void CollectStat(MachineRepairmanv2 &simulator)

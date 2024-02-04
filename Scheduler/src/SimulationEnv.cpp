@@ -167,7 +167,19 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         stream >> buffer;
         int m = 1;
         if (strlen(buffer) > 0)
+        {
             m = atoi(buffer);
+        }
+        if (!stream.eof())
+        {
+            stream >> buffer;
+            int log = atoi(buffer);
+            if (log)
+            {
+                CollectSamples(m, true);
+                return;
+            }
+        }
         CollectSamples(m);
     });
 
@@ -217,66 +229,45 @@ void SimulationManager::SetupShell(SimulationShell *shell)
     shell->AddCommand("na", [this, l](SimulationShell *shell, const char *context) { l(shell, context, true); });
     shell->AddCommand("nd", [l](auto s, auto ctx) { l(s, ctx, false); });
     shell->AddCommand("ns", [this](SimulationShell *shell, const char *ctx) {
-        char buffer[36]{};
+        regPoint->SetRules(false);
         std::stringstream stream{ctx};
+        char buffer[32]{};
         stream >> buffer;
-        if (sizeof(buffer) == 0)
-        {
-            shell->Log()->Exception("Must specify a starter seed to init");
-            return;
-        }
-
-        long seed = atol(buffer);
-        memset(buffer, 0, sizeof(buffer));
-        stream >> buffer;
-        if (strlen(buffer) == 0)
-        {
-            shell->Log()->Exception("Must specify a number of simulation (-1 for use a seq stopping rule)");
-            return;
-        }
-
-        int nsim = atoi(buffer);
-        memset(buffer, 0, sizeof(buffer));
-
-        stream >> buffer;
-        if (strlen(buffer) == 0)
-        {
-            shell->Log()->Exception("Must specify a number of samples to collect");
-            return;
-        }
-        int samples = atoi(buffer);
-        for (int i = 0; i < nsim; i++)
-        {
-            RandomStream::Global().PlantSeeds(seed);
-            CollectSamples(samples);
-            results.tgt.CompleteSimulation();
-            results.CollectResult(seed);
-            results.Reset();
-            shell->Log()->Debug("Perform antitetich evaluation");
-            RandomStream::Global().SetAntitetich(true);
-            CollectSamples(samples);
-            results.tgt.CompleteSimulation();
-            results.CollectResult(seed);
-            results.Reset();
-            RandomStream::Global().SetAntitetich(false);
-            seed++;
-            shell->Log()->Debug("End of simulation {}", i);
-            shell->Log()->Result("{}", results._activeTime);
-        }
+        int m = atoi(buffer);
+        CollectSamples(m, false, true);
+        regPoint->SetRules(true);
     });
     results.AddShellCommands(shell);
 };
 
-void SimulationManager::CollectSamples(int samples)
+void SimulationManager::CollectSamples(int samples, bool logMeasures, bool logActualState)
 {
-    auto p = [this](int i) {
+    auto p = [this, logMeasures, logActualState](int i) {
         bool end = false;
-        regPoint->AddOneTimeAction([&end](auto regPoint) { end = true; });
+        regPoint->AddOneTimeAction([&end, logMeasures, logActualState](auto regPoint) { end = true; });
         while (!end)
         {
             os->Execute();
         }
         logger.Information("Collected {} samples (RegPoint end)", i);
+        if (logMeasures)
+        {
+            for (auto tg : results._precisionTargets)
+            {
+                results.LogResult(tg);
+            }
+        }
+        if (logActualState)
+        {
+            auto print = [](BaseStation *s) {
+                fmt::println("Station:{},N:{},A:{},C:{}", s->Name(), s->sysClients(), s->arrivals(), s->completions());
+            };
+
+            print(os->GetStation("CPU").value().get());
+            print(os->GetStation("IO1").value().get());
+            print(os->GetStation("IO2").value().get());
+            print(os->GetStation("SWAP_IN").value().get());
+        }
     };
     if (samples == -1)
     {
@@ -285,10 +276,6 @@ void SimulationManager::CollectSamples(int samples)
         {
             p(i);
             i++;
-            for (auto tg : results._precisionTargets)
-            {
-                results.LogResult(tg);
-            }
         }
     }
     for (int i = 0; i < samples; i++)

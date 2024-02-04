@@ -164,7 +164,7 @@ template <int Moments = 2> class Accumulator : public Measure<double>
     double get(int moment) const
     {
         if (moment >= Moments)
-            throw std::invalid_argument("moment selected is over Moments stored");
+            panic("moment selected is over Moments stored");
         return _sum[moment];
     }
 

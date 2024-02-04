@@ -52,18 +52,15 @@ SCENARIO(Simplified_N20)
     params.multiProgrammingDegree = 1000;
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
-    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
-    });
-
     auto &regPoint = manager->regPoint;
+
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
+
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
 
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 11; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 1; });
-    regPoint->AddRule(
-        [](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 1; });
 }
 
 SCENARIO(Default) // first request
@@ -135,10 +132,9 @@ SCENARIO(NegExpLt) // last request
     auto &params = SystemParameters::Parameters();
     params.cpumode = SystemParameters::NEG_EXP;
     params.cpuQuantum = 2700;
-    manager->os->GetStation("SWAP_OUT").value()->OnDeparture([manager](auto s, auto e) {
-        manager->regPoint->Trigger();
-    });
     auto &regPoint = manager->regPoint;
+
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 7; });

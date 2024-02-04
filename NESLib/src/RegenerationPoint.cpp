@@ -7,18 +7,22 @@ RegenerationPoint::RegenerationPoint(IScheduler *sched, ISimulator *simulator) :
 void RegenerationPoint::Trigger()
 {
     _called++;
-    for (auto r : _rules)
+    if (_rulesEnabled)
     {
-        if (!r(this))
+        for (auto r : _rules)
         {
-            return;
+            if (!r(this))
+            {
+                return;
+            }
         }
     }
     for (auto a : _actions)
     {
         a(this);
     }
-    for(auto a: _onTimeActions){
+    for (auto a : _onTimeActions)
+    {
         a(this);
     }
     _onTimeActions.clear();

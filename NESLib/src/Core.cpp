@@ -31,3 +31,13 @@ void _panic(std::string message, const char *file, int line)
 {
     _panic(message.c_str(), file, line);
 }
+
+
+void abort()
+{
+    fmt::println("[CriticalException] Error abort called");
+    while (1)
+    {
+        panic("abort called");
+    }
+}

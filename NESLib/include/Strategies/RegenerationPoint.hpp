@@ -17,7 +17,7 @@ struct RegenerationPoint
   private:
     int _called = 0;
     int _hitted = 0;
-
+    bool _rulesEnabled = true;
   public:
     IScheduler *scheduler;
     ISimulator *simulator;
@@ -68,4 +68,5 @@ struct RegenerationPoint
         _hitted = 0;
         _called = 0;
     }
+    void SetRules(bool enable){_rulesEnabled = enable;}
 };
