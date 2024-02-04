@@ -26,8 +26,9 @@ void Cpu::ProcessArrival(Event &evt)
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
         evt.ServiceTime = Burst();
-        if (_eventUnderProcess.has_value()) // there are other process in ready queue
+        if (_eventUnderProcess.has_value() || _eventList.Count() > 1) // there are other process in ready queue
         {
+            
             _eventList.Push(evt);
             return;
         }
