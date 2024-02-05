@@ -15,6 +15,7 @@ class Scheduler : public IScheduler, public BaseStation
     std::vector<sptr<Station>> _stations{};
     DoubleLinkedList<Event> _eventList{};
     virtual bool Route(Event event);
+    size_t processedEvents = 0;
 
   public:
     virtual void Schedule(Event event) override;
@@ -42,7 +43,8 @@ class Scheduler : public IScheduler, public BaseStation
         return {};
     }
 
-    const DoubleLinkedList<Event> EventQueue(){
+    const DoubleLinkedList<Event> EventQueue()
+    {
         return _eventList;
     }
 

@@ -14,7 +14,6 @@
 // https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
 Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
 {
-    _logger.verbosity = 4;
 }
 
 void Cpu::ProcessArrival(Event &evt)
@@ -26,9 +25,9 @@ void Cpu::ProcessArrival(Event &evt)
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
         evt.ServiceTime = Burst();
-        if (_eventUnderProcess.has_value() || _eventList.Count() > 1) // there are other process in ready queue
+        if (_eventUnderProcess.has_value() || _eventList.Count() > 0) // there are other process in ready queue
         {
-            
+
             _eventList.Push(evt);
             return;
         }
@@ -62,7 +61,15 @@ void Cpu::ProcessDeparture(Event &evt)
                 evt, _eventUnderProcess.value());
     _eventUnderProcess.reset();
     Station::ProcessDeparture(evt);
-
+    bool scheduled = false;
+    if (_eventList.Count() > 0)
+    {
+        auto newEvt = _eventList.Dequeue();
+        newEvt.Type = ARRIVAL;
+        newEvt.OccurTime = _clock;
+        _scheduler->Schedule(newEvt);
+        scheduled = true;
+    }
     if (evt.ServiceTime == 0)
     {
         evt.Type = ARRIVAL;
@@ -72,17 +79,15 @@ void Cpu::ProcessDeparture(Event &evt)
         _logger.Debug("CPU Departure, send event to {}", _scheduler->GetStation(evt.Station).value()->Name());
         _scheduler->Schedule(evt);
     }
-    else
+    else if (_eventList.Count() > 0 || scheduled)
     {
         evt.Type = ARRIVAL;
         _eventList.Enqueue(evt);
     }
-    if (_eventList.Count() > 0)
+    else
     {
-        auto newEvt = _eventList.Dequeue();
-        newEvt.Type = ARRIVAL;
-        newEvt.OccurTime = _clock;
-        _scheduler->Schedule(newEvt);
+        evt.Type = ARRIVAL;
+        _scheduler->Schedule(evt);
     }
 }
 

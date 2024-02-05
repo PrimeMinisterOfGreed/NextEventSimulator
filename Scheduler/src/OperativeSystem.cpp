@@ -21,9 +21,11 @@ void OS::Execute()
     _clock = nextEvt.OccurTime;
     Process(nextEvt);
     Route(nextEvt);
+    processedEvents++;
     if (_eventList.Count() == 0)
     {
-        panic(fmt::format("Error eventlist is empty, last event processed {}", nextEvt));
+        panic(fmt::format("Error eventlist is empty, last event processed {}, processed events {}", nextEvt,
+                          processedEvents));
     }
 }
 
@@ -62,7 +64,7 @@ void OS::Reset()
     _end = false;
     for (auto station : _stations)
     {
-        auto evt = Event{"PROBE",PROBE,_clock,_clock,0,0,0};
+        auto evt = Event{"PROBE", PROBE, _clock, _clock, 0, 0, 0};
         station->Process(evt);
         station->Reset();
     }
