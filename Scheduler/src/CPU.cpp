@@ -22,6 +22,7 @@ void Cpu::ProcessArrival(Event &evt)
     // it's a new process
     if (evt.SubType != 'E')
     {
+        Station::ProcessArrival(evt);
         _logger.Transfer("New process joined: {}", evt);
         evt.SubType = 'E';
         evt.ServiceTime = Burst();
@@ -40,7 +41,6 @@ void Cpu::ProcessArrival(Event &evt)
                     _eventUnderProcess.value());
         _logger.Transfer("Now Processing:{}, Remaining service time:{}", evt, evt.ServiceTime);
     }
-    Station::ProcessArrival(evt);
 
     auto quantum = SystemParameters::Parameters().cpuQuantum;
     auto slice = evt.ServiceTime > quantum ? quantum : evt.ServiceTime;
@@ -60,7 +60,6 @@ void Cpu::ProcessDeparture(Event &evt)
     core_assert(evt == _eventUnderProcess.value(), "Event {} scheduled for departure but other event in process {}",
                 evt, _eventUnderProcess.value());
     _eventUnderProcess.reset();
-    Station::ProcessDeparture(evt);
     bool scheduled = false;
     if (_eventList.Count() > 0)
     {
@@ -72,6 +71,7 @@ void Cpu::ProcessDeparture(Event &evt)
     }
     if (evt.ServiceTime == 0)
     {
+        Station::ProcessDeparture(evt);
         evt.Type = ARRIVAL;
         evt.Station = router();
         evt.SubType = NO_EVENT;
