@@ -232,21 +232,22 @@
     \end{lstlisting}
     At this point is possible to apply the MVA algorithm, that result in subsequent values.
     \\
-    \includegraphics[width=0.9\textwidth]{Images/meanWaits.png}\\
+    \includegraphics[width=0.9\textwidth]{Images/Utilizations.png}\\
+    From the utilization functions we can conclude that the bottleneck station is IO2, as confirmed by the bottleneck analysis. Also becomes evident that after the saturation point ($N \approx7$) the growth of utilization tend to diminish despite the linear increase of N.
+    \\
+    \includegraphics[width=0.9\textwidth]{Images/throughputs.png}
+    \\
+    Also from the throughputs the same statement can be reached, but with a particular observation on the CPU, that gradually stop the increasing of the throughput as N becomes larger then 7. This phenomena is similar to a very well known problem in the operative system ecosystem: thrashing. In this case the thrashing is caused by the massive use of the IO2 from the processes involved, so the throughput of the CPU will not decrease but remain steady as it will depend entirely on the process capacity of the IO2. 
+    \\
+    \includegraphics[width=0.9\textwidth]{Images/meanWaits.png}
+    \\
     <da commentare>
     \\
     \includegraphics[width=0.9\textwidth]{Images/meanClients.png}
     \\
     <da commentare>
     \\
-    \includegraphics[width=0.9\textwidth]{Images/Utilizations.png}\\
-    <da commentare>
+    \includegraphics[width=0.9\textwidth]{Images/ActiveTimes.png}
     \\
-    \includegraphics[width=0.9\textwidth]{Images/throughputs.png}
-    \\
-    <da commentare>
-    \\
-    \includegraphics[width=0.9\textwidth]{Images/Response_Times.png}
-    \\
-    <da commentare>
+    bla bla bla bla
     \end{document}
