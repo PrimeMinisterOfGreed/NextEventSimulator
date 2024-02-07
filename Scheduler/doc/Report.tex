@@ -132,7 +132,7 @@
     \end{itemize}
 
     \subsection{Choice of the regeneration point}
-    Since all the queues follow a markovnian distribution, the regeneration point can be any departure in the system. If we consider all the station that are not the delay as a unique system we can say that the entry point of the processes is the reserve station, and the leave point is the swap out, in any conditions. So we can use a departure from the swap out as a regeneration point, because we expect that the number of clients in the system will be steady after a leave and that a sufficient number of operation will be done by the cpu in order to collect some data.
+    Since the technique of the tagged customer is used a particular attention must be put in the event that will raise a possible regeneration point. Considering that the target is to : estimate the active time of the client after a departure from the swap in and before it enter the swap out, it naturally follow that the set of station ("CPU","IO1","IO2") can be considered as an independent subsystem. Then a suitable option is to consider the entrance of the tagged customer as a regeneration point event. In order to be relevant a regeneration point must come with a proper description of the state of the system, in this case considering that the CPU is the unique station that has not a negative exponential distribution of the service times, this one must be empty in order to collect some valid data. IO2 is the bottleneck station, so is expected that an high value of client shall be present in this station, since the reserve station is limiting the number of maximum process present in this subsystem a good number of pilot simulation was performed, and showed that when the tagged customer enter the system the IO2 contains 7 clients , in the whole station, with a good probability. Same reasoning was applied for the IO1, that lead to choose a value of 2 clients in the station. The conditions are then: Tagged customer at the entrance of the subsystem, 7 clients at the IO2, 2 clients at the IO1 and 0 clients at the CPU, the others are in the swap in, reserve station or delay station.
     \section{First validation step}
     \subsection{Bottleneck analysis}
     In order to start the analysis , let's show here the simplified model 
@@ -241,13 +241,19 @@
     \\
     \includegraphics[width=0.9\textwidth]{Images/meanWaits.png}
     \\
-    <da commentare>
+    Mean waits also confirm that the bottleneck station is the IO2, since all other don't increase their mean wait time at the increase of N.
     \\
     \includegraphics[width=0.9\textwidth]{Images/meanClients.png}
     \\
-    <da commentare>
+    In this graph the tendency of the IO2 station to be a bottleneck is much visible, since the customers tend to increase the queue size of the IO2 at the increase of N.
     \\
     \includegraphics[width=0.9\textwidth]{Images/ActiveTimes.png}
     \\
-    bla bla bla bla
+    Considering the subsystem composed by IO1,IO2 and CPU we can estimate then the active time of a client with little effort, resorting to little's formula 
+    $$
+    \bar{w}= \frac{\bar{n}}{\lambda}
+    $$
+    since all the clients are coming from the swap in, then it's throughput becomes the arrival rate of the formula. The data show that with N=20 a value of 6630 should be expected.
+    \section*{Simulation Results}
+    
     \end{document}
