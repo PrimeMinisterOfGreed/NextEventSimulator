@@ -30,7 +30,7 @@ class DiGraph():
 
    def gen(self,headLabel, tailLabel, p):
     if (headLabel,tailLabel) in self.graph.edges:
-      print("Warning redundant edge {} , {} , call N {}".format(headLabel,tailLabel,self.calls))
+      print("Warning redundant edge {} , {} , call N {}, inW {}, newW{}".format(headLabel,tailLabel,self.calls,self.graph.get_edge_data(headLabel,tailLabel)["weight"],p))
       pass
     if headLabel not in self.graph.nodes:
       print("Warning head {} not listed".format(headLabel))
@@ -176,15 +176,15 @@ class Transition:
    def transitionIsValid(self):
       #check cpu stage
       if self.head.cpuStage != self.tail.cpuStage:
-         if self.head.Ncpu < self.tail.Ncpu and self.tail.Ncpu > 0: return False
+         if self.head.Ncpu < self.tail.Ncpu and self.tail.Ncpu > 0 and self.head.Ncpu > 0: return False
          pass
-      changed = False 
+      changed = 0
       def validate_var(a , b):
          nonlocal changed 
          if abs(a - b ) > 1 : return False 
-         if abs(a-b) == 1 and changed: return False
+         if abs(a-b) == 1 and changed > 1: return False
          if abs(a-b) == 0 : return True
-         else: changed = True         
+         else: changed += 1         
          return True
       for i in range(len(self.head)):
          if not validate_var(self.head[i],self.tail[i]): return False
@@ -196,10 +196,10 @@ class Transition:
       incremented = ""
       for i in range(len(self.head)):
          if self.head[i] != self.tail[i]:
-            if self.head[i] > self.tail[i]:
+            if self.head[i] < self.tail[i]:
                incremented = self.head.descriptor[i] if incremented == "" else "ERROR"               
                pass
-            if self.head[i] < self.tail[i]:
+            if self.head[i] > self.tail[i]:
                decremented = self.head.descriptor[i] if decremented == "" else "ERROR"
                pass
          pass
@@ -207,7 +207,7 @@ class Transition:
 
    def detectType(self):
       if not self.transitionIsValid() : return
-      (decrement,increment)= self.detectMovement
+      (decrement,increment)= self.detectMovement()
       if decrement == "ERROR" or increment == "ERROR" : return 
       elif decrement == "Ncpu" and increment == "Nio1": self.type = Transition.TransitionType.CPU_TO_IO1
       elif decrement == "Ncpu" and increment == "Nio2" : self.type = Transition.TransitionType.CPU_TO_IO2
@@ -215,15 +215,23 @@ class Transition:
       elif decrement == "Nio2" and increment == "Ncpu" : self.type = Transition.TransitionType.IO2_TO_CPU
       elif decrement == "Ndelay" and increment == "Ncpu" : self.type = Transition.TransitionType.DELAY_TO_CPU
       elif decrement == "Ncpu" and increment == "Ndelay" : self.type = Transition.TransitionType.CPU_TO_DELAY
-      else : self.type = Transition.TransitionType.CPU_TO_SELF
+      elif decrement == "" and increment == "" and self.head.Ncpu > 0 and self.tail.Ncpu > 0 : self.type = Transition.TransitionType.CPU_TO_SELF
       pass
    
    def p(self):
       assert(self.type != Transition.TransitionType.UNKNOWN)
+      if self.type == Transition.TransitionType.CPU_TO_IO1 or self.type == Transition.TransitionType.CPU_TO_IO2: return self.CpuToIo()
+      elif self.type == Transition.TransitionType.IO1_TO_CPU or self.type ==  Transition.TransitionType.IO2_TO_CPU: return self.IoToCpu()
+      elif self.type == Transition.TransitionType.DELAY_TO_CPU: return self.DelayToCpu()
+      elif self.type == Transition.TransitionType.CPU_TO_DELAY : return self.CpuToDelay()
+      elif self.type == Transition.TransitionType.CPU_TO_SELF: return self.CpuToSelf()
       pass
    
    def DelayToCpu(self):
-      return self.head.Ndelay*(1/SystemParameters.thinkTime)
+      l = self.head.Ndelay*(1/SystemParameters.thinkTime)
+      if self.head.Ncpu == 0:
+         l = l * SystemParameters.alpha if self.tail.cpuStage == 1 else l* SystemParameters.beta
+      return l
    
    def CpuL(self):
       l = 1/SystemParameters.u1 if self.head.cpuStage == 1 else 1/SystemParameters.u2
@@ -248,32 +256,25 @@ class Transition:
    pass
 
 
-def stage_enumerator(stage: int) -> list[State]:
-    Ndelay = 0
-    Ncpu = 1
-    Nio1 = 2
-    Nio2 = 3
-    cpuStage = stage
-    stages = [0,0,0,0]
-    result = []
-    while stages[Ndelay] <= 3:
-        for i in reversed(range(4)):
-            stages[i] += 1
-            if stages[i] <= 3: break
-            elif i > 0 : stages[i] = 0
-            pass
-        state= State(stages[Ndelay], stages[Ncpu], stages[Nio1],stages[Nio2],stage)
-        if state.isValid(): result.append(state)
-        pass
-    return result
 
 if __name__ == "__main__":
-    print(list(map(lambda x: str(x),stage_enumerator(1))))
-    print(list(map(lambda x: str(x),stage_enumerator(2))))
+
+
+    def assert_p(tr: Transition, p:float):
+       assert(tr.p() == p, "Error p()={} while required {}".format(tr.p(),p))
+       pass
 
     s1 = State(3,0,0,0)
     s2 = State(2,1,0,0,1)
-    assert(s1.isAdjacent(s2))
+    tr = Transition(s1,s2)
+    assert_p(tr,(1/SystemParameters.thinkTime)*SystemParameters.alpha*3)
+    s2 = State(2,1,0,0,2)
+    tr = Transition(s1,s2)
+    assert_p(tr,(1/SystemParameters.thinkTime)*SystemParameters.beta*3)
+    s1 = State(0,3,0,0,2)
+    s2 = State(0,2,0,1,1)
+    tr = Transition(s1,s2)
+    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
     print("All tests passed")
     pass
 
