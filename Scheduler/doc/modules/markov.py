@@ -16,6 +16,7 @@ class SystemParameters:
     qio2 = 0.25 # route to io2
     qoutd = 0.1*0.4 #go to delay station
     qouts = 0.1*0.6 # renter the system
+    numClients = 3
     pass
 
 class DiGraph():
@@ -236,7 +237,7 @@ class Transition:
    def CpuL(self):
       l = 1/SystemParameters.u1 if self.head.cpuStage == 1 else 1/SystemParameters.u2
       if self.tail.Ncpu > 0:
-         l = l * SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
+         l *=  SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
          pass
       return l
       
@@ -256,12 +257,29 @@ class Transition:
    pass
 
 
+class Printer:
+
+   def __init__(self) -> None:
+      
+      pass
+
+   pass
+
+
+
+
 
 if __name__ == "__main__":
 
 
     def assert_p(tr: Transition, p:float):
-       assert(tr.p() == p, "Error p()={} while required {}".format(tr.p(),p))
+       assert tr.p() == p, "Error p()={} while required {}".format(tr.p(),p)
+       pass
+    
+    def test_p(state1: State, state2 : State, expected):
+       tr = Transition(state1,state2)
+       assert_p(tr,expected)
+       print("{}->{} p:{}, e:{}".format(str(state1),str(state2),tr.p(),expected))
        pass
 
     s1 = State(3,0,0,0)
@@ -275,6 +293,22 @@ if __name__ == "__main__":
     s2 = State(0,2,0,1,1)
     tr = Transition(s1,s2)
     assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
+
+    s1= State(0,2,1,0,2)
+    s2 = State(0,1,1,1,1)
+    tr = Transition(s1,s2)
+    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
+    s2 = State(0,1,1,1,1)
+    s1 = State(0,1,1,1,1)
+    tr = Transition(s1,s2)
+    assert_p(tr, (1/SystemParameters.u1)*SystemParameters.alpha*SystemParameters.qouts)
+    test_p(State(0,3,0,0,2), State(0,2,0,1,2),(1/SystemParameters.u2)*SystemParameters.beta*SystemParameters.qio2)
+    test_p(State(0,2,1,0,1),State(0,3,0,0,1),(1/SystemParameters.Sio1))
+    test_p(State(0,1,1,1,1),State(0,0,1,2),(1/SystemParameters.u1)*SystemParameters.qio2)
+    test_p(State(0,2,1,0,2),State(0,1,1,1,1),(1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
+    test_p(State(1,0,2,0),State(0,1,2,0,2),(1/SystemParameters.thinkTime)*SystemParameters.beta)
+    test_p(State(0,1,1,1,2),State(0,1,1,1,2),(1/SystemParameters.u2)*SystemParameters.beta*SystemParameters.qouts)
+    test_p(State(0,3,0,0,1),State(0,2,1,0,2),(1/SystemParameters.u1)*SystemParameters.beta*SystemParameters.qio1)
     print("All tests passed")
     pass
 
