@@ -266,10 +266,54 @@ class Printer:
    pass
 
 
+def stage_enumerator(stage: int) -> list[State]:
+    Ndelay = 0
+    Ncpu = 1
+    Nio1 = 2
+    Nio2 = 3
+    cpuStage = stage
+    stages = [0,0,0,0]
+    result = []
+    while stages[Ndelay] <= 3:
+        for i in reversed(range(4)):
+            stages[i] += 1
+            if stages[i] <= 3: break
+            elif i > 0 : stages[i] = 0
+            pass
+        state= State(stages[Ndelay], stages[Ncpu], stages[Nio1],stages[Nio2],stage)
+        if state.isValid(): result.append(state)
+        pass
+    return result
+
+def node_enumerator() -> list[State]:
+    nodes = stage_enumerator(1)
+    for newnode in stage_enumerator(2):
+        if newnode not in nodes:
+            nodes.append(newnode)
+            pass
+        pass
+    return nodes
 
 
+def edge_enumerator() -> list[tuple[State,State]]:
+    nodes = node_enumerator()
+    result = []
+    for head in nodes:
+        for tail in nodes:
+            if Transition(head,tail).type != Transition.TransitionType.UNKNOWN and not (head,tail) in result:
+                result.append((head,tail))
+                pass
+            pass
+        pass
+    return result
+
+
+class ChainGenerator:
+   #Generate a tree starting from the state (3,0,0,0). Generate it using dfs algorithm (so use a queue)
+   pass
 
 if __name__ == "__main__":
+    
 
 
     def assert_p(tr: Transition, p:float):
