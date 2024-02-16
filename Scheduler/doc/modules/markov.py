@@ -19,100 +19,6 @@ class SystemParameters:
     numClients = 3
     pass
 
-class DiGraph():
-   
-   def __init__(self):
-     self.graph = nx.digraph.DiGraph()
-     self.viz = graphviz.Digraph()
-     self.lastHead = ""
-     self.lastTail = ""
-     self.calls = 0
-     pass
-
-   def gen(self,headLabel, tailLabel, p):
-    if (headLabel,tailLabel) in self.graph.edges:
-      print("Warning redundant edge {} , {} , call N {}, inW {}, newW{}".format(headLabel,tailLabel,self.calls,self.graph.get_edge_data(headLabel,tailLabel)["weight"],p))
-      pass
-    if headLabel not in self.graph.nodes:
-      print("Warning head {} not listed".format(headLabel))
-      pass
-    if tailLabel not in self.graph.nodes:
-      print("Warning tail {} not listed".format(tailLabel))
-      pass
-    self.lastHead = headLabel
-    self.lastTail = tailLabel 
-    self.graph.add_edge(headLabel,tailLabel,weight=round(p,5))
-    return (headLabel,tailLabel)
-
-   def Graph(self):
-     return self.graph
-   
-   
-   def __and__(self,arg:tuple[str,str,float]):
-     return self.gen(arg[0],arg[1],arg[2])
-  
-   
-   def __getitem__(self,index):
-     return self.graph.edges()[index]
-   
-   def add_edge(self,head,tail,p):
-     self.gen(head() if callable(head) else head, tail() if callable(tail) else tail, p)
-     pass
-
-
-   
-   def __call__(self, head,tail,pout,pin =0):
-     if callable(head): 
-       head = head()
-       pass
-     if callable(tail):
-       tail = tail()
-       pass
-     self.add_edge(head,tail,pout)
-     if pin > 0:
-      self.add_edge(tail,head,pin)
-      pass
-     self.calls += 1
-     return self
-   
-   def add_edges(self,edges: list[tuple]):
-     for edge in edges:
-       head = ""
-       tail = ""
-       if callable(edge[0]): head = edge[0]()
-       else: head=edge[0]
-       if callable(edge[1]): tail = edge[1]()
-       else: tail = edge[1]
-       self.gen(head,tail,edge[2])
-       pass
-     pass
-   
-   def add_node(self,node:str):
-     self.graph.add_node(node)
-     pass
-   
-   
-   def last_tail(self): return self.lastTail
-   def last_head(self) : return self.lastHead
-
-   def gviz(self):
-      graph = graphviz.Digraph()
-      for node in self.graph.nodes:
-        graph.node(node)
-        pass
-      for edge in self.graph.edges:
-       graph.edge(edge[0],edge[1],str(self.graph.get_edge_data(edge[0],edge[1])["weight"]))
-       pass
-      return graph
-   
-   def fig(self):
-     pos = nx.draw_planar(self.graph)
-     fig = nx.draw_networkx_nodes(self.graph,pos,node_size=1000)
-     fig = nx.draw_networkx_labels(self.graph,pos)
-     fig = nx.draw_networkx_edges(self.graph,pos)
-     fig = nx.draw_networkx_edge_labels(self.graph,pos)
-     pass
-   pass
 
 
 
@@ -259,9 +165,17 @@ class Transition:
 
 class Printer:
 
-   def __init__(self) -> None:
-      
-      pass
+   def nx_to_graphviz(nxgraph : nx.DiGraph):
+      graph = graphviz.Digraph()
+      for node in nxgraph.graph.nodes:
+        graph.node(node)
+        pass
+      for edge in nxgraph.graph.edges:
+       graph.edge(edge[0],edge[1],str(nxgraph.graph.get_edge_data(edge[0],edge[1])["weight"]))
+       pass
+      return graph
+   
+   
 
    pass
 
@@ -307,9 +221,169 @@ def edge_enumerator() -> list[tuple[State,State]]:
         pass
     return result
 
+class DiGraph():
+   
+   def __init__(self):
+     self.graph = nx.digraph.DiGraph()
+     self.lastHead = ""
+     self.lastTail = ""
+     self.calls = 0
+     pass
+
+   def gen(self,headLabel, tailLabel, p):
+    if (headLabel,tailLabel) in self.graph.edges:
+      print("Warning redundant edge {} , {} , call N {}, inW {}, newW{}".format(headLabel,tailLabel,self.calls,self.graph.get_edge_data(headLabel,tailLabel)["weight"],p))
+      pass
+    if headLabel not in self.graph.nodes:
+      print("Warning head {} not listed".format(headLabel))
+      pass
+    if tailLabel not in self.graph.nodes:
+      print("Warning tail {} not listed".format(tailLabel))
+      pass
+    self.lastHead = headLabel
+    self.lastTail = tailLabel 
+    self.graph.add_edge(headLabel,tailLabel,weight=round(p,5))
+    return (headLabel,tailLabel)
+
+   def Graph(self):
+     return self.graph
+   
+
+   def __and__(self,arg:tuple[str,str,float]):
+     return self.gen(arg[0],arg[1],arg[2])
+  
+   
+   def __getitem__(self,index):
+     return self.graph.edges()[index]
+   
+   def add_edge(self,head,tail,p):
+     self.gen(head() if callable(head) else head, tail() if callable(tail) else tail, p)
+     pass
+
+
+   
+   def __call__(self, head,tail,pout,pin =0):
+     if callable(head): 
+       head = head()
+       pass
+     if callable(tail):
+       tail = tail()
+       pass
+     self.add_edge(head,tail,pout)
+     if pin > 0:
+      self.add_edge(tail,head,pin)
+      pass
+     self.calls += 1
+     return self
+   
+   def add_edges(self,edges: list[tuple]):
+     for edge in edges:
+       head = ""
+       tail = ""
+       if callable(edge[0]): head = edge[0]()
+       else: head=edge[0]
+       if callable(edge[1]): tail = edge[1]()
+       else: tail = edge[1]
+       self.gen(head,tail,edge[2])
+       pass
+     pass
+   
+   def add_node(self,node:str):
+     self.graph.add_node(node)
+     pass
+   
+   
+   def last_tail(self): return self.lastTail
+   def last_head(self) : return self.lastHead
+
+   
+   
+   def fig(self):
+     pos = nx.draw_planar(self.graph)
+     fig = nx.draw_networkx_nodes(self.graph,pos,node_size=1000)
+     fig = nx.draw_networkx_labels(self.graph,pos)
+     fig = nx.draw_networkx_edges(self.graph,pos)
+     fig = nx.draw_networkx_edge_labels(self.graph,pos)
+     pass
+   pass
+
 
 class ChainGenerator:
-   #Generate a tree starting from the state (3,0,0,0). Generate it using dfs algorithm (so use a queue)
+   
+   def __init__(self, nodes : list[State]) -> None:
+      self.nodes = nodes
+      self.edges : list[Transition] = []
+      self.queue = []
+      self.ordered = []   
+      pass
+
+   def __call__(self, firstNode : State):
+      self.queue.append(firstNode)
+      while len(self.queue) > 0:
+         self.compute_next()
+         pass
+      pass
+
+   def compute_next(self):
+      ref = self.queue[0]
+      self.queue.remove(ref)
+      print("Computing nodes for: {}".format(str(ref)))
+      self.ordered.append(ref)
+      for node in self.nodes:
+         tr = Transition(ref,node)
+         if tr.type != Transition.TransitionType.UNKNOWN:
+            self.edges.append(tr)
+            if not node in self.ordered:
+               print("Discovered {}".format(str(node)))
+               self.queue.append(node)
+               pass
+            pass
+         pass
+      pass
+
+   def chain(self) -> DiGraph:
+      chain = DiGraph()
+      for node in self.ordered:
+         chain.add_node(str(node))
+         pass
+      for edge in self.edges:
+         chain.add_edge(str(edge.head),str(edge.tail),edge.p())
+         pass
+      return chain
+   
+   def get_edges(self, refNode: State) -> tuple[list[Transition],list[Transition],list[State]]:
+      inner= []
+      outer = []
+      nodes = []
+      for edge in self.edges:
+         if str(edge.head) == str(refNode):
+            outer.append(edge)
+            if edge.tail not in nodes:
+               nodes.append(edge.tail)
+            pass
+         elif str(edge.tail) == str(refNode):
+            inner.append(edge)
+            if edge.head not in nodes:
+               nodes.append(edge.head)
+            pass
+         pass
+      return(inner,outer,nodes)
+
+   def subgraph(self, refNode:State) -> DiGraph:
+      (inner,outer,nodes) = self.get_edges(refNode)
+      graph = DiGraph()
+      for node in nodes:
+         graph.add_node(str(node))
+         pass
+      for edge in inner + outer:
+         graph.add_edge(str(edge.head), str(edge.tail),edge.p())
+         pass
+      return graph
+      
+      
+   
+
+   
    pass
 
 if __name__ == "__main__":
@@ -353,6 +427,12 @@ if __name__ == "__main__":
     test_p(State(1,0,2,0),State(0,1,2,0,2),(1/SystemParameters.thinkTime)*SystemParameters.beta)
     test_p(State(0,1,1,1,2),State(0,1,1,1,2),(1/SystemParameters.u2)*SystemParameters.beta*SystemParameters.qouts)
     test_p(State(0,3,0,0,1),State(0,2,1,0,2),(1/SystemParameters.u1)*SystemParameters.beta*SystemParameters.qio1)
+
+    generator = ChainGenerator(node_enumerator())
+    generator(State(3,0,0,0))
+    graph = generator.subgraph(State(3,0,0,0))
+    print(Printer.nx_to_graphviz(graph))
+
     print("All tests passed")
     pass
 
