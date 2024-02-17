@@ -71,12 +71,15 @@ SCENARIO(Default) // first request
 
     auto &regPoint = manager->regPoint;
     // first CPU must have 0 clients because is hyperexp
+    //NDelay:2, NSwap:0, NCPU:0, NIO1:0, NIO2:9, hits:13
     auto os = manager->shell->Scheduler();
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 7; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 2; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 9; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 0; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 0; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation(0).value()->sysClients() == 2; });
 };
 
 SCENARIO(Default_NOMPD)

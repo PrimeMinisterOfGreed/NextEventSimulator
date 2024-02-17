@@ -24,7 +24,6 @@
 
 void SetupEnvironment();
 struct BaseScenario;
-
 struct SimulationManager
 {
 
@@ -62,6 +61,7 @@ struct SimulationManager
     void SetupScenario(std::string name);
     void SetupEnvironment();
     void CollectSamples(int samples, bool logMeasures = false, bool logActualState = false);
+    void SearchStates(int iterations, bool logActualState = false);
 };
 
 struct BaseScenario

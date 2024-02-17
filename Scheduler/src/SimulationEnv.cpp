@@ -25,6 +25,7 @@
 #include <sstream>
 #include <string.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 void SimulationManager::CollectMeasures()
@@ -234,7 +235,7 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         char buffer[32]{};
         stream >> buffer;
         int m = atoi(buffer);
-        CollectSamples(m, false, true);
+        SearchStates(m);
         regPoint->SetRules(true);
     });
     results.AddShellCommands(shell);
@@ -267,6 +268,7 @@ void SimulationManager::CollectSamples(int samples, bool logMeasures, bool logAc
             print(os->GetStation("IO1").value().get());
             print(os->GetStation("IO2").value().get());
             print(os->GetStation("SWAP_IN").value().get());
+            print(os->GetStation(0).value().get());
         }
     };
     if (samples == -1)
@@ -282,4 +284,62 @@ void SimulationManager::CollectSamples(int samples, bool logMeasures, bool logAc
     {
         p(i);
     }
+}
+
+void SimulationManager::SearchStates(int iterations, bool logActualState)
+{
+    struct State
+    {
+        int N_delay = 0;
+        int N_cpu = 0;
+        int N_io1 = 0;
+        int N_io2 = 0;
+        int N_swap = 0;
+        bool operator==(const State &state) const
+        {
+            return N_delay == state.N_delay && N_cpu == state.N_cpu && N_io1 == state.N_io1 && N_io2 == state.N_io2 &&
+                   N_swap == state.N_swap;
+        }
+    };
+
+    std::vector<std::pair<State, int>> hits{};
+    bool end = false;
+    auto execFnc = [this, &end, &hits]() {
+        regPoint->AddOneTimeAction([&end](auto rs) { end = true; });
+        while (!end)
+        {
+            os->Execute();
+        }
+        end = false;
+        State s = {
+            .N_delay = os->GetStation(0).value()->sysClients(),
+            .N_cpu = os->GetStation("CPU").value()->sysClients(),
+            .N_io1 = os->GetStation("IO1").value()->sysClients(),
+            .N_io2 = os->GetStation("IO2").value()->sysClients(),
+            .N_swap = os->GetStation("SWAP_IN").value()->sysClients(),
+        };
+        for (int i = 0; i < hits.size(); i++)
+        {
+            if (hits[i].first == s)
+            {
+                hits[i].second += 1;
+                return ;
+            }
+        }
+        hits.push_back({s,1});
+    };
+    auto printarray = [&hits]() {
+        for (auto e : hits)
+        {
+            fmt::println("NDelay:{}, NSwap:{}, NCPU:{}, NIO1:{}, NIO2:{}, hits:{}", e.first.N_delay, e.first.N_swap,
+                         e.first.N_cpu, e.first.N_io1, e.first.N_io2,e.second);
+        }
+    };
+    for (int i = 0; i < iterations; i++)
+    {
+        execFnc();
+        printarray();
+    }
+    std::sort(hits.begin(), hits.end(), [](auto s1, auto s2) { return s1.second > s2.second; });
+    printarray();
 }

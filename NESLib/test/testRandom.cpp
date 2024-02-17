@@ -77,9 +77,11 @@ TEST(TestRandom, test_covariated)
 {
     int seed = 123456789;
     CovariatedMeasure m{};
-    for (int i = 0; i < 1000; i++)
-    {
-        m(20+ Exponential(0.4), 1 + Exponential(0.4));
-    }
+    m(3,1);
+    m(2,2);
+    m(3,1);
+    ASSERT_EQ(3, m.variance());
+    ASSERT_EQ(2, m.R());
+    
     fmt::println("{}",m);
 }
