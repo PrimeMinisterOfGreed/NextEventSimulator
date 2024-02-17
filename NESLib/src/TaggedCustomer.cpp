@@ -45,7 +45,7 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
 
 void TaggedCustomer::CompleteRegCycle(double actualclock)
 {
-    _mean(_acc.sum(), _acc.Count(), false);
+    _mean(_acc.sum(), _acc.Count()-_mean.times());
     _acc.Reset();
 }
 

@@ -443,15 +443,9 @@ struct CovariatedMeasure : BaseMeasure
         return {_current[0], _current[1]};
     }
 
-    void operator()(double value, double time, bool notResetted = true)
+    void operator()(double value, double time)
     {
-        if (notResetted)
-        {
-            double interval = time - _times[0];
-            Accumulate(value, interval);
-        }
-        else
-            Accumulate(value, time);
+        Accumulate(value, time);
     }
 
     void Reset() override
@@ -459,6 +453,17 @@ struct CovariatedMeasure : BaseMeasure
         memset(_sum, 0, sizeof(double) * 2);
         memset(_times, 0, sizeof(double) * 2);
         _weightedsum = 0;
+    }
+    int SampleNeedsForPrecision();
+
+    double times(int moment = 0)
+    {
+        return _times[moment];
+    }
+
+    double sum(int moment = 0)
+    {
+        return _sum[moment];
     }
 };
 
@@ -473,9 +478,10 @@ template <> struct fmt::formatter<CovariatedMeasure>
     {
         return fmt::format_to(ctx.out(),
                               "Measure: {}, R: {},LB:{}, LH:{}, Samples:{},  Variance:{}, "
-                              "Precision:{},LastValue:{}, LastTime:{}",
+                              "Precision:{},LastValue:{}, LastTime:{},P:{}",
                               m.Name(), m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(), m.variance(),
-                              m.confidence().precision(), m.Current().first, m.Current().second);
+                              m.confidence().precision(), m.Current().first, m.Current().second,
+                              m.SampleNeedsForPrecision());
     }
 };
 

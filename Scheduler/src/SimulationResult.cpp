@@ -203,7 +203,7 @@ void StationStats::Collect(BaseStation *station)
     auto &self = *this;
     self[throughput](station->completions(), station->clock());
     self[utilization](station->busyTime(), station->clock());
-    self[meanwait](station->areaN(), station->completions(), false);
+    self[meanwait](station->areaN(), station->completions());
     self[meancustomer](station->areaN(), station->clock());
 }
 

@@ -72,3 +72,14 @@ TEST(TestRandom, test_measure_esemble)
     }
     fmt::print("{}", measure);
 }
+
+TEST(TestRandom, test_covariated)
+{
+    int seed = 123456789;
+    CovariatedMeasure m{};
+    for (int i = 0; i < 1000; i++)
+    {
+        m(20+ Exponential(0.4), 1 + Exponential(0.4));
+    }
+    fmt::println("{}",m);
+}
