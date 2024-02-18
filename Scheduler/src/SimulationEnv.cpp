@@ -245,7 +245,7 @@ void SimulationManager::CollectSamples(int samples, bool logMeasures, bool logAc
 {
     auto p = [this, logMeasures, logActualState](int i) {
         bool end = false;
-        regPoint->AddOneTimeAction([&end, logMeasures, logActualState](auto regPoint) { end = true; });
+        regPoint->AddOneTimeAction([&end, logMeasures, logActualState,this](auto regPoint) { end = true; });
         while (!end)
         {
             os->Execute();
@@ -274,7 +274,7 @@ void SimulationManager::CollectSamples(int samples, bool logMeasures, bool logAc
     if (samples == -1)
     {
         int i = 0;
-        while (!results.PrecisionReached())
+        while (results.tgt._mean.confidence().precision() > 0.05 || results.tgt._mean.Count() < 40)
         {
             p(i);
             i++;

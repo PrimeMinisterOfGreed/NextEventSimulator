@@ -26,8 +26,8 @@ bool ShouldStop()
 void CollectStat(MachineRepairmanv2 &simulator)
 {
     auto lrep = simulator.GetStation("long_repair").value();
-    acc(lrep->areaN(), lrep->completions(), false);
-    nclient(lrep->areaN(), simulator.GetClock());
+    acc(lrep->areaN(), lrep->completions());
+    nclient(lrep->areaN(), simulator.GetClock()-nclient.times());
 };
 
 void ExecuteRun()

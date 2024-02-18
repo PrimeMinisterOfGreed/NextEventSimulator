@@ -255,5 +255,51 @@
     $$
     since all the clients are coming from the swap in, then it's throughput becomes the arrival rate of the formula. The data show that with N=20 a value of 6630 should be expected.
     \section*{Simulation Results}
+    \subsection{Default Scenario}
+    The default scenario (case 1) has the following characteristics:
+    \begin{itemize}
+        \item Time slice: 2.7ms 
+        \item Burst with hyper exponential distribution with : $\alpha$ = 0.95 and $\beta$ = 0.05, $u_1=10 ms$ and $u_2=350 ms$.
+    \end{itemize}
     
+    \section{Simulator description}
+    \subsection{Brief description of the implementation}
+    The simulator is substantially a shell. The program loads at the beginning the skeleton of the simulator composed by an OS object. Such object hold the description of the model composed by a Round Robin station (class CPU), a delay station (class DelayStation) and all the other First Come First Served (class FCFSStation). The OS Object inherit from scheduler that hold the main event queue and manage all the operations inside the simulator. OS also inherit from the class Simulator, that substantially contains all the functions that are need to pilot the execution, such as dequeue an event , route it to the right station and so on. The environment of simulation is divided in 3 abstraction layers: 
+    \begin{itemize}
+        \item class SimulationEnvironment
+        \item class SimulationResult 
+        \item class SimulationShell
+    \end{itemize}
+    \subsubsection{SimulationEnvironment}
+    This class hold the setup functions for the base system and each scenario. Scenarios are a short way to describe the regeneration point for that scenario and the parameter for the simulation (for example the cpu slice time). In all the four case described the regeneration point is the same, but the parameter (especially for the CPU) are different. This class also contains the SimulationResult data strucuture, which holds all the accumulators.
+    \subsubsection{SimulationResult}
+    SimulationResult class hold all the accumulator used to display the result of the simulator, it contains various function for register 2 particular measure of all the station involved: mean waits and mean clients. At the end of each regeneration cycle the measure are extracted from the OS class.
+    \subsubsection{SimulationShell}
+    this class hold all the functions need to make the program interactive, in the section Available commands various input can be used to manipulate the simulator. The principal facilities of this class let the user to create a Command structure, which pair a sequence of character to an action.
+    \subsection{Available commands}  
+    \begin{itemize}
+        \item help: display an help with all the commands 
+        \item verbosity <list|sourceName> [int] : let the user to select a verbosity for a source, the sources can be listed with list. Note that all the station have verbosity 1 in order to not display the actual processing of the events.
+        \item start: manually start the simulator
+        \item stop: manually stop the simulator 
+        \item init: initialize the system , it is needed after each call to scenario.
+        \item clock: display the actual clock of the simulation.
+        \item ne [int]: process a certain number of events 
+        \item seed: set the seed for the simulator 
+        \item hreset: reset completely the state of the simulator 
+        \item exit: quit the program 
+        \item regstats: display the statistics on hit and call of regeneration point , each hit correspond to an event that call the regeneration point, each call correspond to the regeneration point being satisfied.
+        \item env: Display the environment variables (SystemParameters) that describe the scenario used for the simulator (MPD, slice ecc\dots)
+        \item lstats: Display the actual status of the stations , B=busy time, O= observation time, A=arrivals,C=completions,N: sysclients, W:meanWaits (sample mean), MAXN: max sysclients observed, AN: area of N (sysclients*interval), AS:area of S ((sysclients-1)*interval).
+        \item lqueue <name>: Display the actual status of all the queues
+        \item scenario <list|scenarioname>: set the scenario for the simulation. A brief description of the available scenario is available in the section Scenarios.
+        \item nr <int|-1> <1|0>: compute the n regeneration cycle or stop when the requested precision (0.05) is reached (using -1 as argument). The second argument ask to display or not the measure after each regeneration cycle (0 false, 1 true).
+        \item na <CPU|IO1|IO2|SWAP\_IN>: Execute the simulation until an arrival is detected to the station listed.
+        \item nd <CPU|IO1|IO2|SWAP\_IN>: Execute the simulation until a departure is detected to the station listed.
+        \item lsimresults
+        \item ltgtstats
+        \item lmeasures
+        \item reset\_measures
+        
+    \end{itemize}
     \end{document}
