@@ -238,6 +238,51 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         SearchStates(m);
         regPoint->SetRules(true);
     });
+    shell->AddCommand("nn", [this](SimulationShell *shell, const char *ctx) {
+        char buffer[12]{};
+        std::stringstream stream{ctx};
+        stream >> buffer;
+        int seed = 123456789;
+        int m = 1;
+        int log = 0;
+        if (strlen(buffer) > 0)
+        {
+            seed = atoi(buffer);
+        }
+        else
+        {
+            fmt::println("Need a seed parameter");
+            return;
+        }
+        if (!stream.eof())
+        {
+            stream >> buffer;
+            m = atoi(buffer);
+        }
+        else
+        {
+            fmt::println("Need an iteration parameter");
+            return;
+        }
+        if (!stream.eof())
+        {
+            stream >> buffer;
+            log = atoi(buffer);
+        }
+        for (int i = 0; i < m; i++)
+        {
+            os->Initialize();
+            CollectSamples(-1, log);
+            results.LogResult();
+            results.CollectResult(seed);
+            HReset();
+            seed++;
+            RandomStream::Global().PlantSeeds(seed);
+            shell->Log()->Result("Results for seed {}", seed);
+            results.LogSimResults();
+            results.Reset();
+        }
+    });
     results.AddShellCommands(shell);
 };
 
@@ -245,7 +290,7 @@ void SimulationManager::CollectSamples(int samples, bool logMeasures, bool logAc
 {
     auto p = [this, logMeasures, logActualState](int i) {
         bool end = false;
-        regPoint->AddOneTimeAction([&end, logMeasures, logActualState,this](auto regPoint) { end = true; });
+        regPoint->AddOneTimeAction([&end, logMeasures, logActualState, this](auto regPoint) { end = true; });
         while (!end)
         {
             os->Execute();
@@ -323,22 +368,21 @@ void SimulationManager::SearchStates(int iterations, bool logActualState)
             if (hits[i].first == s)
             {
                 hits[i].second += 1;
-                return ;
+                return;
             }
         }
-        hits.push_back({s,1});
+        hits.push_back({s, 1});
     };
     auto printarray = [&hits]() {
         for (auto e : hits)
         {
             fmt::println("NDelay:{}, NSwap:{}, NCPU:{}, NIO1:{}, NIO2:{}, hits:{}", e.first.N_delay, e.first.N_swap,
-                         e.first.N_cpu, e.first.N_io1, e.first.N_io2,e.second);
+                         e.first.N_cpu, e.first.N_io1, e.first.N_io2, e.second);
         }
     };
     for (int i = 0; i < iterations; i++)
     {
         execFnc();
-        printarray();
     }
     std::sort(hits.begin(), hits.end(), [](auto s1, auto s2) { return s1.second > s2.second; });
     printarray();

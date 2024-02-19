@@ -67,6 +67,7 @@ struct SimulationResult
     void Collect(BaseStation *station);
     void CollectCustomMeasure(std::string name, double value, double clock);
     bool PrecisionReached();
+    void LogSimResults();
     void AddPrecisionTarget(std::string name)
     {
         _precisionTargets.push_back(name);

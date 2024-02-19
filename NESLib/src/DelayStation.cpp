@@ -17,7 +17,7 @@ void DelayStation::Initialize()
 void DelayStation::ProcessArrival(Event &evt)
 {
     Station::ProcessArrival(evt);
-    evt.OccurTime = _delayTime()+ _clock;
+    evt.OccurTime = _delayTime() + _clock;
     evt.Type = DEPARTURE;
     evt.Station = 0;
     _scheduler->Schedule(evt);

@@ -67,12 +67,7 @@ SimulationResult::SimulationResult()
 
 void SimulationResult::AddShellCommands(SimulationShell *shell)
 {
-    shell->AddCommand("lsimresults", [this](SimulationShell *shell, const char *context) {
-        for (auto s : mva.Stations())
-        {
-            shell->Log()->Result("Station:{}\n{}", s, _confidenceHits[s]);
-        }
-    });
+    shell->AddCommand("lsimresults", [this](SimulationShell *shell, const char *context) { LogSimResults(); });
     shell->AddCommand("ltgtstats", [this](SimulationShell *s, auto ctx) {
         s->Log()->Result("{},Expected:{}", tgt._mean, mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
     });
@@ -128,6 +123,16 @@ bool SimulationResult::PrecisionReached()
     return true;
 }
 
+void SimulationResult::LogSimResults()
+{
+    auto logger = SimulationShell::Instance().Log();
+
+    for (auto s : mva.Stations())
+    {
+        logger->Result("Station:{}\n{}", s, _confidenceHits[s]);
+    }
+}
+
 void SimulationResult::LogResult(std::string name)
 {
     if (name == "ALL")
@@ -138,8 +143,7 @@ void SimulationResult::LogResult(std::string name)
             for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
             {
                 auto expected = mva.ExpectedForAccumulator(s.first, &s.second[(StationStats::MeasureType)i]);
-                result += fmt::format("{}, Expected Value:{}\n",
-                                      s.second[(StationStats::MeasureType)i], expected);
+                result += fmt::format("{}, Expected Value:{}\n", s.second[(StationStats::MeasureType)i], expected);
             }
             SimulationShell::Instance().Log()->Result("Station:{}\n{}", s.first, result);
         }
@@ -159,9 +163,7 @@ void SimulationResult::LogResult(std::string name)
         for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
         {
             auto expected = mva.ExpectedForAccumulator(name, &acc[(StationStats::MeasureType)i]);
-            result +=
-                fmt::format("{}, Expected Value:{}\n", acc[(StationStats::MeasureType)i],
-                            expected);
+            result += fmt::format("{}, Expected Value:{}\n", acc[(StationStats::MeasureType)i], expected);
         }
         SimulationShell::Instance().Log()->Result("Station:{}\n{}", name, result);
     }
