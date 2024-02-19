@@ -61,6 +61,7 @@ void SimulationManager::SetupScenario(std::string name)
         logger.Exception("Cannot find scenario with name {}", name);
         return;
     }
+    _currScenario = s;
     regPoint->Reset();
     HReset();
     s->Setup(this);
@@ -275,12 +276,11 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             CollectSamples(-1, log);
             results.LogResult();
             results.CollectResult(seed);
-            HReset();
             seed++;
             RandomStream::Global().PlantSeeds(seed);
             shell->Log()->Result("Results for seed {}", seed);
             results.LogSimResults();
-            results.Reset();
+            SetupScenario(_currScenario->name);
         }
     });
     results.AddShellCommands(shell);

@@ -254,7 +254,19 @@
     \bar{w}= \frac{\bar{n}}{\lambda}
     $$
     since all the clients are coming from the swap in, then it's throughput becomes the arrival rate of the formula. The data show that with N=20 a value of 6630 should be expected.
-    \section*{Simulation Results}
+    \section{Simulation Results}
+
+    \subsection{The simplified model used for MVA}
+    The first scenario is the case where we have a condition in which $MPD>>N$ , burst time = time slice and there is a routing probability of 0.9 that the departured client will return to CPU. In this case the limitation imposed by the reserve station is not considered, hence the measure collected by the simulator should be similar to the ones calculated by MVA. In this case with a seed of 123456789 the following measure are obtained 
+    \begin{center}
+        \begin{tabular}{ |c|c|c|c|c}
+            Station & Mean N & Mean W & Expected W & Expected N \\
+            CPU & (LB:1.42592, LH:1.48144) & (6.490457,6.65112) & 6.65302 & 1.47487
+            
+        \end{tabular}        
+    \end{center}
+
+
     \subsection{Default Scenario}
     The default scenario (case 1) has the following characteristics:
     \begin{itemize}
@@ -293,13 +305,13 @@
         \item lstats: Display the actual status of the stations , B=busy time, O= observation time, A=arrivals,C=completions,N: sysclients, W:meanWaits (sample mean), MAXN: max sysclients observed, AN: area of N (sysclients*interval), AS:area of S ((sysclients-1)*interval).
         \item lqueue <name>: Display the actual status of all the queues
         \item scenario <list|scenarioname>: set the scenario for the simulation. A brief description of the available scenario is available in the section Scenarios.
-        \item nr <int|-1> <1|0>: compute the n regeneration cycle or stop when the requested precision (0.05) is reached (using -1 as argument). The second argument ask to display or not the measure after each regeneration cycle (0 false, 1 true).
+        \item nr <numCycles:0+|untilPrecisionReached:-1> <showMeasure:1|0>: compute the n regeneration cycle or stop when the requested precision (0.05) is reached (using -1 as argument). The second argument ask to display or not the measure after each regeneration cycle (0 false, 1 true).
         \item na <CPU|IO1|IO2|SWAP\_IN>: Execute the simulation until an arrival is detected to the station listed.
         \item nd <CPU|IO1|IO2|SWAP\_IN>: Execute the simulation until a departure is detected to the station listed.
-        \item lsimresults
-        \item ltgtstats
-        \item lmeasures
-        \item reset\_measures
+        \item nn <seed:int> <numSimulations:int> <showMeasure:1|0> : Execute a fixed number of simulation reaching the precision requested every time, at the end of each simulation it will compare with MVA result and tell if the confidence interval has the true mean or not.
+        \item ltgtstats: print the cycle time catched by the tagged customer
+        \item lmeasures: print all the collected measure
+        \item reset\_measures: manually reset all the accumulators
         
     \end{itemize}
     \end{document}

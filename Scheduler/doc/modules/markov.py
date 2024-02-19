@@ -232,13 +232,13 @@ class DiGraph():
 
    def gen(self,headLabel, tailLabel, p):
     if (headLabel,tailLabel) in self.graph.edges:
-      print("Warning redundant edge {} , {} , call N {}, inW {}, newW{}".format(headLabel,tailLabel,self.calls,self.graph.get_edge_data(headLabel,tailLabel)["weight"],p))
+      #print("Warning redundant edge {} , {} , call N {}, inW {}, newW{}".format(headLabel,tailLabel,self.calls,self.graph.get_edge_data(headLabel,tailLabel)["weight"],p))
       pass
     if headLabel not in self.graph.nodes:
-      print("Warning head {} not listed".format(headLabel))
+     # print("Warning head {} not listed".format(headLabel))
       pass
     if tailLabel not in self.graph.nodes:
-      print("Warning tail {} not listed".format(tailLabel))
+     # print("Warning tail {} not listed".format(tailLabel))
       pass
     self.lastHead = headLabel
     self.lastTail = tailLabel 
@@ -327,14 +327,14 @@ class ChainGenerator:
    def compute_next(self):
       ref = self.queue[0]
       self.queue.remove(ref)
-      print("Computing nodes for: {}".format(str(ref)))
+      #print("Computing nodes for: {}".format(str(ref)))
       self.ordered.append(ref)
       for node in self.nodes:
          tr = Transition(ref,node)
          if tr.type != Transition.TransitionType.UNKNOWN:
             self.edges.append(tr)
             if not node in self.ordered:
-               print("Discovered {}".format(str(node)))
+               #print("Discovered {}".format(str(node)))
                self.queue.append(node)
                pass
             pass

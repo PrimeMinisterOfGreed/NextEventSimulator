@@ -205,10 +205,10 @@ bool StationStats::Ready()
 void StationStats::Collect(BaseStation *station)
 {
     auto &self = *this;
-    self[throughput](station->completions(), station->clock());
-    self[utilization](station->busyTime(), station->clock());
+    self[throughput](station->completions(), station->clock() - self[throughput].times());
+    self[utilization](station->busyTime(), station->clock() - self[utilization].times());
     self[meanwait](station->areaN(), station->completions());
-    self[meancustomer](station->areaN(), station->clock());
+    self[meancustomer](station->areaN(), station->clock() - self[meancustomer].times());
 }
 
 StationStats::StationStats()

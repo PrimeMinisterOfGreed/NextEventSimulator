@@ -453,6 +453,7 @@ struct CovariatedMeasure : BaseMeasure
         memset(_sum, 0, sizeof(double) * 2);
         memset(_times, 0, sizeof(double) * 2);
         _weightedsum = 0;
+        BaseMeasure::Reset();
     }
     int SampleNeedsForPrecision();
 
