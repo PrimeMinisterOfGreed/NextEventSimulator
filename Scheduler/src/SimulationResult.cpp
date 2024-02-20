@@ -85,6 +85,23 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
             LogResult(std::string{buffer});
         }
     });
+    shell->AddCommand("queryMeasure", [this](SimulationShell *shell, const char *ctx) {
+        char buffer[36]{};
+        std::stringstream stream{ctx};
+        stream >> buffer;
+        auto station = std::string(buffer);
+        stream >> buffer;
+        if (station == "ActiveTime")
+        {
+            fmt::println("ActiveTime;{:csv};{}",tgt._mean,mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+            return;
+        }
+        auto measure = std::string(buffer);
+        auto s = _acc[station];
+        auto &acc = measure == "N" ? s._acc[s.meancustomer] : s._acc[s.meanwait];
+        auto expected = mva.ExpectedForAccumulator(station, &acc);
+        fmt::println("{};{:csv};{}", station, acc, expected);
+    });
     shell->AddCommand("reset_measures", [this](auto s, auto ctx) { Reset(); });
 }
 

@@ -9,6 +9,7 @@ class SimFile(ConanFile):
     generators = "CMakeToolchain", "CMakeDeps"
     def requirements(self):
         self.requires("fmt/10.2.1")
+        self.requires("argparse/3.0")
         self.test_requires("gtest/1.14.0")
         pass
     def generate(self):

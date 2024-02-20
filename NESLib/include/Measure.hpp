@@ -11,7 +11,10 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
+#include <cstring>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <functional>
 #include <iterator>
 #include <stdexcept>
@@ -470,19 +473,37 @@ struct CovariatedMeasure : BaseMeasure
 
 template <> struct fmt::formatter<CovariatedMeasure>
 {
+    char mode[16]{};
     constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
     {
-        return ctx.begin();
+        auto itr = ctx.begin();
+        int i = 0;
+        while (itr != ctx.end() && *itr != '}')
+        {
+            mode[i] = *itr;
+            itr++;
+            i++;
+        }
+        return itr;
     }
 
     auto format(CovariatedMeasure &m, format_context &ctx) -> format_context::iterator
     {
-        return fmt::format_to(ctx.out(),
-                              "Measure: {}, R: {},LB:{}, LH:{}, Samples:{},  Variance:{}, "
-                              "Precision:{},LastValue:{}, LastTime:{},P:{}",
-                              m.Name(), m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(), m.variance(),
-                              m.confidence().precision(), m.Current().first, m.Current().second,
-                              m.SampleNeedsForPrecision());
+
+        if (strcmp(mode, "csv") == 0)
+        {
+            return fmt::format_to(ctx.out(), 
+            "{};{};{};{};{};{}",m.Name(),m.R(),m.confidence().lower(),m.confidence().higher(),m.Count(),m.confidence().precision()
+            );
+        }
+        else
+        {
+            return fmt::format_to(ctx.out(),
+                                  "Measure: {}, R: {},LB:{}, HB:{}, Samples:{} "
+                                  "Precision:{}",
+                                  m.Name(), m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(),
+                                  m.confidence().precision());
+        }
     }
 };
 

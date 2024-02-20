@@ -33,7 +33,7 @@ struct SimulationManager
     std::unique_ptr<OS> os;
     std::unique_ptr<RegenerationPoint> regPoint;
     SimulationShell *shell;
-    TraceSource logger{"SIMManager", 4};
+    TraceSource logger{"SIMManager", 1};
     SimulationResult results{};
     bool hot = false;
     SimulationManager();

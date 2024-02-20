@@ -23,7 +23,7 @@ add_executable(scheduler_mva
     src/MvaSolver.cpp
 )
 
-target_link_libraries(scheduler PUBLIC  fmt::fmt NESLib)
+target_link_libraries(scheduler PUBLIC  fmt::fmt NESLib argparse::argparse)
 target_link_libraries(scheduler_mva PUBLIC fmt::fmt NESLib)
 target_include_directories(scheduler PUBLIC include)
 target_include_directories(scheduler_mva PUBLIC include)

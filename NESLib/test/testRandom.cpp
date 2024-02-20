@@ -83,5 +83,5 @@ TEST(TestRandom, test_covariated)
     ASSERT_EQ(3, m.variance());
     ASSERT_EQ(2, m.R());
     
-    fmt::println("{}",m);
+    fmt::println("{:csv}",m);
 }

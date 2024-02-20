@@ -40,7 +40,7 @@ void SimulationShell::Pause()
     _started = false;
 }
 
-void SimulationShell::Execute()
+void SimulationShell::Interactive()
 {
     bool execend = false;
     while (!execend)

@@ -98,7 +98,7 @@ void SimulationManager::SetupShell(SimulationShell *shell)
     shell->AddCommand("hreset", [this](SimulationShell *shell, auto ctx) mutable { HReset(); });
     shell->AddCommand("exit", [](auto s, auto c) { exit(0); });
     shell->AddCommand("regstats", [this](SimulationShell *s, auto c) {
-        logger.Information("Regeneration point -> Hitted:{}, Called:{}", regPoint->hitted(), regPoint->called());
+        s->Log()->Information("Regeneration point -> Hitted:{}, Called:{}", regPoint->hitted(), regPoint->called());
     });
     SystemParameters::Parameters().AddControlCommands(shell);
 
@@ -159,7 +159,6 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         {
             std::string sc{buffer};
             SetupScenario(sc);
-            fmt::println("Setup for scenario:{} completed", sc);
         }
     });
 
@@ -238,50 +237,6 @@ void SimulationManager::SetupShell(SimulationShell *shell)
         int m = atoi(buffer);
         SearchStates(m);
         regPoint->SetRules(true);
-    });
-    shell->AddCommand("nn", [this](SimulationShell *shell, const char *ctx) {
-        char buffer[12]{};
-        std::stringstream stream{ctx};
-        stream >> buffer;
-        int seed = 123456789;
-        int m = 1;
-        int log = 0;
-        if (strlen(buffer) > 0)
-        {
-            seed = atoi(buffer);
-        }
-        else
-        {
-            fmt::println("Need a seed parameter");
-            return;
-        }
-        if (!stream.eof())
-        {
-            stream >> buffer;
-            m = atoi(buffer);
-        }
-        else
-        {
-            fmt::println("Need an iteration parameter");
-            return;
-        }
-        if (!stream.eof())
-        {
-            stream >> buffer;
-            log = atoi(buffer);
-        }
-        for (int i = 0; i < m; i++)
-        {
-            os->Initialize();
-            CollectSamples(-1, log);
-            results.LogResult();
-            results.CollectResult(seed);
-            seed++;
-            RandomStream::Global().PlantSeeds(seed);
-            shell->Log()->Result("Results for seed {}", seed);
-            results.LogSimResults();
-            SetupScenario(_currScenario->name);
-        }
     });
     results.AddShellCommands(shell);
 };

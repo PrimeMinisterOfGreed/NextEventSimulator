@@ -60,7 +60,7 @@ class SimulationShell
     void Start();
     void Pause();
     void SetupDefaultCmds();
-    void Execute();
+    void Interactive();
     void ShowLog(bool show);
     void ExecuteCommand(const char *command);
     static SimulationShell &Instance()
