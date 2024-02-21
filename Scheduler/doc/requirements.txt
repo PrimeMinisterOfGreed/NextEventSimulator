@@ -3,3 +3,4 @@ pydtmc
 numpy 
 networkx
 plotly
+pandas

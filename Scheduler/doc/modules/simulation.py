@@ -1,11 +1,13 @@
 import os
 import subprocess
-scheduler_command = "../../build/Scheduler/scheduler"
 
 class SimulatorCommander():
 
-    def __init__(self) -> None:
-        self.result = ""
+    def __init__(self,command) -> None:
+        self.results = []
+        self.command = command
+        self.preamble = ""
+        self.postexecution = ""
         self.stationToRecord = ["CPU","IO1","IO2","SWAP_IN"]
         self.measureToRecord = ["ActiveTime"]
         self.scenario = "Default"
@@ -32,25 +34,39 @@ class SimulatorCommander():
         self.seed = seed
         pass
     
+    def add_command(self,command, postexecution=False):
+        if postexecution:
+            self.preamble += "{};".format(command)
+            pass
+        else:
+            self.postexecution += "{};".format(command)
+            pass
+        pass
+
     def run(self) -> subprocess.Popen:
-        script = self.generate_command()
-        cmd=scheduler_command +  " {} --program \'{}\'".format( "--no-log" if not self.enable_log else "",script)
-        process = subprocess.Popen(cmd,shell=True)
+        script = self.generate_command()[:-1] 
+        self.preamble = ""
+        self.postexecution = ""
+        args = ["--no-log" if not self.enable_log else "","--program","{}".format(script)]
+        cmd= "{} {} --program \'{}\'".format( self.command,"--no-log" if not self.enable_log else "",script)
+        process = subprocess.Popen(executable=self.command,args=args,stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         self.processes.append(process)
         return process
     
-    def collect_and_wait(self):
+    def collect(self):
         for process in self.processes:
-            self.result += str(process.stdout)
+            process.wait()
+            out, err = process.communicate()
+            self.results.append(process.communicate(out))
             pass
         pass
-    pass
-
 
 if __name__ == "__main__":
-    comm = SimulatorCommander()
-    comm.enable_logger(True)
+    comm = SimulatorCommander("C:/Users/matteo.ielacqua/OneDrive - INPECO SPA/Desktop/Personal/NextEventSimulator/build/Scheduler/scheduler.exe")
+    comm.enable_logger(False)
+    comm.scenario = "Simplified"
     p = comm.run()
     p.wait()
-    print(p.stdout)
+    out,err = p.communicate()
+    print(out)
     pass
