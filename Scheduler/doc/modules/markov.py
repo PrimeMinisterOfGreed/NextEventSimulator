@@ -56,7 +56,11 @@ class State:
 
     def __len__(self):
        return len(self.state) - 1
-       
+    
+    def __eq__(self, __value: object) -> bool:
+       return str(self) == str(__value)
+    def __hash__(self) -> int:
+       return hash(str(self))
     pass
 
 
@@ -328,6 +332,7 @@ class ChainGenerator:
       ref = self.queue[0]
       self.queue.remove(ref)
       #print("Computing nodes for: {}".format(str(ref)))
+      if ref in self.ordered: return
       self.ordered.append(ref)
       for node in self.nodes:
          tr = Transition(ref,node)
@@ -430,6 +435,10 @@ if __name__ == "__main__":
 
     generator = ChainGenerator(node_enumerator())
     generator(State(3,0,0,0))
+    for state in generator.ordered:
+       assert generator.ordered.count(state) == 1, "Error state {} found {} times".format(str(state),generator.ordered.count(state))
+       pass
+    print(list(map(lambda x: str(x),generator.ordered)))
     graph = generator.subgraph(State(3,0,0,0))
     print(Printer.nx_to_graphviz(graph))
 
