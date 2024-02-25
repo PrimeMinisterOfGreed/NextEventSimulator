@@ -1,6 +1,7 @@
 from typing import Any
 import numpy as np
 from enum import Enum
+import pandas as pd
 
 class StationType(Enum):
     Delay = 1
@@ -8,7 +9,7 @@ class StationType(Enum):
     pass
 
 class MVA:
-    def __init__(self, matrix:np.ndarray[np.double] ,serviceTimes:np.ndarray[np.double], types:[StationType],N:int):
+    def __init__(self, matrix:np.ndarray[np.double] ,serviceTimes:np.ndarray[np.double], types:list[StationType],N:int):
         self.meanclients = None
         self.meanwaits = None
         self.throughputs = None
@@ -20,7 +21,7 @@ class MVA:
         self.N = N
         pass
 
-    def mvalid(self, visits:np.ndarray[np.double], serviceTimes:np.ndarray[np.double], types: [StationType], N: int):
+    def mvalid(self, visits:np.ndarray[np.double], serviceTimes:np.ndarray[np.double], types: list[StationType], N: int):
         M = len(self.visits)
         self.meanclients = np.zeros((M,N))
         self.meanwaits = np.zeros((M,N))
@@ -78,3 +79,12 @@ class MVA:
     
 
 
+def mvaToDataframe(matrix: np.ndarray)-> pd.DataFrame:
+    vals = pd.DataFrame()
+    vals["DELAY"] = matrix[0]
+    vals["SWAP_IN"] = matrix[1]
+    vals["CPU"] = matrix[2]
+    vals["IO1"] = matrix[3]
+    vals["IO2"] = matrix[4]
+    vals["N"] = [i for i in range(0,len(matrix[0]))]
+    return vals

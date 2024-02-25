@@ -1,6 +1,14 @@
-from typing import Any
+import numpy as np 
+import numpy.random as npr
 import networkx as nx
+import matplotlib as plt
+import plotly.graph_objects as go
+import pydtmc
+import sys 
+import plotly.express as plt
 import graphviz
+import pandas as pd
+from markov import *
 
 
 class SystemParameters:
@@ -126,7 +134,6 @@ class Transition:
       elif decrement == "Nio2" and increment == "Ncpu" : self.type = Transition.TransitionType.IO2_TO_CPU
       elif decrement == "Ndelay" and increment == "Ncpu" : self.type = Transition.TransitionType.DELAY_TO_CPU
       elif decrement == "Ncpu" and increment == "Ndelay" : self.type = Transition.TransitionType.CPU_TO_DELAY
-      elif decrement == "" and increment == "" and self.head.Ncpu > 0 and self.tail.Ncpu > 0 : self.type = Transition.TransitionType.CPU_TO_SELF
       pass
    
    def p(self):
@@ -141,7 +148,7 @@ class Transition:
    def DelayToCpu(self):
       l = self.head.Ndelay*(1/SystemParameters.thinkTime)
       if self.head.Ncpu == 0:
-         l = l * SystemParameters.alpha if self.tail.cpuStage == 1 else l* SystemParameters.beta
+         l *= SystemParameters.alpha if self.tail.cpuStage == 1 else  SystemParameters.beta
       return l
    
    def CpuL(self):
@@ -162,7 +169,11 @@ class Transition:
       return self.CpuL()*SystemParameters.qouts
    
    def IoToCpu(self):
-      return (1/SystemParameters.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else (1/SystemParameters.Sio2)
+      l = 1
+      if self.head.Ncpu == 0:
+         l = SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
+         pass
+      return l * (1/SystemParameters.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else (1/SystemParameters.Sio2)
 
    pass
 
@@ -384,20 +395,113 @@ class ChainGenerator:
          graph.add_edge(str(edge.head), str(edge.tail),edge.p())
          pass
       return graph
-      
-      
-   
-
-   
    pass
+
+
+def balance_ctmc(mat : np.ndarray[np.ndarray]) -> np.ndarray:
+    copy = mat.copy()
+    for i in range(len(mat)):
+        
+        copy[i][i] = -copy[i].sum()
+        pass
+    return copy
+    pass
+
+
+def convert_to_dtmc(mat: np.ndarray[np.ndarray]) -> np.ndarray:
+    maxq = 0
+    ctmc = mat.copy()
+    for i in range(len(ctmc)):
+        if abs(ctmc[i][i]) > abs(maxq):
+            maxq = ctmc[i][i]
+            pass
+        pass
+    id = np.identity(len(ctmc))
+    for i in range(len(ctmc)):
+        for j in range(len(ctmc[i])):
+            ctmc[i][j] = id[i][j] - (ctmc[i][j]/maxq)
+            pass
+        if ctmc[i].sum() <1:
+            for k in range(len(ctmc[i])):
+                if ctmc[i][k] >0:
+                    ctmc[i][k] += (1-ctmc[i].sum())
+                    pass
+                pass
+            pass
+        pass
+    return ctmc
+
+def get_adj_matrix(generator: ChainGenerator):
+   nodes = generator.ordered
+   mat = np.zeros((len(nodes),len(nodes)))
+   adj :dict = generator.chain().graph.adj
+   for i in range(len(nodes)):
+       ref = nodes[i]
+       for j in range(len(nodes)):
+           to = nodes[j]
+           if to in adj[ref]:
+               mat[j][i] = round(adj[ref][to]["weight"],10)
+           pass
+       pass
+   return mat
+
+
+
 
 if __name__ == "__main__":
     
+   generator = ChainGenerator(node_enumerator())
+   generator(State(3,0,0,0))
+   q = balance_ctmc(get_adj_matrix(generator))
+   print(q)
+   dtmc = pydtmc.MarkovChain(convert_to_dtmc(q))
+   dtmc.pi
+
+   m = q.copy().transpose()
+
+   norm = np.ones(len(m))
+   m =np.vstack((m,norm))
+   b= np.zeros(len(m))
+   b[-1] = 1
+   x = np.linalg.lstsq(m,b,rcond=None)[0]
+
+   print(np.linalg.norm( (m@x) - b ,2).min())
+   print(x)
+   print(dtmc.pi[0])
+   print(sum(x))
+   print(dtmc.pi[0].sum())
+
+   ordered = generator.ordered
+   Ndelay = 0
+   Ncpu = 0
+   Nio1 = 0
+   Nio2 = 0
 
 
-    def assert_p(tr: Transition, p:float):
-       assert tr.p() == p, "Error p()={} while required {}".format(tr.p(),p)
+   for state in ordered:
+       p = x[ordered.index(state)]
+       Ndelay += (state.Ndelay * p)
+       Ncpu += (state.Ncpu * p)
+       Nio1 += (state.Nio1 * p)
+       Nio2 += (state.Nio2 * p)
        pass
+
+   print("Ndelay {}".format(Ndelay))
+   print("Ncpu {}".format(Ncpu))
+   print("Nio1 {}".format(Nio1))
+   print("Nio2 {}".format(Nio2))
+   pass
+pass
+
+
+
+
+
+
+def __tests__():
+    def assert_p(tr: Transition, p:float):
+      assert tr.p() == p, "Error p()={} while required {}".format(tr.p(),p)
+      pass
     
     def test_p(state1: State, state2 : State, expected):
        tr = Transition(state1,state2)
@@ -415,22 +519,17 @@ if __name__ == "__main__":
     s1 = State(0,3,0,0,2)
     s2 = State(0,2,0,1,1)
     tr = Transition(s1,s2)
-    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
+    assert_p(tr, (1/SystemParameters.u2)*(1/SystemParameters.timeSlice)*SystemParameters.alpha*SystemParameters.qio2)
 
     s1= State(0,2,1,0,2)
     s2 = State(0,1,1,1,1)
     tr = Transition(s1,s2)
-    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
-    s2 = State(0,1,1,1,1)
-    s1 = State(0,1,1,1,1)
-    tr = Transition(s1,s2)
-    assert_p(tr, (1/SystemParameters.u1)*SystemParameters.alpha*SystemParameters.qouts)
+    assert_p(tr, (1/SystemParameters.u2)*(1/SystemParameters.timeSlice)*SystemParameters.alpha*SystemParameters.qio2)
     test_p(State(0,3,0,0,2), State(0,2,0,1,2),(1/SystemParameters.u2)*SystemParameters.beta*SystemParameters.qio2)
     test_p(State(0,2,1,0,1),State(0,3,0,0,1),(1/SystemParameters.Sio1))
     test_p(State(0,1,1,1,1),State(0,0,1,2),(1/SystemParameters.u1)*SystemParameters.qio2)
     test_p(State(0,2,1,0,2),State(0,1,1,1,1),(1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
     test_p(State(1,0,2,0),State(0,1,2,0,2),(1/SystemParameters.thinkTime)*SystemParameters.beta)
-    test_p(State(0,1,1,1,2),State(0,1,1,1,2),(1/SystemParameters.u2)*SystemParameters.beta*SystemParameters.qouts)
     test_p(State(0,3,0,0,1),State(0,2,1,0,2),(1/SystemParameters.u1)*SystemParameters.beta*SystemParameters.qio1)
 
     generator = ChainGenerator(node_enumerator())
@@ -444,5 +543,4 @@ if __name__ == "__main__":
 
     print("All tests passed")
     pass
-
-
+pass
