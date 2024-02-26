@@ -173,7 +173,7 @@ class Transition:
       if self.head.Ncpu == 0:
          l = SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
          pass
-      return l * (1/SystemParameters.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else (1/SystemParameters.Sio2)
+      return l * (1/SystemParameters.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else l* (1/SystemParameters.Sio2)
 
    pass
 
@@ -452,7 +452,7 @@ if __name__ == "__main__":
     
    generator = ChainGenerator(node_enumerator())
    generator(State(3,0,0,0))
-   q = balance_ctmc(get_adj_matrix(generator))
+   q = balance_ctmc(get_adj_matrix(generator).transpose())
    print(q)
    dtmc = pydtmc.MarkovChain(convert_to_dtmc(q))
    dtmc.pi
@@ -466,10 +466,12 @@ if __name__ == "__main__":
    x = np.linalg.lstsq(m,b,rcond=None)[0]
 
    print(np.linalg.norm( (m@x) - b ,2).min())
-   print(x)
-   print(dtmc.pi[0])
    print(sum(x))
    print(dtmc.pi[0].sum())
+   for node in generator.ordered:
+      print("State:{} , P:{}".format(node,x[generator.ordered.index(node)]))
+      pass
+   print("Len ",len(generator.ordered))
 
    ordered = generator.ordered
    Ndelay = 0
