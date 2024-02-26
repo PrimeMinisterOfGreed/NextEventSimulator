@@ -24,7 +24,7 @@ class SystemParameters:
     qio2 = 0.25 # route to io2
     qoutd = 0.1*0.4 #go to delay station
     qouts = 0.1*0.6 # renter the system
-    numClients = 3
+    numClients = 20
     pass
 
 
@@ -43,9 +43,9 @@ class State:
 
     def isValid(self)->bool:
         if self.Ncpu > 0:
-            return (self.cpuStage == 1 or self.cpuStage == 2) and (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == 3
+            return (self.cpuStage == 1 or self.cpuStage == 2) and (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
         else:
-            return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == 3
+            return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
     
     def __str__(self) -> str:
         return ("{},{},{},{}".format(
@@ -203,10 +203,10 @@ def stage_enumerator(stage: int) -> list[State]:
     cpuStage = stage
     stages = [0,0,0,0]
     result = []
-    while stages[Ndelay] <= 3:
+    while stages[Ndelay] <= SystemParameters.numClients:
         for i in reversed(range(4)):
             stages[i] += 1
-            if stages[i] <= 3: break
+            if stages[i] <= SystemParameters.numClients: break
             elif i > 0 : stages[i] = 0
             pass
         state= State(stages[Ndelay], stages[Ncpu], stages[Nio1],stages[Nio2],stage)
@@ -401,7 +401,6 @@ class ChainGenerator:
 def balance_ctmc(mat : np.ndarray[np.ndarray]) -> np.ndarray:
     copy = mat.copy()
     for i in range(len(mat)):
-        
         copy[i][i] = -copy[i].sum()
         pass
     return copy
@@ -451,11 +450,10 @@ def get_adj_matrix(generator: ChainGenerator):
 if __name__ == "__main__":
     
    generator = ChainGenerator(node_enumerator())
-   generator(State(3,0,0,0))
+   generator(State(SystemParameters.numClients,0,0,0))
    q = balance_ctmc(get_adj_matrix(generator).transpose())
    print(q)
-   dtmc = pydtmc.MarkovChain(convert_to_dtmc(q))
-   dtmc.pi
+
 
    m = q.copy().transpose()
 
@@ -467,7 +465,6 @@ if __name__ == "__main__":
 
    print(np.linalg.norm( (m@x) - b ,2).min())
    print(sum(x))
-   print(dtmc.pi[0].sum())
    for node in generator.ordered:
       print("State:{} , P:{}".format(node,x[generator.ordered.index(node)]))
       pass
