@@ -8,8 +8,7 @@ import sys
 import plotly.express as plt
 import graphviz
 import pandas as pd
-from markov import *
-
+from mva import *
 
 class SystemParameters:
     alpha = 0.8
@@ -24,7 +23,7 @@ class SystemParameters:
     qio2 = 0.25 # route to io2
     qoutd = 0.1*0.4 #go to delay station
     qouts = 0.1*0.6 # renter the system
-    numClients = 20
+    numClients = 3
     pass
 
 
@@ -156,7 +155,7 @@ class Transition:
       if self.tail.Ncpu > 0:
          l *=  SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
          pass
-      return l
+      return l 
       
 
    def CpuToIo(self):      
@@ -445,14 +444,26 @@ def get_adj_matrix(generator: ChainGenerator):
    return mat
 
 
+def execute():
+   matrix = np.array([
+    [0,1,0,0,0],
+    [0,0,1,0,0],
+    [0.004,0.006,0.9,0.065,0.025],
+    [0,0,1,0,0],
+    [0,0,1,0,0]],np.dtype('d'))
 
 
-if __name__ == "__main__":
-    
+   mva = MVA(matrix,[5000,0,2.7,40,180],[StationType.Delay,StationType.LoadIndependent,StationType.LoadIndependent,StationType.LoadIndependent,StationType.LoadIndependent],30)
+
+   mva()
+
+   utilization = mvaToDataframe(mva.utilizations)
+   throughputs = mvaToDataframe(mva.throughputs)
+   meanWaits = mvaToDataframe(mva.meanwaits)
+   meanClients = mvaToDataframe(mva.meanclients)
    generator = ChainGenerator(node_enumerator())
    generator(State(SystemParameters.numClients,0,0,0))
    q = balance_ctmc(get_adj_matrix(generator).transpose())
-   print(q)
 
 
    m = q.copy().transpose()
@@ -465,9 +476,6 @@ if __name__ == "__main__":
 
    print(np.linalg.norm( (m@x) - b ,2).min())
    print(sum(x))
-   for node in generator.ordered:
-      print("State:{} , P:{}".format(node,x[generator.ordered.index(node)]))
-      pass
    print("Len ",len(generator.ordered))
 
    ordered = generator.ordered
@@ -485,12 +493,20 @@ if __name__ == "__main__":
        Nio2 += (state.Nio2 * p)
        pass
 
-   print("Ndelay {}".format(Ndelay))
-   print("Ncpu {}".format(Ncpu))
-   print("Nio1 {}".format(Nio1))
-   print("Nio2 {}".format(Nio2))
+   print("Ndelay {} Expected {}".format(Ndelay,meanClients["DELAY"][SystemParameters.numClients]))
+   print("Ncpu {} Expected {}".format(Ncpu,meanClients["CPU"][SystemParameters.numClients]))
+   print("Nio1 {} Expected {}".format(Nio1,meanClients["IO1"][SystemParameters.numClients]))
+   print("Nio2 {} Expected {}".format(Nio2,meanClients["IO2"][SystemParameters.numClients]))
    pass
-pass
+
+if __name__ == "__main__":
+   execute()
+   SystemParameters.u1 = 27
+   SystemParameters.u2 = 27
+   execute()
+   SystemParameters.numClients = 20
+   execute()
+   pass
 
 
 
