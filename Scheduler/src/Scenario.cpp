@@ -19,7 +19,7 @@ SCENARIO(Simplified)
 {
     auto &params = SystemParameters::Parameters();
     params.numclients = 1;
-    params.cpumode = SystemParameters::FIXED;
+    params.burstmode = SystemParameters::FIXED;
     auto &regPoint = manager->regPoint;
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
@@ -48,7 +48,7 @@ SCENARIO(Simplified_N20)
 {
     auto &params = SystemParameters::Parameters();
     params.numclients = 20;
-    params.cpumode = SystemParameters::FIXED;
+    params.burstmode = SystemParameters::FIXED;
     params.multiProgrammingDegree = 1000;
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
@@ -68,7 +68,7 @@ SCENARIO(Simplified_N20)
 SCENARIO(Default) // first request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpumode = SystemParameters::HYPER_EXP;
+    params.burstmode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2.7;
 
     auto &regPoint = manager->regPoint;
@@ -88,7 +88,7 @@ SCENARIO(Default) // first request
 SCENARIO(Default_NOMPD)
 {
     auto &params = SystemParameters::Parameters();
-    params.cpumode = SystemParameters::HYPER_EXP;
+    params.burstmode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2.7;
     params.multiProgrammingDegree = 1000;
     params.numclients = 20;
@@ -107,7 +107,7 @@ SCENARIO(Default_NOMPD)
 SCENARIO(NegExpCpu) // second request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpumode = SystemParameters::NEG_EXP;
+    params.burstmode = SystemParameters::NEG_EXP;
     params.cpuQuantum = 2.7;
 
     auto &regPoint = manager->regPoint;
@@ -124,7 +124,7 @@ SCENARIO(NegExpCpu) // second request
 SCENARIO(LTCpu) // third request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpumode = SystemParameters::HYPER_EXP;
+    params.burstmode = SystemParameters::HYPER_EXP;
     params.cpuQuantum = 2700;
 
     auto &regPoint = manager->regPoint;
@@ -142,7 +142,7 @@ SCENARIO(LTCpu) // third request
 SCENARIO(NegExpLt) // last request
 {
     auto &params = SystemParameters::Parameters();
-    params.cpumode = SystemParameters::NEG_EXP;
+    params.burstmode = SystemParameters::NEG_EXP;
     params.cpuQuantum = 2700;
     auto &regPoint = manager->regPoint;
 
@@ -154,4 +154,29 @@ SCENARIO(NegExpLt) // last request
     regPoint->AddRule(
         [](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 0; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation(0).value()->sysClients() == 2; });
+}
+
+SCENARIO(Markov)
+{
+    auto &params = SystemParameters::Parameters();
+    params.burstmode = SystemParameters::HYPER_EXP;
+    params.cpuQuantum = 3;
+    params.multiProgrammingDegree = 1000;
+    params.numclients = 20;
+    params.u1 = 15;
+    params.u2 = 75;
+    params.alpha = 0.8;
+    params.averageSwapIn = 0;
+    params.beta = 0.2;
+    params.slicemode = SystemParameters::NEG_EXP;
+    auto &regPoint = manager->regPoint;
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
+
+    // first CPU must have 0 clients because is hyperexp
+    regPoint
+        ->AddRule([](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; })
+        .AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 0; })
+        .AddRule([](auto r){return r->scheduler->GetStation(0).value()->sysClients() == 4;});
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 15; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 0; });
 }

@@ -18,11 +18,16 @@ struct SystemParameters
     double cpuQuantum = 2.7;
     double averageIO1 = 40;
     double averageIO2 = 180;
+    double alpha = 0.95;
+    double beta = 0.05;
+    double u1 = 10;
+    double u2 = 350;
     std::vector<double> cpuChoice{0.65, 0.25, 0.1, 0.0};
     double swapOutChoice[2] = {0.4, 0.6};
     int multiProgrammingDegree = 10;
     int numclients = 20;
-    int cpumode = 0;
+    int burstmode = HYPER_EXP;
+    int slicemode= FIXED;
 
     static SystemParameters &Parameters()
     {

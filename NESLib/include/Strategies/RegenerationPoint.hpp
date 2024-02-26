@@ -28,9 +28,10 @@ struct RegenerationPoint
 
     template <typename F>
         requires(has_return_value<F, bool, RegenerationPoint *>)
-    void AddRule(F &&fnc)
+    RegenerationPoint& AddRule(F &&fnc)
     {
         _rules.push_back(fnc);
+        return *this;
     }
 
     template <typename F>

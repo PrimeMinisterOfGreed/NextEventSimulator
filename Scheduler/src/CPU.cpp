@@ -18,7 +18,8 @@ Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(sche
 
 void Cpu::ProcessArrival(Event &evt)
 {
-
+    static VariableStream sliceStream{99,
+                                      [](auto rng) { return Exponential(SystemParameters::Parameters().cpuQuantum); }};
     // it's a new process
     if (evt.SubType != 'E')
     {
@@ -42,9 +43,10 @@ void Cpu::ProcessArrival(Event &evt)
         _logger.Transfer("Now Processing:{}, Remaining service time:{}", evt, evt.ServiceTime);
     }
 
-    auto quantum = SystemParameters::Parameters().cpuQuantum;
+    auto quantum = SystemParameters::Parameters().slicemode == SystemParameters::FIXED? SystemParameters::Parameters().cpuQuantum: sliceStream();
     auto slice = evt.ServiceTime > quantum ? quantum : evt.ServiceTime;
     evt.Type = DEPARTURE;
+
     evt.OccurTime = _clock + slice;
     evt.ServiceTime -= slice;
     _eventUnderProcess.emplace(evt);
@@ -94,10 +96,12 @@ void Cpu::ProcessDeparture(Event &evt)
 double Cpu::Burst()
 {
     static VariableStream negExp(3, [](auto rng) { return Exponential(27); });
-    static CompositionStream hyperExp{
-        3, {0.95, 0.05}, [](auto rng) { return Exponential(10); }, [](auto rng) { return Exponential(350); }};
+    static CompositionStream hyperExp{3,
+                                      {SystemParameters::Parameters().alpha, SystemParameters::Parameters().beta},
+                                      [](auto rng) { return Exponential(SystemParameters::Parameters().u1); },
+                                      [](auto rng) { return Exponential(SystemParameters::Parameters().u2); }};
 
-    switch (SystemParameters::Parameters().cpumode)
+    switch (SystemParameters::Parameters().burstmode)
     {
     case SystemParameters::NEG_EXP:
         return negExp();
