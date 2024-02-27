@@ -63,10 +63,14 @@ class SimulatorCommander():
             pass
         pass
 
+
     def fetch_data(self,iterations: int, scenario: str, starting_seed = 123456789):
         seed = starting_seed
         self.scenario = scenario
         data = pd.DataFrame()
+        if os.path.exists("./data/{}.csv".format(scenario)):
+            data = pd.read_csv("./data/{}.csv".format(scenario),sep=";",index_col=0)
+            return data
         for i in range(iterations):
             simdata = pd.DataFrame()
             self.seed = seed+i
@@ -78,7 +82,6 @@ class SimulatorCommander():
             simdata["Seed"] = [seed+i]*len(simdata)
             data = pd.concat([data,simdata],ignore_index=True)
             pass
-        normalize_cpu_data(data)
         if not os.path.exists("./data/{}.csv".format(scenario)):
             data.to_csv("./data/{}.csv".format(scenario),sep=';')
             pass
@@ -86,21 +89,6 @@ class SimulatorCommander():
     pass
 
 
-
-
-def normalize_cpu_data(data: pd.DataFrame):
-    copy = data
-    view = copy[(copy["Station"] == "CPU") & (copy["Measure"] == "meanwaits")]
-    view["R"] = view["R"]/10
-    view["LB"] = view["LB"]/10
-    view["HB"] = view["HB"]/10
-    for index in view["R"].index:
-        copy["R"][index] = view["R"][index]
-        copy["LB"][index] = view["LB"][index]
-        copy["HB"][index] = view["HB"][index]
-        pass
-    return copy
-pass
 
 if __name__ == "__main__":
     comm = SimulatorCommander("C:/Users/matteo.ielacqua/OneDrive - INPECO SPA/Desktop/Personal/NextEventSimulator/build/Scheduler/scheduler.exe")
