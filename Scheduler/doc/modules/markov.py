@@ -444,7 +444,7 @@ def get_adj_matrix(generator: ChainGenerator):
    return mat
 
 
-def execute():
+def execute_markov():
    matrix = np.array([
     [0,1,0,0,0],
     [0,0,1,0,0],
@@ -497,12 +497,14 @@ def execute():
    print("Ncpu {} Expected {}".format(Ncpu,meanClients["CPU"][SystemParameters.numClients]))
    print("Nio1 {} Expected {}".format(Nio1,meanClients["IO1"][SystemParameters.numClients]))
    print("Nio2 {} Expected {}".format(Nio2,meanClients["IO2"][SystemParameters.numClients]))
+   return (Ndelay,Ncpu,Nio1,Nio2)
    pass
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
+   
    SystemParameters.numClients = 3
-   execute()
+   execute_markov()
    pass
 
 

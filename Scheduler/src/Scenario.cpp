@@ -156,7 +156,7 @@ SCENARIO(NegExpLt) // last request
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation(0).value()->sysClients() == 2; });
 }
 
-SCENARIO(Markov)
+SCENARIO(Markov_20)
 {
     auto &params = SystemParameters::Parameters();
     params.burstmode = SystemParameters::HYPER_EXP;
@@ -178,5 +178,30 @@ SCENARIO(Markov)
         .AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 0; })
         .AddRule([](auto r){return r->scheduler->GetStation(0).value()->sysClients() == 4;});
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 15; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 0; });
+}
+
+SCENARIO(Markov_3)
+{
+    auto &params = SystemParameters::Parameters();
+    params.burstmode = SystemParameters::HYPER_EXP;
+    params.cpuQuantum = 3;
+    params.multiProgrammingDegree = 1000;
+    params.numclients = 3;
+    params.u1 = 15;
+    params.u2 = 75;
+    params.alpha = 0.8;
+    params.averageSwapIn = 0;
+    params.beta = 0.2;
+    params.slicemode = SystemParameters::NEG_EXP;
+    auto &regPoint = manager->regPoint;
+    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
+
+    // first CPU must have 0 clients because is hyperexp
+    regPoint
+        ->AddRule([](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; })
+        .AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 0; })
+        .AddRule([](auto r){return r->scheduler->GetStation(0).value()->sysClients() == 2;});
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 0; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 0; });
 }
