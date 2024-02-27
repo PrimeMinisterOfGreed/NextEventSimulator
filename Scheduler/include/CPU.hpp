@@ -24,4 +24,5 @@ class Cpu : public Station, public IQueueHolder
     void ProcessArrival(Event &evt) override;
     void ProcessDeparture(Event &evt) override;
     double Burst();
+    void Manage(Event&evt);
 };

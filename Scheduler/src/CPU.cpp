@@ -18,39 +18,34 @@ Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(sche
 
 void Cpu::ProcessArrival(Event &evt)
 {
+
+    Station::ProcessArrival(evt);
+    if (evt.SubType != 'C'){
+        evt.ServiceTime = Burst();
+        evt.SubType = 'C';
+    }
+    if (_eventUnderProcess.has_value())
+    {
+        _eventList.Enqueue(evt);
+        return;
+    }
+    Manage(evt);
+}
+
+void Cpu::Manage(Event &evt)
+{
     static VariableStream sliceStream{99,
                                       [](auto rng) { return Exponential(SystemParameters::Parameters().cpuQuantum); }};
-    // it's a new process
-    if (evt.SubType != 'E')
-    {
-        Station::ProcessArrival(evt);
-        _logger.Transfer("New process joined: {}", evt);
-        evt.SubType = 'E';
-        evt.ServiceTime = Burst();
-        if (_eventUnderProcess.has_value() || _eventList.Count() > 0) // there are other process in ready queue
-        {
 
-            _eventList.Push(evt);
-            return;
-        }
-    }
-
-    // it was in the ready queue
-    else
-    {
-        core_assert(!_eventUnderProcess.has_value(), "Expected empty underprocess but was {}",
-                    _eventUnderProcess.value());
-        _logger.Transfer("Now Processing:{}, Remaining service time:{}", evt, evt.ServiceTime);
-    }
-
-    auto quantum = SystemParameters::Parameters().slicemode == SystemParameters::FIXED? SystemParameters::Parameters().cpuQuantum: sliceStream();
-    auto slice = evt.ServiceTime > quantum ? quantum : evt.ServiceTime;
+    auto quantum = SystemParameters::Parameters().slicemode == SystemParameters::FIXED
+                       ? SystemParameters::Parameters().cpuQuantum
+                       : sliceStream();
+    auto slice = std::min(evt.ServiceTime, quantum);
     evt.Type = DEPARTURE;
-
-    evt.OccurTime = _clock + slice;
     evt.ServiceTime -= slice;
-    _eventUnderProcess.emplace(evt);
+    evt.OccurTime += slice;
     _scheduler->Schedule(evt);
+    _eventUnderProcess = evt;
 }
 
 void Cpu::ProcessDeparture(Event &evt)
@@ -62,34 +57,23 @@ void Cpu::ProcessDeparture(Event &evt)
     core_assert(evt == _eventUnderProcess.value(), "Event {} scheduled for departure but other event in process {}",
                 evt, _eventUnderProcess.value());
     _eventUnderProcess.reset();
-    bool scheduled = false;
-    if (_eventList.Count() > 0)
-    {
-        auto newEvt = _eventList.Dequeue();
-        newEvt.Type = ARRIVAL;
-        newEvt.OccurTime = _clock;
-        _scheduler->Schedule(newEvt);
-        scheduled = true;
-    }
     if (evt.ServiceTime == 0)
     {
-        Station::ProcessDeparture(evt);
         evt.Type = ARRIVAL;
         evt.Station = router();
-        evt.SubType = NO_EVENT;
-        evt.OccurTime = clock();
-        _logger.Debug("CPU Departure, send event to {}", _scheduler->GetStation(evt.Station).value()->Name());
+        evt.SubType = 0;
         _scheduler->Schedule(evt);
-    }
-    else if (_eventList.Count() > 0 || scheduled)
-    {
-        evt.Type = ARRIVAL;
-        _eventList.Enqueue(evt);
+        Station::ProcessDeparture(evt);
     }
     else
     {
-        evt.Type = ARRIVAL;
-        _scheduler->Schedule(evt);
+        _eventList.Enqueue(evt);
+    }
+    if (_eventList.Count() > 0)
+    {
+        auto newEvt = _eventList.Dequeue();
+        newEvt.OccurTime = evt.OccurTime;
+        Manage(newEvt);
     }
 }
 
