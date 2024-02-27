@@ -50,7 +50,7 @@ SCENARIO(Simplified_N20)
     params.numclients = 20;
     params.burstmode = SystemParameters::FIXED;
     params.multiProgrammingDegree = 1000;
-    params.cpuQuantum = 2.7;
+    params.cpuQuantum = 2.71;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     auto &regPoint = manager->regPoint;
 

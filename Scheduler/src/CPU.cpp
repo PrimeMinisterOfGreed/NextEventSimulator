@@ -20,10 +20,7 @@ void Cpu::ProcessArrival(Event &evt)
 {
 
     Station::ProcessArrival(evt);
-    if (evt.SubType != 'C'){
-        evt.ServiceTime = Burst();
-        evt.SubType = 'C';
-    }
+    evt.ServiceTime = Burst();
     if (_eventUnderProcess.has_value())
     {
         _eventList.Enqueue(evt);
@@ -43,7 +40,7 @@ void Cpu::Manage(Event &evt)
     auto slice = std::min(evt.ServiceTime, quantum);
     evt.Type = DEPARTURE;
     evt.ServiceTime -= slice;
-    evt.OccurTime += slice;
+    evt.OccurTime = _clock + slice;
     _scheduler->Schedule(evt);
     _eventUnderProcess = evt;
 }
@@ -72,7 +69,7 @@ void Cpu::ProcessDeparture(Event &evt)
     if (_eventList.Count() > 0)
     {
         auto newEvt = _eventList.Dequeue();
-        newEvt.OccurTime = evt.OccurTime;
+        newEvt.OccurTime = _clock;
         Manage(newEvt);
     }
 }
