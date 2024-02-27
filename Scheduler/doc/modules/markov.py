@@ -256,7 +256,7 @@ class DiGraph():
       pass
     self.lastHead = headLabel
     self.lastTail = tailLabel 
-    self.graph.add_edge(headLabel,tailLabel,weight=round(p,5))
+    self.graph.add_edge(headLabel,tailLabel,weight=round(p,15))
     return (headLabel,tailLabel)
 
    def Graph(self):
@@ -500,11 +500,8 @@ def execute():
    pass
 
 if __name__ == "__main__":
-   execute()
-   SystemParameters.u1 = 27
-   SystemParameters.u2 = 27
-   execute()
-   SystemParameters.numClients = 20
+
+   SystemParameters.numClients = 3
    execute()
    pass
 
