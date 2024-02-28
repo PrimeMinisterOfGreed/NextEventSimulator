@@ -65,13 +65,14 @@ void Cpu::ProcessDeparture(Event &evt)
     else
     {
         _eventList.Enqueue(evt);
+        _completions++;
     }
     if (_eventList.Count() > 0)
     {
         auto newEvt = _eventList.Dequeue();
         newEvt.OccurTime = _clock;
         Manage(newEvt);
-        _completions++;
+
     }
 }
 

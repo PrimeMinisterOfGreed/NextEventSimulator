@@ -66,9 +66,10 @@ void SimulationManager::SetupScenario(std::string name)
     HReset();
     s->Setup(this);
     regPoint->AddAction([this](RegenerationPoint *point) {
-        // os->Sync();
+        //os->Sync();
         CollectMeasures();
         point->scheduler->Reset();
+        os->Sync();
     });
     regPoint->scheduler = os.get();
     regPoint->simulator = os.get();

@@ -50,7 +50,7 @@ SCENARIO(Simplified_N20)
     params.numclients = 20;
     params.burstmode = SystemParameters::FIXED;
     params.multiProgrammingDegree = 1000;
-    params.cpuQuantum = 2.71;
+    params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     auto &regPoint = manager->regPoint;
 
@@ -58,11 +58,11 @@ SCENARIO(Simplified_N20)
     // NDelay:5, NSwap:0, NCPU:0, NIO1:0, NIO2:14, hits:3
     regPoint->AddRule(
         [](RegenerationPoint *reg) { return reg->scheduler->GetStation("CPU").value()->sysClients() == 0; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 14; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO2").value()->sysClients() == 16; });
     regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation("IO1").value()->sysClients() == 0; });
     regPoint->AddRule(
         [](RegenerationPoint *r) { return r->scheduler->GetStation("SWAP_IN").value()->sysClients() == 0; });
-    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation(0).value()->sysClients() == 5; });
+    regPoint->AddRule([](RegenerationPoint *r) { return r->scheduler->GetStation(0).value()->sysClients() == 3; });
 }
 
 SCENARIO(Default) // first request

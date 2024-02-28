@@ -33,9 +33,9 @@ TEST(TestRandom, test_composition)
 {
     RandomStream::Global().PlantSeeds(123456789);
     CompositionStream stream{0,
-                             {0.95, 0.05},
-                             [](RandomStream &rng) { return Exponential(10); },
-                             [](RandomStream &rng) { return Exponential(19010); }};
+                             {0.5, 0.5},
+                             [](RandomStream &rng) { return Exponential(100); },
+                             [](RandomStream &rng) { return Exponential(200); }};
     Accumulator<> _mean{"mean", ""};
     for (int i = 0; i < 100000; i++)
     {
@@ -51,9 +51,9 @@ TEST(TestRandom, test_routing)
     std::vector<double> hits{0, 0, 0};
     for (int i = 0; i < 1000000; i++)
         hits[router()]++;
-    hits.push_back(hits[0] / hits[1]);
-    hits.push_back(hits[1] / hits[2]);
-    hits.push_back(hits[2] / hits[0]);
+    hits.push_back(hits[0] / 1000000);
+    hits.push_back(hits[1] / 1000000);
+    hits.push_back(hits[2] / 1000000);
     fmt::print("Hits: {}", fmt::join(hits, ","));
 }
 
