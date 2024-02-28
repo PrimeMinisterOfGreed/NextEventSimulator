@@ -71,6 +71,7 @@ void Cpu::ProcessDeparture(Event &evt)
         auto newEvt = _eventList.Dequeue();
         newEvt.OccurTime = _clock;
         Manage(newEvt);
+        _completions++;
     }
 }
 
