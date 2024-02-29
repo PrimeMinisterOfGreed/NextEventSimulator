@@ -21,11 +21,10 @@ SCENARIO(Simplified_N20)
     params.numclients = 20;
     params.alpha = 0.5;
     params.beta = 0.5;
-    params.u1 = 27;
-    params.u2 = 27;
+    params.u1 = 2.7;
+    params.u2 = 2.7;
     params.multiProgrammingDegree = 1000;
     params.cpuQuantum = 2700;
-    params.u1 = 2.7; // becomes burst if negexp mode is used
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });

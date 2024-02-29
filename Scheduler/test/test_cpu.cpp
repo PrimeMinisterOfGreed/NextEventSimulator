@@ -36,7 +36,6 @@ TEST(TestCpu, test_flooding)
     auto io1 = new MockStation(Stations::IO_1);
     auto io2 = new MockStation(Stations::IO_2);
     auto swap_out = new MockStation(Stations::SWAP_OUT);
-    params.burstmode = SystemParameters::FIXED;
     params.cpuQuantum = 2.7;
     params.cpuChoice = std::vector<double>{0.065, 0.025, 0.01, 0.9};
     sched.AddStation(io1);

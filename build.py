@@ -11,8 +11,8 @@ if __name__ == "__main__":
     var = parse.parse_args()
     profile = "" if var.profile == None else "--profile {}".format(var.profile)
     os.system("conan build . --output-folder=build/Debug -s build_type=Debug --build=missing {} {}".
-              format(profile, "-s os={}".format("Windows" if platform.system() == "Windows" else "linux")))
+              format(profile, "-s os={}".format("Windows" if platform.system() == "Windows" else "Linux")))
     os.system("conan build . --output-folder=build/Release -s build_type=Release --build=missing {} {}".
-              format(profile, "-s os={}".format("Windows" if platform.system() == "Windows" else "linux")))
+              format(profile, "-s os={}".format("Windows" if platform.system() == "Windows" else "Linux")))
     shutil.copy("./build/Debug/compile_commands.json","./build/compile_commands.json")
     pass
