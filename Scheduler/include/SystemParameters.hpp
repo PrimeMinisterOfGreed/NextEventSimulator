@@ -26,8 +26,7 @@ struct SystemParameters
     double swapOutChoice[2] = {0.4, 0.6};
     int multiProgrammingDegree = 10;
     int numclients = 20;
-    int burstmode = HYPER_EXP;
-    int slicemode= FIXED;
+    int slicemode = FIXED;
 
     static SystemParameters &Parameters()
     {

@@ -21,9 +21,11 @@ void Cpu::ProcessArrival(Event &evt)
 
     Station::ProcessArrival(evt);
     evt.ServiceTime = Burst();
+    _logger.Debug("Assigned burst time {}", evt.ServiceTime);
     if (_eventUnderProcess.has_value())
     {
         _eventList.Enqueue(evt);
+        _logger.Debug("CPU is busy, enqueue process {}, queue size {}", evt, _eventList.Count());
         return;
     }
     Manage(evt);
@@ -37,7 +39,7 @@ void Cpu::Manage(Event &evt)
     auto quantum = SystemParameters::Parameters().slicemode == SystemParameters::FIXED
                        ? SystemParameters::Parameters().cpuQuantum
                        : sliceStream();
-    auto slice = std::min(evt.ServiceTime, quantum);
+    auto slice = quantum < evt.ServiceTime ? quantum : evt.ServiceTime;
     evt.Type = DEPARTURE;
     evt.ServiceTime -= slice;
     evt.OccurTime = _clock + slice;
@@ -72,27 +74,16 @@ void Cpu::ProcessDeparture(Event &evt)
         auto newEvt = _eventList.Dequeue();
         newEvt.OccurTime = _clock;
         Manage(newEvt);
-
+        _logger.Debug("Managing {} from ready queue, remainig SV time {}", newEvt, newEvt.ServiceTime);
     }
 }
 
 double Cpu::Burst()
 {
-    static VariableStream negExp(3, [](auto rng) { return Exponential(27); });
     static CompositionStream hyperExp{3,
                                       {SystemParameters::Parameters().alpha, SystemParameters::Parameters().beta},
                                       [](auto rng) { return Exponential(SystemParameters::Parameters().u1); },
                                       [](auto rng) { return Exponential(SystemParameters::Parameters().u2); }};
 
-    switch (SystemParameters::Parameters().burstmode)
-    {
-    case SystemParameters::NEG_EXP:
-        return negExp();
-    case SystemParameters::HYPER_EXP:
-        return hyperExp();
-    case SystemParameters::FIXED:
-        return SystemParameters::Parameters().cpuQuantum;
-    default:
-        return 0.0;
-    };
+    return hyperExp();
 }

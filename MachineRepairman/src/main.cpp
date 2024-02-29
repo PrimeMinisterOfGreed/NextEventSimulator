@@ -20,14 +20,14 @@ CovariatedMeasure acc{"lrepwaittimes", "min"};
 CovariatedMeasure nclient{"nclients", "unit"};
 bool ShouldStop()
 {
-    return acc.confidence().precision() < 0.05 && acc.Count() > 40;
+    return acc.confidence().precision() < 0.05 && acc.Count() > 40 && nclient.confidence().precision() < 0.05;
 };
 
 void CollectStat(MachineRepairmanv2 &simulator)
 {
     auto lrep = simulator.GetStation("long_repair").value();
     acc(lrep->areaN(), lrep->completions());
-    nclient(lrep->areaN(), simulator.GetClock()-nclient.times());
+    nclient(lrep->areaN(), simulator.GetClock() - nclient.times());
 };
 
 void ExecuteRun()
