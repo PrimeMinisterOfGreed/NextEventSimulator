@@ -66,7 +66,7 @@ void SimulationManager::SetupScenario(std::string name)
     HReset();
     s->Setup(this);
     regPoint->AddAction([this](RegenerationPoint *point) {
-        //os->Sync();
+        // os->Sync();
         CollectMeasures();
         point->scheduler->Reset();
         os->Sync();
@@ -292,14 +292,16 @@ void SimulationManager::SearchStates(int iterations, bool logActualState)
     struct State
     {
         int N_delay = 0;
+        int N_reserve = 0;
         int N_cpu = 0;
         int N_io1 = 0;
         int N_io2 = 0;
         int N_swap = 0;
+        int N_out = 0;
         bool operator==(const State &state) const
         {
             return N_delay == state.N_delay && N_cpu == state.N_cpu && N_io1 == state.N_io1 && N_io2 == state.N_io2 &&
-                   N_swap == state.N_swap;
+                   N_swap == state.N_swap && N_out == state.N_out && N_reserve == state.N_reserve;
         }
     };
 
@@ -314,10 +316,12 @@ void SimulationManager::SearchStates(int iterations, bool logActualState)
         end = false;
         State s = {
             .N_delay = os->GetStation(0).value()->sysClients(),
+            .N_reserve = os->GetStation("RESERVE_STATION").value()->sysClients(),
             .N_cpu = os->GetStation("CPU").value()->sysClients(),
             .N_io1 = os->GetStation("IO1").value()->sysClients(),
             .N_io2 = os->GetStation("IO2").value()->sysClients(),
             .N_swap = os->GetStation("SWAP_IN").value()->sysClients(),
+            .N_out = os->GetStation("SWAP_OUT").value()->sysClients(),
         };
         for (int i = 0; i < hits.size(); i++)
         {
@@ -332,8 +336,9 @@ void SimulationManager::SearchStates(int iterations, bool logActualState)
     auto printarray = [&hits]() {
         for (auto e : hits)
         {
-            fmt::println("NDelay:{}, NSwap:{}, NCPU:{}, NIO1:{}, NIO2:{}, hits:{}", e.first.N_delay, e.first.N_swap,
-                         e.first.N_cpu, e.first.N_io1, e.first.N_io2, e.second);
+            fmt::println("NDelay:{}, NReserve:{}, NSwap:{}, NCPU:{}, NIO1:{}, NIO2:{},NOUT:{}, hits:{}",
+                         e.first.N_delay, e.first.N_reserve, e.first.N_swap, e.first.N_cpu, e.first.N_io1,
+                         e.first.N_io2, e.first.N_out, e.second);
         }
     };
     for (int i = 0; i < iterations; i++)

@@ -150,7 +150,14 @@ Departure from swap out: this event will trigger an immediate arrival to the del
 
 
 \subsection{Choice of the regeneration point}
-The regeneration point 
+The regeneration point is chosen starting from some pilot simulation. In those simulations when the tagged customer reach the SWAP IN the current status of the simulator is collected. After 1000 runs those where most recognized observed state.
+\begin{verbatim}
+    NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:18
+    NDelay:5, NReserve:5, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:16
+    NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
+    NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
+\end{verbatim}
+The sum of clients in this print-out is always 19 because the measure is taken when the client is approaching the swap in, so the tagged customer is not counted. In order to ensure that the regeneration point is quite universal only the active part of the system will be considered, in this case a good state is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2. The regeneration point will be then  
 \section{First validation step}
 \subsection{Bottleneck analysis}
 In order to start the analysis , let's show here the simplified model

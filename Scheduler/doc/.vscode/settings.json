@@ -1,5 +1,7 @@
 {
     "python.analysis.extraPaths": [
         "./modules"
-    ]
+    ],
+    "latex-workshop.latex.outDir": "./out",
+    "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
 }
