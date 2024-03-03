@@ -410,7 +410,29 @@ $$
 since all the clients are coming from the swap in, then it's throughput becomes the arrival rate of the formula. The data show that with N=20 a value of 6630 should be expected.
 
 \subsection{Comparison with the data from the simulator}
+A special scenario was used to perform a comparison between the data provided by the simulator and the data provide by MVA. This scenario has special parameters. First of all burst times are distributed according to a negative exponential RV with expected value 2.7 ms, the routing probabilities contemplate the possibility of a process to return immediately to the CPU (0.9). The MPD is set to a very high value and also the time slice parameter. Since in this scenario the mean queue value is distributed differently to the other scenarios, where the MPD was limiting the number of process available in the active part of the system, a new regeneration point is adopted. In this regeneration point every time the tagged customer approach the swap out the system must have 0 clients at the CPU, 0 at the IO1 and 16 at the IO2.
 
+\includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_Simplified_N20.png}
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+        Station & Measure & R & LB & HB & Samples & Precision & Expected \\ \hline
+        CPU & meanclients & 1.48174 & 1.45508 & 1.5084 & 79 & 0.01799 & 1.47487 \\ \hline
+        CPU & meanwaits & 6.66375 & 6.5834 & 6.74411 & 79 & 0.01206 & 6.65303 \\ \hline
+        IO1 & meanclients & 1.33464 & 1.30503 & 1.36425 & 79 & 0.02219 & 1.34865 \\ \hline
+        IO1 & meanwaits & 92.66997 & 91.18805 & 94.15188 & 79 & 0.01599 & 93.59424 \\ \hline
+        IO2 & meanclients & 11.87094 & 11.75226 & 11.98962 & 79 & 0.01 & 11.87475 \\ \hline
+        IO2 & meanwaits & 2139.17766 & 2112.67305 & 2165.68226 & 79 & 0.01239 & 2142.63856 \\ \hline
+        SWAP\_IN & meanclients & 0.86383 & 0.84567 & 0.88198 & 79 & 0.02102 & 0.86804 \\ \hline
+        SWAP\_IN & meanwaits & 387.61848 & 381.57996 & 393.65699 & 79 & 0.01558 & 391.56501 \\ \hline
+        ActiveTime & cycleTime & 6323.25794 & 6009.10935 & 6637.40653 & 79 & 0.04968 & 6630.26191 \\ \hline
+    \end{tabular}
+\end{table}
+
+
+After 20 simulations, as expected, there are times in which the expected value is within the confidence interval and others not. 
 \begin{verbatim}
     StationCPU Measure meanwaits HitPercentage 90.0
     StationCPU Measure meanclients HitPercentage 95.0
@@ -420,8 +442,13 @@ since all the clients are coming from the swap in, then it's throughput becomes 
     StationIO2 Measure meanclients HitPercentage 100.0
     StationSWAP_IN Measure meanwaits HitPercentage 95.0
     StationSWAP_IN Measure meanclients HitPercentage 95.0
-    Activetimes hitted 90.0%
+    Activetimes HitPercentage 90.0%
 \end{verbatim}
+
+The expected value of active times, that are the focus of this simulation, were in the confidence interval 90\% of the simulations. Since the expectations are that the expected value is in the confidence interval for $N(1-\alpha)$ times or equivalently $\frac{hits}{N}*100=1-\alpha$, where hits is the number of times the expected value is in the confidence interval, the simulator can be considered a good approximation of the given model.
+
+
+
 
 \section{Simulator description}
 \subsection{Brief description of the implementation}
