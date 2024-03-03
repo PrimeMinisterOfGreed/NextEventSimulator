@@ -1,13 +1,17 @@
 import io
+import platform
 import os
 import subprocess
 import pandas as pd
 
 class SimulatorCommander():
 
-    def __init__(self,command) -> None:
+    def __init__(self) -> None:
         self.results = []
-        self.command = command
+        if platform.system() == "Windows":
+            self.command = "..\\..\\build\\Release\\Scheduler\\scheduler.exe"
+        else:
+            self.command = "../../build/Release/Scheduler/scheduler"
         self.preamble = ""
         self.postexecution = ""
         self.stationToRecord = ["CPU","IO1","IO2","SWAP_IN"]
@@ -64,7 +68,7 @@ class SimulatorCommander():
         pass
 
 
-    def fetch_data(self,iterations: int, scenario: str, starting_seed = 123456789):
+    def fetch_data(self,iterations: int, scenario: str, starting_seed = 123456789, threads = 1):
         seed = starting_seed
         self.scenario = scenario
         data = pd.DataFrame()

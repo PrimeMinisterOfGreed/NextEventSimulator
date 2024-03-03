@@ -40,7 +40,7 @@
 % Language setting
 % Replace `english' with e.g. `spanish' to change the document language
 \usepackage[english]{babel}
-
+\usepackage{csvsimple}
 % Set page size and margins
 % Replace `letterpaper' with `a4paper' for UK/EU standard size
 \usepackage[a4paper,top=2cm,bottom=1.5cm,left=1.5cm,right=1.5cm,marginparwidth=1.75cm]{geometry}
@@ -157,7 +157,146 @@ The regeneration point is chosen starting from some pilot simulation. In those s
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
-The sum of clients in this print-out is always 19 because the measure is taken when the client is approaching the swap in, so the tagged customer is not counted. In order to ensure that the regeneration point is quite universal only the active part of the system will be considered, in this case a good state is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2. The regeneration point will be then  
+The sum of clients in this print-out is always 19 because the measure is taken when the client is approaching the swap in, so the tagged customer is not counted. In order to ensure that the regeneration point is quite universal only the active part of the system will be considered, in this case a good state is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2. The regeneration point will be then evaluated each time the tagged customer approach the swap out and if the conditions are met then the measure will be collected and the accumulators reset.
+
+\section{Simulation results}
+The following subsection will illustrate 4 different scenarios of execution:
+\begin{enumerate}
+    \item Default scenario: the CPU has a Hyper exponential distribution of service time and a fixed slice time of 2.7 ms.
+    \item NegExp scenario: the CPU has a negative exponential distribution of service time and a fixed time slice of 2.7 ms.
+    \item LTCpu: the CPU has a hyper exponential distribution of service time and a fixed time slice of 2700 ms.
+    \item NegExpLT: the CPU has a negative exponential distribution of service time and a fixed time slice of 2700 ms.
+\end{enumerate}
+Legend for Plots:
+\begin{itemize}
+    \item LB = Lower Bound of interval 
+    \item HB = Higher bound of interval 
+    \item R = Biased estimator 
+    \item Expected = value calculated from MVA algorithm
+\end{itemize}
+
+\subsection{Default scenario}
+In the first scenario we can see that the model perform better than expected by the MVA algorithm.
+\includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_Default.png}
+
+\includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanclients.png}
+
+\includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanwaits.png}
+
+this is possible because the Reserve Station is limiting the number of clients that can be present in the active part of the system. Thus reducing the size of the queues in the system.
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+        Station & Measure & R & LB & HB & Samples & Precision & Expected \\ \hline
+        CPU & meanclients & 1.37289 & 1.33024 & 1.41554 & 154 & 0.03107 & 1.47487 \\ \hline
+        CPU & meanwaits & 5.97389 & 5.84747 & 6.1003 & 154 & 0.02116 & 6.65303 \\ \hline
+        IO1 & meanclients & 1.28732 & 1.26081 & 1.31382 & 154 & 0.02059 & 1.34865 \\ \hline
+        IO1 & meanwaits & 89.46688 & 88.13577 & 90.79798 & 154 & 0.01488 & 93.59424 \\ \hline
+        IO2 & meanclients & 6.44702 & 6.37445 & 6.51959 & 154 & 0.01126 & 11.87475 \\ \hline
+        IO2 & meanwaits & 1171.2056 & 1155.19151 & 1187.21969 & 154 & 0.01367 & 2142.63856 \\ \hline
+        SWAP\_IN & meanclients & 0.86811 & 0.83884 & 0.89737 & 154 & 0.03371 & 0.86804 \\ \hline
+        SWAP\_IN & meanwaits & 392.46349 & 382.56569 & 402.3613 & 154 & 0.02522 & 391.56501 \\ \hline
+        ActiveTime & cycleTime & 4082.56087 & 3880.03462 & 4285.08711 & 154 & 0.04961 & 6630.26191 \\ \hline
+    \end{tabular}
+\end{table}
+In this table is noticeable that the mean size of the bottleneck station (IO2) is half than expected and then is not going in saturation. 
+
+\subsection{Negative Exponential scenario}
+
+In the negative exponential scenario the performance are comparable to the previous one. This is expected since the mean time of the hyper exponential distribution is 27. 
+
+\includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_NegExp.png}
+
+\includegraphics[width=0.9\textwidth]{./Images/NexExp_CPU_meanclients.png}
+
+\includegraphics[width=0.9\textwidth]{./Images/NexExp_CPU_meanwaits.png}
+
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+        Station & Measure & R & LB & HB & Samples & Precision & Expected \\ \hline
+        CPU & meanclients & 1.39683 & 1.37593 & 1.41772 & 153 & 0.01496 & 1.47487 \\ \hline
+        CPU & meanwaits & 6.02015 & 5.96065 & 6.07964 & 153 & 0.00988 & 6.65303 \\ \hline
+        IO1 & meanclients & 1.28241 & 1.25792 & 1.3069 & 153 & 0.0191 & 1.34865 \\ \hline
+        IO1 & meanwaits & 89.41988 & 88.17742 & 90.66234 & 153 & 0.01389 & 93.59424 \\ \hline
+        IO2 & meanclients & 6.44127 & 6.3829 & 6.49964 & 153 & 0.00906 & 11.87475 \\ \hline
+        IO2 & meanwaits & 1170.68222 & 1157.49521 & 1183.86923 & 153 & 0.01126 & 2142.63856 \\ \hline
+        SWAP\_IN & meanclients & 0.85762 & 0.83182 & 0.88342 & 153 & 0.03009 & 0.86804 \\ \hline
+        SWAP\_IN & meanwaits & 388.40712 & 378.98033 & 397.83392 & 153 & 0.02427 & 391.56501 \\ \hline
+        ActiveTime & cycleTime & 3960.79876 & 3764.8817 & 4156.71582 & 153 & 0.04946 & 6630.26191 \\ \hline
+    \end{tabular}
+\end{table}
+
+
+\subsection{LTCpu scenario}
+
+In this scenario the slice time is very high, since the hyper exponential sometimes gives service times with high values, those clients can remain in processing for a long time. As a result the CPU queue tend to grow because the clients remains in the station for a much longer time, this means higher waiting times and higher mean queue length.
+
+\includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_LTCpu.png}
+
+
+\includegraphics[width=0.9\textwidth]{./Images/LTCpu_CPU_meanclients.png}
+
+
+\includegraphics[width=0.9\textwidth]{./Images/LTCpu_CPU_meanwaits.png}
+
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+        Station & Measure & R & LB & HB & Samples & Precision & Expected \\ \hline
+        CPU & meanclients & 2.33349 & 2.29112 & 2.37585 & 153 & 0.01815 & 1.47487 \\ \hline
+        CPU & meanwaits & 115.14702 & 112.83803 & 117.45602 & 153 & 0.02005 & 6.65303 \\ \hline
+        IO1 & meanclients & 1.60614 & 1.5822 & 1.63007 & 153 & 0.0149 & 1.34865 \\ \hline
+        IO1 & meanwaits & 121.8544 & 120.4949 & 123.21389 & 153 & 0.01116 & 93.59424 \\ \hline
+        IO2 & meanclients & 5.23403 & 5.17555 & 5.29251 & 153 & 0.01117 & 11.87475 \\ \hline
+        IO2 & meanwaits & 1035.4256 & 1024.01301 & 1046.8382 & 153 & 0.01102 & 2142.63856 \\ \hline
+        SWAP\_IN & meanclients & 0.81002 & 0.78963 & 0.83042 & 153 & 0.02518 & 0.86804 \\ \hline
+        SWAP\_IN & meanwaits & 399.20119 & 391.52216 & 406.88023 & 153 & 0.01924 & 391.56501 \\ \hline
+        ActiveTime & cycleTime & 4448.60125 & 4226.25843 & 4670.94407 & 153 & 0.04998 & 6630.26191 \\ \hline
+    \end{tabular}
+\end{table}
+
+The result of this behavior is that the mean active times tend to be higher than the previous cases.
+
+\subsection{NegExpLT Scenario}
+
+In this scenario the time slice is set to a very high value, but burst times are distributed with a negative exponential RV with mean 27 ms. So the mean waiting time of customer is naturally higher than the scenarios with a time slice of 2.7 ms, but no queue tend to form in front of the station since there are no customers with very high service time.
+
+\includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_NegExpLt.png}
+
+\includegraphics[width=0.9\textwidth]{./Images/NegExpLt_CPU_meanclients.png}
+
+\includegraphics[width=0.9\textwidth]{./Images/NegExpLt_CPU_meanwaits.png}
+
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+        Station & Measure & R & LB & HB & Samples & Precision & Expected \\ \hline
+        CPU & meanclients & 1.39788 & 1.37618 & 1.41958 & 190 & 0.01553 & 1.47487 \\ \hline
+        CPU & meanwaits & 63.35948 & 62.60369 & 64.11526 & 190 & 0.01193 & 6.65303 \\ \hline
+        IO1 & meanclients & 1.28208 & 1.25933 & 1.30483 & 190 & 0.01775 & 1.34865 \\ \hline
+        IO1 & meanwaits & 89.3373 & 88.15729 & 90.51731 & 190 & 0.01321 & 93.59424 \\ \hline
+        IO2 & meanclients & 6.43355 & 6.37858 & 6.48851 & 190 & 0.00854 & 11.87475 \\ \hline
+        IO2 & meanwaits & 1169.18428 & 1156.79623 & 1181.57232 & 190 & 0.0106 & 2142.63856 \\ \hline
+        SWAP\_IN & meanclients & 0.85961 & 0.83369 & 0.88553 & 190 & 0.03015 & 0.86804 \\ \hline
+        SWAP\_IN & meanwaits & 389.11911 & 379.62158 & 398.61665 & 190 & 0.02441 & 391.56501 \\ \hline
+        ActiveTime & cycleTime & 4167.43462 & 3959.32575 & 4375.54349 & 190 & 0.04994 & 6630.26191 \\ \hline
+    \end{tabular}
+\end{table}
+
+The active times are slightly higher then the non LT cases, but lower that the previous case.
+
+\subsection{Conclusion}
+The Worst case is the case when the system has a very high time slice and a hyper exponential distribution of the service times, that is equivalent to disable the time slice mechanism in a real OS, where process are divided into long term (batch) execution and short term (foreground) processes. 
+
 \section{First validation step}
 \subsection{Bottleneck analysis}
 In order to start the analysis , let's show here the simplified model
@@ -269,10 +408,20 @@ $$
     \bar{w}= \frac{\bar{n}}{\lambda}
 $$
 since all the clients are coming from the swap in, then it's throughput becomes the arrival rate of the formula. The data show that with N=20 a value of 6630 should be expected.
-\section{Simulation results}
 
+\subsection{Comparison with the data from the simulator}
 
-
+\begin{verbatim}
+    StationCPU Measure meanwaits HitPercentage 90.0
+    StationCPU Measure meanclients HitPercentage 95.0
+    StationIO1 Measure meanwaits HitPercentage 90.0
+    StationIO1 Measure meanclients HitPercentage 90.0
+    StationIO2 Measure meanwaits HitPercentage 95.0
+    StationIO2 Measure meanclients HitPercentage 100.0
+    StationSWAP_IN Measure meanwaits HitPercentage 95.0
+    StationSWAP_IN Measure meanclients HitPercentage 95.0
+    Activetimes hitted 90.0%
+\end{verbatim}
 
 \section{Simulator description}
 \subsection{Brief description of the implementation}
