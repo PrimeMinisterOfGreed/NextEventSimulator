@@ -154,7 +154,6 @@ SCENARIO(Markov_20)
     params.alpha = 0.8;
     params.averageSwapIn = 0;
     params.beta = 0.2;
-
     params.slicemode = SystemParameters::NEG_EXP;
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
