@@ -125,15 +125,16 @@ Arrival at the delay station: an arrival will trigger a departure with a certain
 \textbf{Arrival at the delay station}:
 
 \subsubsection{Reserve station}
-Arrival at the Reserve station: if the counter of the process allocated in the system is less than the MPD. Then the  arrival event is immediately scheduled for the swap in. Otherwise, the information are stored in a queue for later use at the next arrival.
+Arrival at the Reserve station: if the counter of the process allocated in the system is less than the MPD. Then the  arrival event is immediately scheduled for the swap in. Otherwise, the information are stored in a queue and used when a process will exit from the swap out (and the counter decremented).
 
 \subsubsection{Swap in}
 Arrival at the swap in station: an arrival to this station will trigger a departure with a delay, equal to a RV with negative exponential distribution of 210 ms. If at the arrival the station is `occupied' by another client that is waiting it's departure, then the client will be served later with an FCFS policy.
 
 Departure from the swap in station: a departure from the swap in will trigger an immediate arrival at the CPU.
 
+
 \subsubsection{CPU}
-\textbf{Arrival at the CPU}: when a process arrives at the CPU a service time based on a hyper exponential distribution is assigned and then 2 things can happen. 1) The CPU is not busy, then the current process will occupy the CPU and a departure will be scheduled for a time equivalent to the actual clock + time slice, the same time will be decreased from the remaining service time of the process. 2) The CPU is busy, then the process will be enqueued in the process queue.
+\textbf{Arrival at the CPU}: when a process arrives at the CPU a service time based on a hyper exponential distribution is assigned and then 2 things can happen. 1) The CPU is not busy, then the current process will occupy the CPU and a departure will be scheduled for a time equivalent to the actual clock plus time slice, the same time will be decreased from the remaining service time of the process. 2) The CPU is busy, then the process will be enqueued in the process queue.
 
 \textbf{Departure from the CPU}: A process can leave the CPU only when its service time is 0. So when a departure is scheduled 2 case exists: 1) The process's service time is > 0, in this case the process is enqueued again in the process queue. 2) The process's service time is 0, in this case the next station will be randomly chosen (using proper probabilities) and the event will be scheduled as arrival for that station. If there is a process in the queue, after those operations, it will be dequeued and processed by the CPU using the same mechanism described for the arrivals.
 
@@ -157,7 +158,7 @@ The regeneration point is chosen starting from some pilot simulation. In those s
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
-The sum of clients in this print-out is always 19 because the measure is taken when the client is approaching the swap in, so the tagged customer is not counted. In order to ensure that the regeneration point is quite universal only the active part of the system will be considered, in this case a good state is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2. The regeneration point will be then evaluated each time the tagged customer approach the swap out and if the conditions are met then the measure will be collected and the accumulators reset.
+The sum of clients in this print-out is always 19 because the measure is taken when the client is exiting the swap out, so the tagged customer is not counted. In order to ensure that the regeneration point is quite universal only the active part of the system will be considered, in this case a good state is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2, the other clients can be  arbitrary distributed  in the not active part of the system. The regeneration point will be then evaluated each time the tagged customer approach the swap out and if the conditions are met then the measure will be collected and the accumulators reset.
 
 \section{Simulation results}
 The following subsection will illustrate 4 different scenarios of execution:
@@ -234,7 +235,7 @@ In the negative exponential scenario the performance are comparable to the previ
 
 \subsection{LTCpu scenario}
 
-In this scenario the slice time is very high, since the hyper exponential sometimes gives service times with high values, those clients can remain in processing for a long time. As a result the CPU queue tend to grow because the clients remains in the station for a much longer time, this means higher waiting times and higher mean queue length.
+In this scenario the slice time is very high, since the hyper exponential distribution sometimes gives service times with high values, those clients can remain in processing for a long time. As a result the CPU queue tend to grow because the clients remains in the station for a much longer time, this means higher waiting times and higher mean queue length.
 
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_LTCpu.png}
 
