@@ -130,7 +130,7 @@ SCENARIO(Markov_20_NegExp)
     params.u2 = 27;
     params.alpha = 0.5;
     params.beta = 0.5;
-
+    params.burstMode = SystemParameters::FIXED;
     params.slicemode = SystemParameters::NEG_EXP;
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
@@ -151,6 +151,7 @@ SCENARIO(Markov_20)
     params.numclients = 20;
     params.u1 = 15;
     params.u2 = 75;
+    params.burstMode = SystemParameters::FIXED;
     params.alpha = 0.8;
     params.averageSwapIn = 0;
     params.beta = 0.2;

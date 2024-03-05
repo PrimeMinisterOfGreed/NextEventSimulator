@@ -27,7 +27,7 @@ struct SystemParameters
     int multiProgrammingDegree = 10;
     int numclients = 20;
     int slicemode = FIXED;
-
+    int burstMode = HYPER_EXP;
     static SystemParameters &Parameters()
     {
         static SystemParameters instance = SystemParameters{};

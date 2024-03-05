@@ -39,8 +39,11 @@ void Cpu::Manage(Event &evt)
     auto quantum = SystemParameters::Parameters().slicemode == SystemParameters::FIXED
                        ? SystemParameters::Parameters().cpuQuantum
                        : sliceStream();
+                           evt.Type = DEPARTURE;
+    if(SystemParameters::Parameters().burstMode == SystemParameters::FIXED){
+        evt.ServiceTime = Burst();
+    }
     auto slice = quantum < evt.ServiceTime ? quantum : evt.ServiceTime;
-    evt.Type = DEPARTURE;
     evt.ServiceTime -= slice;
     evt.OccurTime = _clock + slice;
     _scheduler->Schedule(evt);

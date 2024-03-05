@@ -155,7 +155,7 @@ class Transition:
       if self.tail.Ncpu > 0:
          l *=  SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
          pass
-      return l 
+      return l
       
 
    def CpuToIo(self):      
@@ -497,13 +497,16 @@ def execute_markov():
    print("Ncpu {} Expected {}".format(Ncpu,meanClients["CPU"][SystemParameters.numClients]))
    print("Nio1 {} Expected {}".format(Nio1,meanClients["IO1"][SystemParameters.numClients]))
    print("Nio2 {} Expected {}".format(Nio2,meanClients["IO2"][SystemParameters.numClients]))
+   print("Mean execution time {}".format((SystemParameters.u1*SystemParameters.alpha) + (SystemParameters.u2*SystemParameters.beta)))
+
+
    return (Ndelay,Ncpu,Nio1,Nio2)
    pass
 
 
 if __name__ == "__main__":
    
-   SystemParameters.numClients = 3
+   SystemParameters.numClients = 20
    execute_markov()
    pass
 
