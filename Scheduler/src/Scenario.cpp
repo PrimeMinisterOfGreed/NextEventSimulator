@@ -46,6 +46,8 @@ SCENARIO(Simplified_N20)
                                                {"CPU", 0},
                                                {"IO1", 0},
                                                {"IO2", 16},
+                                               {"delay_station",3},
+                                               {"RESERVE_STATION",0}
                                            });
 }
 
@@ -62,6 +64,8 @@ SCENARIO(Default) // first request
                                                {"CPU", 0},
                                                {"IO1", 0},
                                                {"IO2", 9},
+                                               {"delay_station",3},
+                                               {"RESERVE_STATION",7}
                                            });
 };
 
@@ -81,6 +85,8 @@ SCENARIO(NegExpCpu) // second request
                                                {"CPU", 0},
                                                {"IO1", 0},
                                                {"IO2", 9},
+                                               {"delay_station",3},
+                                               {"RESERVE_STATION",7}
                                            });
 }
 
@@ -96,6 +102,8 @@ SCENARIO(LTCpu) // third request
                                                {"CPU", 0},
                                                {"IO1", 0},
                                                {"IO2", 9},
+                                               {"delay_station",3},
+                                               {"RESERVE_STATION",7}
                                            });
 }
 
@@ -112,6 +120,8 @@ SCENARIO(NegExpLt) // last request
                                                {"CPU", 0},
                                                {"IO1", 0},
                                                {"IO2", 9},
+                                               {"delay_station",3},
+                                               {"RESERVE_STATION",7}
                                            });
 }
 
@@ -140,6 +150,8 @@ SCENARIO(Markov_20_NegExp)
                                                {"CPU", 0},
                                                {"IO1", 0},
                                                {"IO2", 16},
+                                               {"delay_station",3},
+                                               {"RESERVE_STATION",0}
                                            });
 }
 
@@ -162,5 +174,8 @@ SCENARIO(Markov_20)
                                                {"CPU", 0},
                                                {"IO1", 0},
                                                {"IO2", 16},
+                                               {"delay_station",3},
+                                               {"RESERVE_STATION",0}
+                                               
                                            });
 }
