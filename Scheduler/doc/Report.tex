@@ -43,7 +43,7 @@
 \usepackage{csvsimple}
 % Set page size and margins
 % Replace `letterpaper' with `a4paper' for UK/EU standard size
-\usepackage[a4paper,top=2cm,bottom=1.5cm,left=1.5cm,right=1.5cm,marginparwidth=1.75cm]{geometry}
+\usepackage[a4paper,top=2cm,bottom=1.5cm,left=1.5cm,right=1.5cm]{geometry}
 
 % Useful packages
 \usepackage{amsmath}
@@ -119,46 +119,46 @@ In this section a brief analysis of the code and other technical aspect of the s
 The simulator is designed to manage a range of events within this system, with a particular focus on two crucial types: the arrival of a client and the departure. Each event type has a distinct impact on the simulator's state, influenced by the specific target under consideration.
 \subsubsection{Delay station}
 
-\textbf{Departure from the delay station}: a departure from the delay station will cause an arrival at the swap-in station.
-Arrival at the delay station: an arrival will trigger a departure with a certain delay, that is a Random Variable with a negative exponential distribution of 5000 ms.
-
+\textbf{Departure from the delay station}: The client leaving the delay station will be scheduled for arrival to the Reserve station.
+\\
 \textbf{Arrival at the delay station}:
-
+an arrival will trigger a departure with a certain delay, that is a Random Variable with a negative exponential distribution with expected value of 5000 ms
+\\
 \subsubsection{Reserve station}
-Arrival at the Reserve station: if the counter of the process allocated in the system is less than the MPD. Then the  arrival event is immediately scheduled for the swap in. Otherwise, the information are stored in a queue and used when a process will exit from the swap out (and the counter decremented).
+\textbf{Arrival at the Reserve station:} if the counter of the process allocated in the system is less than the MPD. Then the  arrival event is immediately scheduled for the swap in. Otherwise, the information are stored in a queue and used when a process will exit from the swap out (and the counter decremented).
 
 \subsubsection{Swap in}
-Arrival at the swap in station: an arrival to this station will trigger a departure with a delay, equal to a RV with negative exponential distribution of 210 ms. If at the arrival the station is `occupied' by another client that is waiting it's departure, then the client will be served later with an FCFS policy.
-
-Departure from the swap in station: a departure from the swap in will trigger an immediate arrival at the CPU.
+\textbf{Arrival at the swap in station:} when a client arrive 2 behavior can happen: 1) the client arrives and found the queue empty, then it will be immediately scheduled for departure with a delay based on an exponential RV with expected value of 210 ms. 2) the client find the station busy, then it will be enqueued for later processing with FCFS policy.
+\\
+\textbf{Departure from the swap in station:} a departure from the swap in will trigger an immediate arrival at the CPU.
 
 
 \subsubsection{CPU}
 \textbf{Arrival at the CPU}: when a process arrives at the CPU a service time based on a hyper exponential distribution is assigned and then 2 things can happen. 1) The CPU is not busy, then the current process will occupy the CPU and a departure will be scheduled for a time equivalent to the actual clock plus time slice, the same time will be decreased from the remaining service time of the process. 2) The CPU is busy, then the process will be enqueued in the process queue.
-
+\\
 \textbf{Departure from the CPU}: A process can leave the CPU only when its service time is 0. So when a departure is scheduled 2 case exists: 1) The process's service time is > 0, in this case the process is enqueued again in the process queue. 2) The process's service time is 0, in this case the next station will be randomly chosen (using proper probabilities) and the event will be scheduled as arrival for that station. If there is a process in the queue, after those operations, it will be dequeued and processed by the CPU using the same mechanism described for the arrivals.
 
 \subsubsection{IO}
 
-Arrival to IO1/IO2: in both cases an arrival will trigger a departure from the relative station that is an RV with negative exponential distribution.
-
-Departure from IO1/IO2: in both cases this will result in an immediate arrival event to the CPU.
+\textbf{Arrival to IO1/IO2:} in both cases an arrival will trigger a departure from the relative station that is an RV with negative exponential distribution.
+\\
+\textbf{Departure from IO1/IO2:} in both cases this will result in an immediate arrival event to the CPU.
 
 \subsubsection{Swap Out}
-Arrival to swap out: this event will trigger an immediate departure for the swap out
-
-Departure from swap out: this event will trigger an immediate arrival to the delay station with p 0.4 or an immediate arrival to the reserve station with p 0.6. In any case this event will decrement by 1 the counter of allocated process in the reserve station.
+\textbf{Arrival to swap out:} this event will trigger an immediate departure for the swap out
+\\
+\textbf{Departure from swap out:} this event will trigger an immediate arrival to the delay station with p 0.4 or an immediate arrival to the reserve station with p 0.6. In any case this event will decrement by 1 the counter of allocated process in the reserve station.
 
 
 \subsection{Choice of the regeneration point}
-The regeneration point is chosen starting from some pilot simulation. In those simulations when the tagged customer reach the SWAP IN the current status of the simulator is collected. After 1000 runs those where most recognized observed state.
+The regeneration point is chosen starting from some pilot simulation. In those simulations when the tagged customer exit the swap out the current status of the simulator is collected. After 1000 runs those where most recognized observed state when this kind of event happen.
 \begin{verbatim}
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:18
     NDelay:5, NReserve:5, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:16
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
-The sum of clients in this print-out is always 19 because the measure is taken when the client is exiting the swap out, so the tagged customer is not counted. In order to ensure that the regeneration point is quite universal only the active part of the system will be considered, in this case a good state is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2, the other clients can be  arbitrary distributed  in the not active part of the system. The regeneration point will be then evaluated each time the tagged customer approach the swap out and if the conditions are met then the measure will be collected and the accumulators reset.
+The sum of clients in this print-out is always 19 because the measure is taken when the client is exiting the swap out, so the tagged customer is not counted. In this case a good fit is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2, 3 at the delay station and 7 at the Reserve. The regeneration point will be then evaluated each time the tagged customer approach the swap out and if the conditions are met then the measure will be collected and the accumulators reset.
 
 \section{Simulation results}
 The following subsection will illustrate 4 different scenarios of execution:
@@ -172,7 +172,7 @@ Legend for Plots:
 \begin{itemize}
     \item LB = Lower Bound of interval 
     \item HB = Higher bound of interval 
-    \item R = Biased estimator 
+    \item R = point estimator
     \item Expected = value calculated from MVA algorithm
 \end{itemize}
 
@@ -401,9 +401,7 @@ Mean waits also confirm that the bottleneck station is the IO2, since all other 
 \includegraphics[width=0.9\textwidth]{Images/meanClients.png}
 \\
 In this graph the tendency of the IO2 station to be a bottleneck is much visible, since the customers tend to increase the queue size of the IO2 at the increase of N.
-\\
-\includegraphics[width=0.9\textwidth]{Images/ActiveTimes.png}
-\\
+
 Considering the subsystem composed by IO1,IO2 and CPU we can estimate then the active time of a client with little effort, resorting to little's formula
 $$
     \bar{w}= \frac{\bar{n}}{\lambda}
