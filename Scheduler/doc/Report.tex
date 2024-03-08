@@ -173,18 +173,17 @@ Legend for Plots:
     \item LB = Lower Bound of interval 
     \item HB = Higher bound of interval 
     \item R = point estimator
-    \item Expected = value calculated from MVA algorithm
 \end{itemize}
 
 \subsection{Default scenario}
-In the first scenario we can see that the model perform better than expected by the MVA algorithm.
+In the default scenario despite having 20 clients the active part of the system has never more then 10 clients.
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_Default.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanclients.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanwaits.png}
 
-this is possible because the Reserve Station is limiting the number of clients that can be present in the active part of the system. Thus reducing the size of the queues in the system.
+this is possible because the Reserve Station is limiting the number of clients that can be present in the active part of the system. Thus reducing the size of the queues in the system. If this station is not present, then probably the system would experience trashing, due to the high service time of IO2.
 
 \begin{table}[!ht]
     \centering
@@ -296,7 +295,11 @@ In this scenario the time slice is set to a very high value, but burst times are
 The active times are slightly higher then the non LT cases, but lower that the previous case.
 
 \subsection{Conclusion}
-The Worst case is the case when the system has a very high time slice and a hyper exponential distribution of the service times, that is equivalent to disable the time slice mechanism in a real OS, where process are divided into long term (batch) execution and short term (foreground) processes. 
+The Worst case is the case when the system has a very high time slice and a hyper exponential distribution of the service times, that is equivalent to disable the time slice mechanism in a real OS, where process are divided into long term (batch) execution and short term (foreground) processes. The major consequences of this actions would be an increasing in the response times, that translate in lack of responsiveness when the user is trying to actively use the system. This happen because the time slice mechanism has the 2 responsibility: A) let the CPU do more thing at the same time (or give the impression that is doing that), B) let the processes that requires less time to be processed or that are requesting resources from the IO to be processed also when processes with larger execution times are present in the queue. Without the time slice mechanism i would not be able to type on the computer and have a feedback in a decent time, then my understanding would be that the system is unusable. 
+\\
+In the negative exponential scenarios ,the observable difference is that when the time slice mechanism is present the mean waiting time of customers is significantly lower. This difference is imputable to the fact that in the LT case the CPU discipline became the same as a First Come First Served queue, and then process that could experience a slightly lower execution time must wait for process ahead of them,that might have a slightly higher execution time, to finish their work first.
+\\
+The default and first proposed scenario is the more realistic and efficient one. Since in this case the CPU is virtually managing 2 queues with batch and foreground processes, but using a time slice mechanism. Process experience an average waiting time lower then the Negative exponential scenario because the foreground jobs, which have a very short execution time, will be executed in a short time thanks to the time slice mechanism and since they tend to leave the CPU queue very fast this decrease the number of clients in the queue. On the other hand the average active time is slightly higher than the negative exponential case, principally due to the batch jobs, which can remain a long time in the CPU queue and so experience an high sojourn time in the active part of the system.  
 
 \section{First validation step}
 \subsection{Bottleneck analysis}
@@ -446,6 +449,8 @@ After 20 simulations, as expected, there are times in which the expected value i
 
 The expected value of active times, that are the focus of this simulation, were in the confidence interval 90\% of the simulations. Since the expectations are that the expected value is in the confidence interval for $N(1-\alpha)$ times or equivalently $\frac{hits}{N}*100=1-\alpha$, where hits is the number of times the expected value is in the confidence interval, the simulator can be considered a good approximation of the given model.
 
+
+
 \section{Second validation step}
 
 
@@ -484,7 +489,7 @@ this class hold all the functions need to make the program interactive, in the s
     \item na <CPU|IO1|IO2|SWAP\_IN>: Execute the simulation until an arrival is detected to the station listed.
     \item nd <CPU|IO1|IO2|SWAP\_IN>: Execute the simulation until a departure is detected to the station listed.
     \item nn <seed:int> <numSimulations:int> <showMeasure:1|0> : Execute a fixed number of simulation reaching the precision requested every time, at the end of each simulation it will compare with MVA result and tell if the confidence interval has the true mean or not.
-    \item ltgtstats: print the cycle time catched by the tagged customer
+    \item ltgtstats: print the cycle time catch by the tagged customer
     \item lmeasures: print all the collected measure
     \item reset\_measures: manually reset all the accumulators
 

@@ -4,4 +4,9 @@
     ],
     "latex-workshop.latex.outDir": "./out",
     "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
+    "cSpell.enableFiletypes": [
+        "latex"
+    ],
+    "cSpell.language": "en",
+    "cSpell.enabled": true
 }
