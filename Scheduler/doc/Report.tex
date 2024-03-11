@@ -452,6 +452,9 @@ The expected value of active times, that are the focus of this simulation, were 
 
 
 \section{Second validation step}
+In the second validation step a different kind of effort is required, build and extract information from a Markov chain.
+\subsection{States definition}
+The first step is define how a state is represented. The simplest way is to consider as state a tuple of clients, each element will represent the client that are currently enqueued to each station (N\_Delay, N\_CPU, N\_IO1,N\_IO2), the swap in station is not present because it have service time 0, and so clients are processed instantaneously.  
 
 
 \section{Simulator description}

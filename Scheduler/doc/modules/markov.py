@@ -505,7 +505,10 @@ def execute_markov():
 
 
 if __name__ == "__main__":
-   
+   SystemParameters.u1 = 27
+   SystemParameters.u2 = 27
+   SystemParameters.alpha  = 0.5
+   SystemParameters.beta  = 0.5
    SystemParameters.numClients = 20
    execute_markov()
    pass
