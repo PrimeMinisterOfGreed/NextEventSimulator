@@ -454,8 +454,87 @@ The expected value of active times, that are the focus of this simulation, were 
 \section{Second validation step}
 In the second validation step a different kind of effort is required, build and extract information from a Markov chain.
 \subsection{States definition}
-The first step is define how a state is represented. The simplest way is to consider as state a tuple of clients, each element will represent the client that are currently enqueued to each station (N\_Delay, N\_CPU, N\_IO1,N\_IO2), the swap in station is not present because it have service time 0, and so clients are processed instantaneously.  
+The first step is define how a state is represented. The simplest way is to consider as state a tuple of clients, each element will represent the client that are currently enqueued to each station (N\_Delay, N\_CPU, N\_IO1,N\_IO2), the swap in station is not present because it have service time 0, and so clients are processed instantaneously. 
+\begin{lstlisting}[language=python]
+class State:
+    def __init__(self,Ndelay, Ncpu, Nio1, Nio2,cpuStage = 0) -> None:
+        self.Ndelay = Ndelay
+        self.Ncpu = Ncpu
+        self.cpuStage = cpuStage
+        self.Nio1 = Nio1
+        self.Nio2 = Nio2
+        self.state= [Ndelay,Ncpu,Nio1,Nio2,cpuStage]
+        self.descriptor =["Ndelay","Ncpu","Nio1","Nio2","cpuStage"]
+        pass
+\end{lstlisting}
 
+In this model a state is valid only if the sum of clients in each station is equal to N (the number of workstation that are present in the system). Another condition is that if there is almost 1 client in CPU, the state must be either 1 or 2.
+
+\begin{lstlisting}[language=python,breaklines]
+    def isValid(self)->bool:
+        if self.Ncpu > 0:
+            return (self.cpuStage == 1 or self.cpuStage == 2) and (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
+        else:
+            return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
+\end{lstlisting}
+
+With this simple statements is possible to define a generator of states by iterating through all the possibilities 
+
+\begin{lstlisting}[language=python,breaklines]
+def stage_enumerator(stage: int) -> list[State]:
+    Ndelay = 0
+    Ncpu = 1
+    Nio1 = 2
+    Nio2 = 3
+    cpuStage = stage
+    stages = [0,0,0,0]
+    result = []
+    while stages[Ndelay] <= SystemParameters.numClients:
+        for i in reversed(range(4)):
+            stages[i] += 1
+            if stages[i] <= SystemParameters.numClients: break
+            elif i > 0 : stages[i] = 0
+            pass
+        state= State(stages[Ndelay], stages[Ncpu], stages[Nio1],stages[Nio2],stage)
+        if state.isValid(): result.append(state)
+        pass
+    return result
+\end{lstlisting}
+
+The result will be all the valid nodes for the graph, the next step is to correctly define all the possible transition in the system.
+
+\subsection{Transition definition}
+A transition is an edge in the graph, it represent the probability that the chain move from a given state to an adjacent state. A transition can be only:
+\begin{itemize}
+    \item A client pass from CPU to IO1 
+    \item A client pass from CPU to IO2 
+    \item A client pass from IO2 to CPU
+    \item A client pass from IO1 to CPU
+    \item A client pass from DELAY to CPU
+    \item A client pass from CPU to DELAY
+\end{itemize}
+
+\begin{lstlisting}[language=python]
+class Transition:   
+    class TransitionType:
+       UNKNOWN = -1
+       CPU_TO_IO1 = 1
+       CPU_TO_IO2 = 2
+       IO2_TO_CPU = 4
+       IO1_TO_CPU = 5
+       DELAY_TO_CPU = 6
+       CPU_TO_DELAY = 7
+       pass
+
+def __init__(self, head: State, tail : State) -> None:
+       self.head = head
+       self.tail = tail
+       self.type = Transition.TransitionType.UNKNOWN
+       self.detectType()
+    pass
+\end{lstlisting}
+
+All not possible edges in the graph are valid, 
 
 \section{Simulator description}
 \subsection{Brief description of the implementation}
