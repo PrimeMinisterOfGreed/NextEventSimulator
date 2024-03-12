@@ -534,7 +534,33 @@ def __init__(self, head: State, tail : State) -> None:
     pass
 \end{lstlisting}
 
-All not possible edges in the graph are valid, 
+Not all possible edges in the graph are valid, so it is necessary to impose some constraints accepted ones. Since the chain is a directed graph let's give some definitions, the head of an edge is the actual state considered, the tail is the destination of the transition. Fixed those elements a transition is valid only if:
+\begin{itemize}
+    \item The tail has one station with less one client than the head 
+    \item The tail has one station with more one client than the head 
+\end{itemize}
+in this manner only the node that are one step away are considered. 
+
+\begin{lstlisting}[language=python,breaklines]
+def transitionIsValid(self):
+    #check cpu stage
+    if self.head.cpuStage != self.tail.cpuStage:
+       if self.head.Ncpu < self.tail.Ncpu and self.tail.Ncpu > 0 and self.head.Ncpu > 0: return False
+       pass
+    changed = 0
+    def validate_var(a , b):
+       nonlocal changed 
+       if abs(a - b) > 1 : return False 
+       if abs(a-b) == 1 and changed > 1: return False
+       if abs(a-b) == 0 : return True
+       else: changed += 1         
+       return True
+    for i in range(len(self.head)):
+       if not validate_var(self.head[i],self.tail[i]): return False
+       pass
+    return True
+\end{lstlisting}
+
 
 \section{Simulator description}
 \subsection{Brief description of the implementation}
