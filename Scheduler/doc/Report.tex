@@ -12,6 +12,34 @@
 \usepackage{listings}
 \usepackage{rotating}
 
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
 %\usepackage{times}
 
 
@@ -561,7 +589,65 @@ def transitionIsValid(self):
     return True
 \end{lstlisting}
 
+At this point is possible to define the type of the transition simply by observing what station decremented its customer and the one that increased. A transition will be than of type: 
 
+\begin{itemize}
+    \item a transition from CPU to IO if a decrement from CPU and an increment to IO is observed and vice versa a transition from IO to CPU 
+    \item a transition from CPU to Delay if a decrement from CPU is observed and an increase to Delay is observed, vice versa a transition from Delay to CPU.
+\end{itemize}
+
+\begin{lstlisting}[language=python]
+    def detectType(self):
+    #return so that the value remains unknown
+    if not self.transitionIsValid() : return
+    (decrement,increment)= self.detectMovement()
+    if decrement == "ERROR" or increment == "ERROR" : return 
+    elif decrement == "Ncpu" and increment == "Nio1": self.type = Transition.TransitionType.CPU_TO_IO1
+    elif decrement == "Ncpu" and increment == "Nio2" : self.type = Transition.TransitionType.CPU_TO_IO2
+    elif decrement == "Nio1" and increment == "Ncpu" : self.type = Transition.TransitionType.IO1_TO_CPU
+    elif decrement == "Nio2" and increment == "Ncpu" : self.type = Transition.TransitionType.IO2_TO_CPU
+    elif decrement == "Ndelay" and increment == "Ncpu" : self.type = Transition.TransitionType.DELAY_TO_CPU
+    elif decrement == "Ncpu" and increment == "Ndelay" : self.type = Transition.TransitionType.CPU_TO_DELAY
+    pass
+\end{lstlisting}
+
+So now for all transition types is possible to define a transition probability. \pagebreak
+
+\subsubsection{CPU Transition}
+
+The CPU possible transition must take in consideration the current state (1 or 2) of the client in process. Starting from the departures let's define a simple, yet useful function L (leave) that assume values 
+$$L(h,t)=
+\begin{cases}
+    \frac{1}{u_1}*\alpha &  H_1 \rightarrow T_1 \\
+    \frac{1}{u_2}*\alpha & H_2 \rightarrow T_1\\
+    \frac{1}{u_1}*\beta & H_1 \rightarrow T_2 \\
+    \frac{1}{u_2}*\beta & H_2 \rightarrow T_2\\
+    \frac{1}{u_1} & H_1 \rightarrow T_0\\
+    \frac{1}{u_2} & H_2 \rightarrow T_0
+\end{cases}
+$$
+Where $u_1,u_2,\alpha,\beta$ are the constants that describe the hyper exponential of the cpu. $h$ and $t$ are the head and the tail of the transition: $H_1$ means that the head is in stage 1,same for $H_2$ with stage 2 and the tail that is T. Special case is $T_0$ that means the tail has no client in the cpu, so alpha and beta are not considered.  
+
+\begin{lstlisting}[language=python]
+def CpuL(self):
+    l = 1/SystemParameters.u1 if self.head.cpuStage == 1 else 1/SystemParameters.u2
+    if self.tail.Ncpu > 0:
+       l *=  SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
+       pass
+    return l
+\end{lstlisting}
+
+The next steps involve to consider where the client is directed when leaving, destinations can be: Delay and IOs, also CPU to CPU are valid transitions, but useless because the values obtained from this transition will be deleted when the chain will be "normalized". So the probability will be $p=L(h,t)*q_{3,4/5}$ if the client is directed towards the IOs and $p=L(h,t)*q_{3,0}$ if the client is directed to the delay station. 
+
+\begin{lstlisting}[language=python]
+ def CpuToIo(self):      
+    return self.CpuL()*SystemParameters.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else self.CpuL()*SystemParameters.qio2
+ 
+ def CpuToDelay(self):
+    return self.CpuL()*SystemParameters.qoutd
+\end{lstlisting}
+
+Let's now consider all the transition that goes to the CPU i.e. arrivals. Since the service time of the swap in is 0, is possible to assume that an arrival can come from the delay station directly or from the IOs. 
 \section{Simulator description}
 \subsection{Brief description of the implementation}
 The simulator is substantially a shell. The program loads at the beginning the skeleton of the simulator composed by an OS object. Such object hold the description of the model composed by a Round Robin station (class CPU), a delay station (class DelayStation) and all the other First Come First Served (class FCFSStation). The OS Object inherit from scheduler that hold the main event queue and manage all the operations inside the simulator. OS also inherit from the class Simulator, that substantially contains all the functions that are need to pilot the execution, such as dequeue an event , route it to the right station and so on. The environment of simulation is divided in 3 abstraction layers:
