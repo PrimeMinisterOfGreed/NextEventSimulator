@@ -613,20 +613,20 @@ At this point is possible to define the type of the transition simply by observi
 
 So now for all transition types is possible to define a transition probability. \pagebreak
 
-\subsubsection{CPU Transition}
+\subsubsection{Departures from CPU}
 
-The CPU possible transition must take in consideration the current state (1 or 2) of the client in process. Starting from the departures let's define a simple, yet useful function L (leave) that assume values 
-$$L(h,t)=
+The CPU possible transition must take in consideration the current state (1 or 2) of the client in process. Starting from the departures let's define a simple, yet useful function $L_{cpu}$ (leave) that assume values 
+$$L_{cpu}(H,T)=
 \begin{cases}
-    \frac{1}{u_1}*\alpha &  H_1 \rightarrow T_1 \\
-    \frac{1}{u_2}*\alpha & H_2 \rightarrow T_1\\
-    \frac{1}{u_1}*\beta & H_1 \rightarrow T_2 \\
-    \frac{1}{u_2}*\beta & H_2 \rightarrow T_2\\
-    \frac{1}{u_1} & H_1 \rightarrow T_0\\
-    \frac{1}{u_2} & H_2 \rightarrow T_0
+    \frac{1}{u_1}*\alpha &  H.stage=1 \rightarrow T.stage=1 \\
+    \frac{1}{u_2}*\alpha & H.stage=2 \rightarrow T.stage=1\\
+    \frac{1}{u_1}*\beta & H.stage=1 \rightarrow T.stage=2 \\
+    \frac{1}{u_2}*\beta & H.stage=2 \rightarrow T.stage=2\\
+    \frac{1}{u_1} & H.stage=1 \rightarrow T.stage=0\\
+    \frac{1}{u_2} & H.stage=2 \rightarrow T.stage=0
 \end{cases}
 $$
-Where $u_1,u_2,\alpha,\beta$ are the constants that describe the hyper exponential of the cpu. $h$ and $t$ are the head and the tail of the transition: $H_1$ means that the head is in stage 1,same for $H_2$ with stage 2 and the tail that is T. Special case is $T_0$ that means the tail has no client in the cpu, so alpha and beta are not considered.  
+Where $u_1,u_2,\alpha,\beta$ are the constants that describe the hyper exponential of the cpu. $H$ and $T$ are the head and the tail of the transition: $H.stage=1$ means that the head is in stage 1,same for $H.stage=2$ with stage 2 and the tail that is T. Special case is $T.stage=0$ that means the tail has no client in the cpu, so alpha and beta are not considered.  
 
 \begin{lstlisting}[language=python]
 def CpuL(self):
@@ -637,17 +637,150 @@ def CpuL(self):
     return l
 \end{lstlisting}
 
-The next steps involve to consider where the client is directed when leaving, destinations can be: Delay and IOs, also CPU to CPU are valid transitions, but useless because the values obtained from this transition will be deleted when the chain will be "normalized". So the probability will be $p=L(h,t)*q_{3,4/5}$ if the client is directed towards the IOs and $p=L(h,t)*q_{3,0}$ if the client is directed to the delay station. 
+The next steps involve to consider where the client is directed when leaving, destinations can be: Delay and IOs, also CPU to CPU are valid transitions, but useless because the values obtained from this transition will be deleted when the chain will be "normalized". So let's define function $A(H,T)$ that is arrival for a given station, $A_{IO1/2}=L_{cpu}(H,T)*q_{3,4/5}$ if the client is directed towards the IOs and $A_{delay}=L_{cpu}(H,T)*q_{3,0}$ if the client is directed to the delay station. 
 
+
+\subsubsection{Arrivals to CPU}
+Let's now consider all the transition that goes to the CPU i.e. arrivals. Since the service time of the swap in is 0, is possible to assume that an arrival can come from the delay station directly or from the IOs. For this purpose let $L_{delay}(H,T)$ be 
+$$
+L_{delay}(H,T)= H.ndelay*\frac{1}{Z}
+$$
+
+Where H.ndelay is the number of clients at the delay station and Z is the think time of the delay station and let $L_{io1}$ be
+$$
+    L_{io1} = \frac{1}{S_{io1}}  
+$$ and let $L_{io2}$ be 
+$$
+    L_{io2}= \frac{1}{S_{io2}}
+$$
+. Let's then define a new function $A(H,T)$ for the cpu that assume values 
+$$
+A_{cpu}(H,T)=
+\begin{cases}
+    \alpha & H.stage = 0 \rightarrow T.stage = 1 \\
+    \beta & H.stage = 0 \rightarrow T.stage = 2 \\
+    1
+\end{cases}
+$$
+
+
+All the transition may be described then as:
+
+\begin{center}
+    \begin{tabular}{ |c|c|c| } 
+     \hline
+     Station Head & Station Tail & P \\ 
+     CPU & IO1 & $L_{CPU}(H,T)* q_{3,4}$ \\
+     CPU & IO2 & $L_{CPU}(H,T)* q_{3,5}$\\
+     CPU & Delay & $L_{CPU}*(H,T) * q_{3,0}$ \\ 
+     IO1 & CPU & $L_{IO1}(H,T) * A_{CPU}(H,T)$ \\
+     IO2& CPU & $L_{IO2}(H,T)* A_{CPU}(H,T)$ \\
+     Delay & CPU & $L_{delay}(H,T)*A_{CPU}(H,T)$\\
+     \hline
+    \end{tabular}
+    \end{center}
+
+    \begin{lstlisting}[language=python]
+
+    def DelayToCpu(self):
+        l = self.head.Ndelay*(1/SystemParameters.thinkTime)
+        if self.head.Ncpu == 0:
+           l *= SystemParameters.alpha if self.tail.cpuStage == 1 else  SystemParameters.beta
+        return l
+        
+
+    def CpuToIo(self):      
+       return self.CpuL()*SystemParameters.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else self.CpuL()*SystemParameters.qio2
+        
+    def CpuToDelay(self):
+       return self.CpuL()*SystemParameters.qoutd
+        
+    def CpuToSelf(self):
+       return self.CpuL()*SystemParameters.qouts
+        
+    def IoToCpu(self):
+       l = 1
+       if self.head.Ncpu == 0:
+          l = SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
+          pass
+       return l * (1/SystemParameters.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else l* (1/SystemParameters.Sio2)
+        \end{lstlisting}
+
+
+\subsection{Chain building}
+The chain can be built by iterating through all nodes and edges. The easier way to do that is to apply a depth first search to the graph. The best way is to take a node as head and then iterate through all possible nodes trying to build a transition, if the transition is valid save it as edge and put the node in the frontier (if it wasn't already processed, since this graph can have cycles), at the next iteration the node will be used as head and so on. 
 \begin{lstlisting}[language=python]
- def CpuToIo(self):      
-    return self.CpuL()*SystemParameters.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else self.CpuL()*SystemParameters.qio2
- 
- def CpuToDelay(self):
-    return self.CpuL()*SystemParameters.qoutd
+class ChainGenerator:
+   
+   def __init__(self, nodes : list[State]) -> None:
+      self.nodes = nodes
+      self.edges : list[Transition] = []
+      self.queue = []
+      self.ordered = []   
+      pass
+
+   def compute_next(self):
+      ref = self.queue[0]
+      self.queue.remove(ref)
+      if ref in self.ordered: return
+      self.ordered.append(ref)
+      for node in self.nodes:
+         tr = Transition(ref,node)
+         if tr.type != Transition.TransitionType.UNKNOWN:
+            self.edges.append(tr)
+            if not node in self.ordered:
+               self.queue.append(node)
+               pass
+            pass
+         pass
+      pass
 \end{lstlisting}
 
-Let's now consider all the transition that goes to the CPU i.e. arrivals. Since the service time of the swap in is 0, is possible to assume that an arrival can come from the delay station directly or from the IOs. 
+In order to start the process, it's necessary to pick up a state from which the computation will begin, a good option is to consider in which state the system will be when the first event is processed, that is for sure the state where all the clients are at the delay station.
+
+\subsection{Steady state solution}
+In order to reach the steady state solution 3 things must be done:
+\begin{enumerate}
+    \item Transform the graph into a matrix 
+    \item normalize the chain inside the matrix 
+    \item calculate the steady state solution
+\end{enumerate}
+
+\subsubsection{Transform the graph in to a matrix}
+In order to do this first step, is possible to consider the set of nodes ordered when the generation took place. Iterating through each of those nodes, is possible to build a adjacency matrix.
+\begin{lstlisting}[language=python]
+   def get_adj_matrix(generator: ChainGenerator):
+    nodes = generator.ordered
+    mat = np.zeros((len(nodes),len(nodes)))
+    adj :dict = generator.chain().graph.adj
+    for i in range(len(nodes)):
+        ref = nodes[i]
+        for j in range(len(nodes)):
+            to = nodes[j]
+            if to in adj[ref]:
+                mat[j][i] = round(adj[ref][to]["weight"],10)
+            pass
+        pass
+    return mat
+\end{lstlisting}
+
+\subsubsection{Normalize the chain inside the matrix}
+The actual matrix is a Continuos Time Markov Chain, more precisely is an infinitesimal generator Q, but it lacks a required property $q_{ii}=\sum_{i \neq j} - q_{ij}$, so this operation is needed.
+
+\begin{lstlisting}[language=python]
+  def balance_ctmc(mat : np.ndarray[np.ndarray]) -> np.ndarray:
+    copy = mat.copy()
+    for i in range(len(mat)):
+        copy[i][i] = -copy[i].sum()
+        pass
+    return copy
+    pass
+\end{lstlisting}
+
+\subsubsection{Calculate the steady state solution}
+
+In order to calculate the steady state solution, is possible to resort to this relation $\pi * Q=0$. Q was obtained from the previous step, so now to this relation a further condition is required $\sum \pi_i = 1$ that can be done by: 1) add a row of ones at the bottom of Q 2) add a 1 to the vector b. 
+
 \section{Simulator description}
 \subsection{Brief description of the implementation}
 The simulator is substantially a shell. The program loads at the beginning the skeleton of the simulator composed by an OS object. Such object hold the description of the model composed by a Round Robin station (class CPU), a delay station (class DelayStation) and all the other First Come First Served (class FCFSStation). The OS Object inherit from scheduler that hold the main event queue and manage all the operations inside the simulator. OS also inherit from the class Simulator, that substantially contains all the functions that are need to pilot the execution, such as dequeue an event , route it to the right station and so on. The environment of simulation is divided in 3 abstraction layers:

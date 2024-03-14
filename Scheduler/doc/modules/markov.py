@@ -331,17 +331,9 @@ class ChainGenerator:
       self.ordered = []   
       pass
 
-   def __call__(self, firstNode : State):
-      self.queue.append(firstNode)
-      while len(self.queue) > 0:
-         self.compute_next()
-         pass
-      pass
-
    def compute_next(self):
       ref = self.queue[0]
       self.queue.remove(ref)
-      #print("Computing nodes for: {}".format(str(ref)))
       if ref in self.ordered: return
       self.ordered.append(ref)
       for node in self.nodes:
@@ -349,12 +341,20 @@ class ChainGenerator:
          if tr.type != Transition.TransitionType.UNKNOWN:
             self.edges.append(tr)
             if not node in self.ordered:
-               #print("Discovered {}".format(str(node)))
                self.queue.append(node)
                pass
             pass
          pass
       pass
+
+
+   def __call__(self, firstNode : State):
+      self.queue.append(firstNode)
+      while len(self.queue) > 0:
+         self.compute_next()
+         pass
+      pass
+
 
    def chain(self) -> DiGraph:
       chain = DiGraph()
