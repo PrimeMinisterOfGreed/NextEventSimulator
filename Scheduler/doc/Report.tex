@@ -779,7 +779,79 @@ The actual matrix is a Continuos Time Markov Chain, more precisely is an infinit
 
 \subsubsection{Calculate the steady state solution}
 
-In order to calculate the steady state solution, is possible to resort to this relation $\pi * Q=0$. Q was obtained from the previous step, so now to this relation a further condition is required $\sum \pi_i = 1$ that can be done by: 1) add a row of ones at the bottom of Q 2) add a 1 to the vector b. 
+In order to calculate the steady state solution, is possible to resort to this equation $\pi Q=0$  just by adding the normalization condition $\sum_i \pi_i = 1$ And transform it in a form of type $Ax=b$. First is necessary to transform the system, in order to take the system to a form of $Q \pi=b$ is possible to just transpose matrix Q and after add the normalization condition
+
+\begin{lstlisting}[language=python]
+    m = q.copy().transpose()
+    norm = np.ones(len(m))
+    m =np.vstack((m,norm))
+    b= np.zeros(len(m))
+    b[-1] = 1
+\end{lstlisting}
+
+then let's define the vector b, that is made of all 0 in order to respect the fist equation with last element 1 so that respect the normalization condition. Now let's resolve the system with least squared method (since the matrix Q now is not full rank).
+
+\begin{lstlisting}[language=python]
+    x = np.linalg.lstsq(m,b,rcond=None)[0]
+\end{lstlisting}
+
+x will then be the vector of solution pi that represent the steady state solution of the chain. In this case is a good practice to verify the optimality of the calculation by checking that the $\min(|Ax-b|_2 )< \epsilon$ where epsilon is $\approx 0$, the more this norm approach to 0 the more the solution is good.
+
+\begin{lstlisting}[language = python]
+    print(np.linalg.norm( (m@x) - b ,2).min())
+\end{lstlisting}
+\subsection{Extraction of data from the steady state solution}
+
+From the steady state solution is possible to calculate some indices, for example the distribution of the mean clients in the stations. In order to extract the distribution of clients from the steady state solution is possible to consider that now each node has a probability (to be in that state) associated, then is possible to calculate $\bar{n}=\sum_{i}N * \pi_i$ where N is the number of clients that the station has in the state i.
+
+\begin{lstlisting}[language=python]
+    ordered = generator.ordered
+    Ndelay = 0
+    Ncpu = 0
+    Nio1 = 0
+    Nio2 = 0
+    for state in ordered:
+        p = x[ordered.index(state)]
+        Ndelay += (state.Ndelay * p)
+        Ncpu += (state.Ncpu * p)
+        Nio1 += (state.Nio1 * p)
+        Nio2 += (state.Nio2 * p)
+        pass
+\end{lstlisting}
+
+Now in order to validate the model, is possible to introduce some small modification and compare it to the values calculated through the MVA algorithm. First let's calculate those values:
+\begin{lstlisting}[language=python]
+    matrix = np.array([
+        [0,1,0,0,0],
+        [0,0,1,0,0],
+        [0.004,0.006,0.9,0.065,0.025],
+        [0,0,1,0,0],
+        [0,0,1,0,0]],np.dtype('d'))
+       mva = MVA(matrix,[5000,0,2.7,40,180],[StationType.Delay,StationType.LoadIndependent,StationType.LoadIndependent,StationType.LoadIndependent,StationType.LoadIndependent],30)
+       mva()
+       meanClients = mvaToDataframe(mva.meanclients)
+\end{lstlisting}
+\pagebreak
+Then is possible to set the parameters $u_1=u_2=27$ and $\alpha=\beta=0.5$, so the hyper exponential distribution of the CPU will decade to a negative exponential and the model become comparable with MVA. 
+
+\begin{verbatim}
+Values calculated with 20 clients:
+Ndelay 4.438722522557087 Expected 4.438722599034795
+Ncpu 1.484271926654976 Expected 1.4842718857968777
+Nio1 1.3563025397011728 Expected 1.3563025143771892
+Nio2 12.72070301108653 Expected 12.720703000791138
+\end{verbatim}
+
+Where expected are the values returned by MVA for the same measure. Now using instead the parameters given with a real hyper exponential the values obtained are 
+
+\begin{verbatim}
+Ndelay 4.431233117921113
+Ncpu 1.8032526959726078 
+Nio1 1.5225100786999133 
+Nio2 12.243004107406223 
+\end{verbatim}
+
+
 
 \section{Simulator description}
 \subsection{Brief description of the implementation}
