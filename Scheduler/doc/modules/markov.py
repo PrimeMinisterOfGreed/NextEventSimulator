@@ -10,6 +10,7 @@ import graphviz
 import pandas as pd
 from mva import *
 
+# class that describes all parameters for the model
 class SystemParameters:
     alpha = 0.8
     beta = 0.2
@@ -28,7 +29,7 @@ class SystemParameters:
 
 
 
-
+# this class represent a state in the chain
 class State:
     def __init__(self,Ndelay, Ncpu, Nio1, Nio2,cpuStage = 0) -> None:
         self.Ndelay = Ndelay
@@ -36,16 +37,20 @@ class State:
         self.cpuStage = cpuStage
         self.Nio1 = Nio1
         self.Nio2 = Nio2
+        # this array serves as view for iterating through the stations
         self.state= [Ndelay,Ncpu,Nio1,Nio2,cpuStage]
+        # this array serves as descriptor for the previous field
         self.descriptor =["Ndelay","Ncpu","Nio1","Nio2","cpuStage"]
         pass
 
+    # a state is valid when the sum of all the clients in station equals N
     def isValid(self)->bool:
         if self.Ncpu > 0:
             return (self.cpuStage == 1 or self.cpuStage == 2) and (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
         else:
             return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
     
+    # string representation for visualization in graphviz
     def __str__(self) -> str:
         return ("{},{},{},{}".format(
             self.Ndelay,
@@ -70,9 +75,10 @@ class State:
        return hash(str(self))
     pass
 
-
+# class that describes all possible transitions
 class Transition:
    
+   # mark for transition type
    class TransitionType:
       UNKNOWN = -1
       CPU_TO_IO1 = 1
@@ -83,7 +89,7 @@ class Transition:
       CPU_TO_DELAY = 7
       CPU_TO_SELF = 8
       pass
-
+   
    def __init__(self, head: State, tail : State) -> None:
       self.head = head
       self.tail = tail
@@ -91,24 +97,18 @@ class Transition:
       self.detectType()
       pass
    
+   # check if a transition is valid. A transition is valid only if the head and the tail 
+   # had an Si - Sj == 1 and an Si - Sj == -1 and all other Si - Sj == 0
    def transitionIsValid(self):
-      #check cpu stage
+      #check cpu stage validity
       if self.head.cpuStage != self.tail.cpuStage:
          if self.head.Ncpu < self.tail.Ncpu and self.tail.Ncpu > 0 and self.head.Ncpu > 0: return False
          pass
-      changed = 0
-      def validate_var(a , b):
-         nonlocal changed 
-         if abs(a - b ) > 1 : return False 
-         if abs(a-b) == 1 and changed > 1: return False
-         if abs(a-b) == 0 : return True
-         else: changed += 1         
-         return True
-      for i in range(len(self.head)):
-         if not validate_var(self.head[i],self.tail[i]): return False
-         pass
-      return True
+      # return diff without last item that is cpu stage
+      diff = np.array(self.head.state[:-1]) - np.array(self.tail.state[:-1])
+      return diff.max() == 1 and diff.min() == -1 and diff.sum() == 0
    
+   # search for increment / decrement in the states, discarding ones not valid
    def detectMovement(self) -> tuple[str,str]:
       decremented = ""
       incremented = ""
@@ -123,6 +123,7 @@ class Transition:
          pass
       return (decremented,incremented)
 
+   # detect the type of transition from the decrement, increment values
    def detectType(self):
       if not self.transitionIsValid() : return
       (decrement,increment)= self.detectMovement()
@@ -135,6 +136,7 @@ class Transition:
       elif decrement == "Ncpu" and increment == "Ndelay" : self.type = Transition.TransitionType.CPU_TO_DELAY
       pass
    
+   # calculate the P of the transition using the type
    def p(self):
       assert(self.type != Transition.TransitionType.UNKNOWN)
       if self.type == Transition.TransitionType.CPU_TO_IO1 or self.type == Transition.TransitionType.CPU_TO_IO2: return self.CpuToIo()
@@ -144,12 +146,14 @@ class Transition:
       elif self.type == Transition.TransitionType.CPU_TO_SELF: return self.CpuToSelf()
       pass
    
+
    def DelayToCpu(self):
       l = self.head.Ndelay*(1/SystemParameters.thinkTime)
       if self.head.Ncpu == 0:
          l *= SystemParameters.alpha if self.tail.cpuStage == 1 else  SystemParameters.beta
       return l
    
+   # define the CPU leave function 
    def CpuL(self):
       l = 1/SystemParameters.u1 if self.head.cpuStage == 1 else 1/SystemParameters.u2
       if self.tail.Ncpu > 0:
@@ -177,8 +181,8 @@ class Transition:
    pass
 
 
+# support class that prints graph in to a viewable object in graphviz
 class Printer:
-
    def nx_to_graphviz(nxgraph : nx.DiGraph):
       graph = graphviz.Digraph()
       for node in nxgraph.graph.nodes:
@@ -188,12 +192,10 @@ class Printer:
        graph.edge(edge[0],edge[1],str(nxgraph.graph.get_edge_data(edge[0],edge[1])["weight"]))
        pass
       return graph
-   
-   
-
    pass
 
 
+# function that enumerates all possible nodes with a given CPU stage
 def stage_enumerator(stage: int) -> list[State]:
     Ndelay = 0
     Ncpu = 1
@@ -213,7 +215,9 @@ def stage_enumerator(stage: int) -> list[State]:
         pass
     return result
 
+#enumerate all possible nodes in the grapg
 def node_enumerator() -> list[State]:
+    #enumerate all possible nodes with stage 1 then remove the duplicated one generated with stage 2
     nodes = stage_enumerator(1)
     for newnode in stage_enumerator(2):
         if newnode not in nodes:
@@ -223,6 +227,7 @@ def node_enumerator() -> list[State]:
     return nodes
 
 
+# enumerate all possible transition in the chain
 def edge_enumerator() -> list[tuple[State,State]]:
     nodes = node_enumerator()
     result = []
@@ -235,6 +240,7 @@ def edge_enumerator() -> list[tuple[State,State]]:
         pass
     return result
 
+# wrapper for networkx digraph class
 class DiGraph():
    
    def __init__(self):
@@ -321,7 +327,7 @@ class DiGraph():
      pass
    pass
 
-
+# helper for generate the chain using DFS algorithm
 class ChainGenerator:
    
    def __init__(self, nodes : list[State]) -> None:
@@ -331,6 +337,7 @@ class ChainGenerator:
       self.ordered = []   
       pass
 
+   #extract a state from the queue and enumerate all possible transition from that state
    def compute_next(self):
       ref = self.queue[0]
       self.queue.remove(ref)
@@ -347,7 +354,7 @@ class ChainGenerator:
          pass
       pass
 
-
+   # setup the chain and compute transition unless the frontier is empty
    def __call__(self, firstNode : State):
       self.queue.append(firstNode)
       while len(self.queue) > 0:
@@ -384,6 +391,7 @@ class ChainGenerator:
          pass
       return(inner,outer,nodes)
 
+   # return only the refNode with all the transition associated
    def subgraph(self, refNode:State) -> DiGraph:
       (inner,outer,nodes) = self.get_edges(refNode)
       graph = DiGraph()
@@ -397,6 +405,7 @@ class ChainGenerator:
    pass
 
 
+# balance the CTMC adding the qii = -sum(qij) condition
 def balance_ctmc(mat : np.ndarray[np.ndarray]) -> np.ndarray:
     copy = mat.copy()
     for i in range(len(mat)):
@@ -405,7 +414,7 @@ def balance_ctmc(mat : np.ndarray[np.ndarray]) -> np.ndarray:
     return copy
     pass
 
-
+# convert a a ctmc to its inner dtmc
 def convert_to_dtmc(mat: np.ndarray[np.ndarray]) -> np.ndarray:
     maxq = 0
     ctmc = mat.copy()
@@ -429,6 +438,7 @@ def convert_to_dtmc(mat: np.ndarray[np.ndarray]) -> np.ndarray:
         pass
     return ctmc
 
+#convert a graph from the chainGenerator to an adjacency matrix
 def get_adj_matrix(generator: ChainGenerator):
    nodes = generator.ordered
    mat = np.zeros((len(nodes),len(nodes)))
@@ -443,8 +453,9 @@ def get_adj_matrix(generator: ChainGenerator):
        pass
    return mat
 
-
+# calculate the model and compare it to MVA
 def execute_markov():
+   # MVA description
    matrix = np.array([
     [0,1,0,0,0],
     [0,0,1,0,0],
@@ -452,28 +463,37 @@ def execute_markov():
     [0,0,1,0,0],
     [0,0,1,0,0]],np.dtype('d'))
 
-
+   # calculate Mean values
    mva = MVA(matrix,[5000,0,2.7,40,180],[StationType.Delay,StationType.LoadIndependent,StationType.LoadIndependent,StationType.LoadIndependent,StationType.LoadIndependent],30)
-
    mva()
-
    utilization = mvaToDataframe(mva.utilizations)
    throughputs = mvaToDataframe(mva.throughputs)
    meanWaits = mvaToDataframe(mva.meanwaits)
    meanClients = mvaToDataframe(mva.meanclients)
+   
+   # generate the markov chain starting from state (N,0,0,0)
    generator = ChainGenerator(node_enumerator())
    generator(State(SystemParameters.numClients,0,0,0))
+
+   # the matrix is generated for columns so it need to be transposed before balancing
    q = balance_ctmc(get_adj_matrix(generator).transpose())
 
 
+   # transpose again since pi Q =0 must be transformed in Q pi = b
    m = q.copy().transpose()
 
+   # add normalization condition sum(pi) = 1
    norm = np.ones(len(m))
    m =np.vstack((m,norm))
+
+   # vector of coefficient b with last element 1
    b= np.zeros(len(m))
    b[-1] = 1
+
+   #resolve for least squared
    x = np.linalg.lstsq(m,b,rcond=None)[0]
 
+   # verify that solution approx 0
    print(np.linalg.norm( (m@x) - b ,2).min())
    print(sum(x))
    print("Len ",len(generator.ordered))
@@ -484,7 +504,7 @@ def execute_markov():
    Nio1 = 0
    Nio2 = 0
 
-
+   # sum probability densities* numclients= mean clients
    for state in ordered:
        p = x[ordered.index(state)]
        Ndelay += (state.Ndelay * p)
@@ -505,11 +525,11 @@ def execute_markov():
 
 
 if __name__ == "__main__":
-   SystemParameters.u1 = 27
-   SystemParameters.u2 = 27
-   SystemParameters.alpha  = 0.5
-   SystemParameters.beta  = 0.5
-   SystemParameters.numClients = 20
+   SystemParameters.u1 = 15
+   SystemParameters.u2 = 75
+   SystemParameters.alpha  = 0.8
+   SystemParameters.beta  = 0.2
+   SystemParameters.numClients = 3
    execute_markov()
    pass
 

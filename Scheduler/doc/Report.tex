@@ -505,7 +505,7 @@ In this model a state is valid only if the sum of clients in each station is equ
         else:
             return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
 \end{lstlisting}
-
+\pagebreak
 With this simple statements is possible to define a generator of states by iterating through all the possibilities 
 
 \begin{lstlisting}[language=python,breaklines]
@@ -570,23 +570,14 @@ Not all possible edges in the graph are valid, so it is necessary to impose some
 in this manner only the node that are one step away are considered. 
 
 \begin{lstlisting}[language=python,breaklines]
-def transitionIsValid(self):
-    #check cpu stage
+    def transitionIsValid(self):
+    #check cpu stage validity
     if self.head.cpuStage != self.tail.cpuStage:
        if self.head.Ncpu < self.tail.Ncpu and self.tail.Ncpu > 0 and self.head.Ncpu > 0: return False
        pass
-    changed = 0
-    def validate_var(a , b):
-       nonlocal changed 
-       if abs(a - b) > 1 : return False 
-       if abs(a-b) == 1 and changed > 1: return False
-       if abs(a-b) == 0 : return True
-       else: changed += 1         
-       return True
-    for i in range(len(self.head)):
-       if not validate_var(self.head[i],self.tail[i]): return False
-       pass
-    return True
+    # return diff without last item that is cpu stage
+    diff = np.array(self.head.state[:-1]) - np.array(self.tail.state[:-1])
+    return diff.max() == 1 and diff.min() == -1 and diff.sum() == 0
 \end{lstlisting}
 
 At this point is possible to define the type of the transition simply by observing what station decremented its customer and the one that increased. A transition will be than of type: 
@@ -851,7 +842,15 @@ Nio1 1.5225100786999133
 Nio2 12.243004107406223 
 \end{verbatim}
 
+that can be compared with the results provided by the simulator. Here the HB is the Higher bound of the estimated interval, LB the lower bound ,R the point estimator and expected is the value calculated from the markov chain.
 
+\includegraphics[width=0.8\textwidth]{./Images/Markov_20_wrong.png}
+
+La versione precedente è stata eseguita come richiesto dall'esercizio, cioè con un time slice che è un istanza di una esponenziale invece che un valore fisso , in più ogni volta che un cliente viene processato viene ottenuta una nuova istanza del tempo di burst. Se invece eseguo il simulatore con un time slice molto più alto il ottengo questo risultato 
+
+\includegraphics[width=0.8\textwidth]{./Images/Markov_20_modified.png}
+
+Che mi sembra più vicino a ciò che il modello di markov sta predicendo.
 
 \section{Simulator description}
 \subsection{Brief description of the implementation}
