@@ -278,6 +278,39 @@ template <int Moments = 2> class Accumulator : public Measure<double>
     }
 };
 
+template <> struct fmt::formatter<Accumulator<>>
+{
+    char mode[16]{};
+    constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
+    {
+        auto itr = ctx.begin();
+        int i = 0;
+        while (itr != ctx.end() && *itr != '}')
+        {
+            mode[i] = *itr;
+            itr++;
+            i++;
+        }
+        return itr;
+    }
+
+    auto format(Accumulator<> &m, format_context &ctx) -> format_context::iterator
+    {
+
+        if (strcmp(mode, "csv") == 0)
+        {
+            return fmt::format_to(ctx.out(), "{};{};{};{};{};{}", m.Name(), m.mean(), m.confidence().lower(),
+                                  m.confidence().higher(), m.Count(), m.confidence().precision());
+        }
+        else
+        {
+            return fmt::format_to(ctx.out(), "Measure: {}, R: {},LB:{}, HB:{}, Samples:{}, Variance:{} ,Precision:{}",
+                                  m.Name(), m.mean(), m.confidence().lower(), m.confidence().higher(), m.Count(),
+                                  m.variance(), m.confidence().precision());
+        }
+    }
+};
+
 template <int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
 {
   private:
@@ -305,16 +338,6 @@ template <int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
     }
 };
 
-template <> struct fmt::formatter<Accumulator<>> : fmt::formatter<string_view>
-{
-    auto format(Accumulator<> &m, format_context &ctx) -> format_context::iterator
-    {
-        return fmt::format_to(ctx.out(),
-                              "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{}",
-                              m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(),
-                              m.confidence().lower(), m.confidence().higher(), m.Current());
-    }
-};
 
 template <> struct fmt::formatter<BufferedMeasure<>> : fmt::formatter<string_view>
 {
@@ -492,17 +515,14 @@ template <> struct fmt::formatter<CovariatedMeasure>
 
         if (strcmp(mode, "csv") == 0)
         {
-            return fmt::format_to(ctx.out(), 
-            "{};{};{};{};{};{}",m.Name(),m.R(),m.confidence().lower(),m.confidence().higher(),m.Count(),m.confidence().precision()
-            );
+            return fmt::format_to(ctx.out(), "{};{};{};{};{};{}", m.Name(), m.R(), m.confidence().lower(),
+                                  m.confidence().higher(), m.Count(), m.confidence().precision());
         }
         else
         {
-            return fmt::format_to(ctx.out(),
-                                  "Measure: {}, R: {},LB:{}, HB:{}, Samples:{} "
-                                  "Precision:{}",
+            return fmt::format_to(ctx.out(), "Measure: {}, R: {},LB:{}, HB:{}, Samples:{}, Variance:{} ,Precision:{}",
                                   m.Name(), m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(),
-                                  m.confidence().precision());
+                                  m.variance(), m.confidence().precision());
         }
     }
 };

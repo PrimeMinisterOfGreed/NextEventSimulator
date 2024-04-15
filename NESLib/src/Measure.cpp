@@ -26,9 +26,9 @@ void CovariatedMeasure::Accumulate(double value, double time)
     _current[0] = value;
     _current[1] = time;
     _sum[0] += value;
-    _sum[1] += pow(value, 2);
+    _sum[1] += value*value;
     _times[0] += time;
-    _times[1] += pow(time, 2);
+    _times[1] += time*time;
     _weightedsum += (value * time);
 }
 
@@ -39,9 +39,8 @@ double CovariatedMeasure::R()
 
 double CovariatedMeasure::variance()
 {
-    auto a = (_sum[1] - (2 * R() * _weightedsum) + (pow(R(), 2) * _times[1]));
-    auto b = (double)1 / (_count - 1);
-    return a * b;
+    auto a = (sqrt(_sum[1] - (2 * R() * _weightedsum) + (pow(R(), 2) * _times[1])));
+    return a/(_count-1);
 }
 
 Interval CovariatedMeasure::confidence()

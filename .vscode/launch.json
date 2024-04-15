@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/Scheduler/scheduler",
-            "args": ["--program","scenario Markov_20; lmeasures; init; nr -1; lmeasures"],
+            "args": ["--program","scenario Default; lmeasures; init; group 5;nr -1"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

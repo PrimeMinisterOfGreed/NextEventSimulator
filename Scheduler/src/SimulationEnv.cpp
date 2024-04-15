@@ -145,6 +145,13 @@ void SimulationManager::SetupShell(SimulationShell *shell)
             }
         }
     });
+    shell->AddCommand("group", [](auto s, auto c){
+        auto stream = std::stringstream(c);
+        char buffer[16]{};
+        stream >> buffer;
+        int group = atoi(buffer);
+        SystemParameters::Parameters().groupRegCycle = group>0?group:1;
+    });
     shell->AddCommand("scenario", [this](SimulationShell *shell, const char *ctx) {
         char buffer[64]{};
         std::stringstream read(ctx);

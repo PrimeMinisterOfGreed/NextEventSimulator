@@ -28,6 +28,7 @@ struct SystemParameters
     int numclients = 20;
     int slicemode = FIXED;
     int burstMode = HYPER_EXP;
+    int groupRegCycle = 1;
     static SystemParameters &Parameters()
     {
         static SystemParameters instance = SystemParameters{};

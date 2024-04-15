@@ -26,6 +26,18 @@ void AddClientConditionRule(RegenerationPoint *reg, std::vector<std::pair<std::s
             return pt->scheduler->GetStation(rule.first).value()->sysClients() == rule.second;
         });
     }
+
+    //add regroup rule
+    reg->AddRule([](auto r) {
+        static int iterations = 0;
+        iterations++;
+        if (iterations % SystemParameters::Parameters().groupRegCycle == 0)
+        {
+            iterations = 0;
+            return true;
+        }
+        return false;
+    });
 }
 
 SCENARIO(Simplified_N20)
@@ -42,13 +54,8 @@ SCENARIO(Simplified_N20)
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
     // NDelay:3, NReserve:0, NSwap:0, NCPU:0, NIO1:0, NIO2:16,NOUT:0, hits:24
-    AddClientConditionRule(regPoint.get(), {
-                                               {"CPU", 0},
-                                               {"IO1", 0},
-                                               {"IO2", 16},
-                                               {"delay_station",3},
-                                               {"RESERVE_STATION",0}
-                                           });
+    AddClientConditionRule(regPoint.get(),
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 16}, {"delay_station", 3}, {"RESERVE_STATION", 0}});
 }
 
 SCENARIO(Default) // first request
@@ -60,13 +67,9 @@ SCENARIO(Default) // first request
     // first CPU must have 0 clients because is hyperexp
     auto os = manager->shell->Scheduler();
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
-    AddClientConditionRule(regPoint.get(), {
-                                               {"CPU", 0},
-                                               {"IO1", 0},
-                                               {"IO2", 9},
-                                               {"delay_station",3},
-                                               {"RESERVE_STATION",7}
-                                           });
+
+    AddClientConditionRule(regPoint.get(),
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
 };
 
 SCENARIO(NegExpCpu) // second request
@@ -81,13 +84,8 @@ SCENARIO(NegExpCpu) // second request
 
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
-    AddClientConditionRule(regPoint.get(), {
-                                               {"CPU", 0},
-                                               {"IO1", 0},
-                                               {"IO2", 9},
-                                               {"delay_station",3},
-                                               {"RESERVE_STATION",7}
-                                           });
+    AddClientConditionRule(regPoint.get(),
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
 }
 
 SCENARIO(LTCpu) // third request
@@ -98,13 +96,8 @@ SCENARIO(LTCpu) // third request
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
 
-    AddClientConditionRule(regPoint.get(), {
-                                               {"CPU", 0},
-                                               {"IO1", 0},
-                                               {"IO2", 9},
-                                               {"delay_station",3},
-                                               {"RESERVE_STATION",7}
-                                           });
+    AddClientConditionRule(regPoint.get(),
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
 }
 
 SCENARIO(NegExpLt) // last request
@@ -116,13 +109,8 @@ SCENARIO(NegExpLt) // last request
     params.u1 = 27;
     params.u2 = 27;
     auto &regPoint = manager->regPoint;
-    AddClientConditionRule(regPoint.get(), {
-                                               {"CPU", 0},
-                                               {"IO1", 0},
-                                               {"IO2", 9},
-                                               {"delay_station",3},
-                                               {"RESERVE_STATION",7}
-                                           });
+    AddClientConditionRule(regPoint.get(),
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
 }
 
 SCENARIO(Markov_20_NegExp)
@@ -146,13 +134,8 @@ SCENARIO(Markov_20_NegExp)
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
 
     // first CPU must have 0 clients because is hyperexp
-    AddClientConditionRule(regPoint.get(), {
-                                               {"CPU", 0},
-                                               {"IO1", 0},
-                                               {"IO2", 16},
-                                               {"delay_station",3},
-                                               {"RESERVE_STATION",0}
-                                           });
+    AddClientConditionRule(regPoint.get(),
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 16}, {"delay_station", 3}, {"RESERVE_STATION", 0}});
 }
 
 SCENARIO(Markov_20)
@@ -170,12 +153,8 @@ SCENARIO(Markov_20)
     params.slicemode = SystemParameters::NEG_EXP;
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
-    AddClientConditionRule(regPoint.get(), {
-                                               {"CPU", 0},
-                                               {"IO1", 0},
-                                               {"IO2", 16},
-                                               {"delay_station",3},
-                                               {"RESERVE_STATION",0}
-                                               
-                                           });
+    AddClientConditionRule(regPoint.get(),
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 16}, {"delay_station", 3}, {"RESERVE_STATION", 0}
+
+                           });
 }

@@ -42,6 +42,10 @@ class State:
         # this array serves as descriptor for the previous field
         self.descriptor =["Ndelay","Ncpu","Nio1","Nio2","cpuStage"]
         pass
+    
+    # a state is partially equal if the clients in all states are equal
+    def partially_eq(self, state):
+       return self.state[:-1] == state.state[:-1]
 
     # a state is valid when the sum of all the clients in station equals N
     def isValid(self)->bool:
@@ -110,22 +114,14 @@ class Transition:
    
    # search for increment / decrement in the states, discarding ones not valid
    def detectMovement(self) -> tuple[str,str]:
-      decremented = ""
-      incremented = ""
-      for i in range(len(self.head)):
-         if self.head[i] != self.tail[i]:
-            if self.head[i] < self.tail[i]:
-               incremented = self.head.descriptor[i] if incremented == "" else "ERROR"               
-               pass
-            if self.head[i] > self.tail[i]:
-               decremented = self.head.descriptor[i] if decremented == "" else "ERROR"
-               pass
-         pass
-      return (decremented,incremented)
+      diff = np.array(self.head.state[:-1]) - np.array(self.tail.state[:-1])
+      if self.head.partially_eq(self.tail):
+         return ("","")
+      return (self.head.descriptor[diff.argmax()], self.head.descriptor[diff.argmin()])
 
    # detect the type of transition from the decrement, increment values
    def detectType(self):
-      if not self.transitionIsValid() : return
+      if not self.transitionIsValid() and not self.head.partially_eq(self.tail) : return
       (decrement,increment)= self.detectMovement()
       if decrement == "ERROR" or increment == "ERROR" : return 
       elif decrement == "Ncpu" and increment == "Nio1": self.type = Transition.TransitionType.CPU_TO_IO1
@@ -134,6 +130,7 @@ class Transition:
       elif decrement == "Nio2" and increment == "Ncpu" : self.type = Transition.TransitionType.IO2_TO_CPU
       elif decrement == "Ndelay" and increment == "Ncpu" : self.type = Transition.TransitionType.DELAY_TO_CPU
       elif decrement == "Ncpu" and increment == "Ndelay" : self.type = Transition.TransitionType.CPU_TO_DELAY
+      elif decrement == "" and increment == "" and self.head.partially_eq(self.tail) and self.head.Ncpu > 0: self.type = Transition.TransitionType.CPU_TO_SELF
       pass
    
    # calculate the P of the transition using the type
@@ -155,11 +152,11 @@ class Transition:
    
    # define the CPU leave function 
    def CpuL(self):
-      l = 1/SystemParameters.u1 if self.head.cpuStage == 1 else 1/SystemParameters.u2
-      if self.tail.Ncpu > 0:
-         l *=  SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
-         pass
-      return l
+      a = SystemParameters.alpha* (1/SystemParameters.u1)
+      b = SystemParameters.beta * (1/SystemParameters.u2)
+      c= 1/SystemParameters.timeSlice
+      sum = 1/(a+b+c)
+      return (a if self.tail.cpuStage == 1 else (b if self.type != Transition.TransitionType.CPU_TO_SELF else c))*sum
       
 
    def CpuToIo(self):      
@@ -169,7 +166,7 @@ class Transition:
       return self.CpuL()*SystemParameters.qoutd
    
    def CpuToSelf(self):
-      return self.CpuL()*SystemParameters.qouts
+      return 0
    
    def IoToCpu(self):
       l = 1
@@ -345,6 +342,8 @@ class ChainGenerator:
       self.ordered.append(ref)
       for node in self.nodes:
          tr = Transition(ref,node)
+
+
          if tr.type != Transition.TransitionType.UNKNOWN:
             self.edges.append(tr)
             if not node in self.ordered:
@@ -454,7 +453,7 @@ def get_adj_matrix(generator: ChainGenerator):
    return mat
 
 # calculate the model and compare it to MVA
-def execute_markov():
+def execute_markov(print_graph = False):
    # MVA description
    matrix = np.array([
     [0,1,0,0,0],
@@ -472,9 +471,17 @@ def execute_markov():
    meanClients = mvaToDataframe(mva.meanclients)
    
    # generate the markov chain starting from state (N,0,0,0)
-   generator = ChainGenerator(node_enumerator())
-   generator(State(SystemParameters.numClients,0,0,0))
+   nodes = node_enumerator()
+   def start():
+      for i in nodes:
+         if i.Ndelay == SystemParameters.numClients : return i
+      pass
 
+   generator = ChainGenerator(nodes)
+   generator(start())
+   if print_graph:
+      print(Printer.nx_to_graphviz(generator.chain()))
+      pass
    # the matrix is generated for columns so it need to be transposed before balancing
    q = balance_ctmc(get_adj_matrix(generator).transpose())
 
@@ -529,8 +536,8 @@ if __name__ == "__main__":
    SystemParameters.u2 = 75
    SystemParameters.alpha  = 0.8
    SystemParameters.beta  = 0.2
-   SystemParameters.numClients = 3
-   execute_markov()
+   SystemParameters.numClients = 1
+   execute_markov(True)
    pass
 
 
@@ -559,12 +566,12 @@ def __tests__():
     s1 = State(0,3,0,0,2)
     s2 = State(0,2,0,1,1)
     tr = Transition(s1,s2)
-    assert_p(tr, (1/SystemParameters.u2)*(1/SystemParameters.timeSlice)*SystemParameters.alpha*SystemParameters.qio2)
+    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
 
     s1= State(0,2,1,0,2)
     s2 = State(0,1,1,1,1)
     tr = Transition(s1,s2)
-    assert_p(tr, (1/SystemParameters.u2)*(1/SystemParameters.timeSlice)*SystemParameters.alpha*SystemParameters.qio2)
+    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
     test_p(State(0,3,0,0,2), State(0,2,0,1,2),(1/SystemParameters.u2)*SystemParameters.beta*SystemParameters.qio2)
     test_p(State(0,2,1,0,1),State(0,3,0,0,1),(1/SystemParameters.Sio1))
     test_p(State(0,1,1,1,1),State(0,0,1,2),(1/SystemParameters.u1)*SystemParameters.qio2)
@@ -581,6 +588,13 @@ def __tests__():
     graph = generator.subgraph(State(3,0,0,0))
     print(Printer.nx_to_graphviz(graph))
 
+    p = State(3,0,0,0,1)
+    q = State(3,0,0,0,2)
+    assert(p.partially_eq(q) and not p == q)
+
+    p = State(1,2,0,0,1)
+    q = State(1,2,0,0,2)
+    assert(p.partially_eq(q) and not p == q)
     print("All tests passed")
     pass
 pass
