@@ -11,7 +11,7 @@ import pandas as pd
 from mva import *
 
 # class that describes all parameters for the model
-class SystemParameters:
+class Params:
     alpha = 0.8
     beta = 0.2
     u1 = 15
@@ -50,9 +50,9 @@ class State:
     # a state is valid when the sum of all the clients in station equals N
     def isValid(self)->bool:
         if self.Ncpu > 0:
-            return (self.cpuStage == 1 or self.cpuStage == 2) and (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
+            return (self.cpuStage == 1 or self.cpuStage == 2) and (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == Params.numClients
         else:
-            return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == SystemParameters.numClients
+            return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == Params.numClients
     
     # string representation for visualization in graphviz
     def __str__(self) -> str:
@@ -145,35 +145,40 @@ class Transition:
    
 
    def DelayToCpu(self):
-      l = self.head.Ndelay*(1/SystemParameters.thinkTime)
+      l = self.head.Ndelay*(1/Params.thinkTime)
       if self.head.Ncpu == 0:
-         l *= SystemParameters.alpha if self.tail.cpuStage == 1 else  SystemParameters.beta
+         l *= Params.alpha if self.tail.cpuStage == 1 else  Params.beta
       return l
    
    # define the CPU leave function 
    def CpuL(self):
-      a = SystemParameters.alpha* (1/SystemParameters.u1)
-      b = SystemParameters.beta * (1/SystemParameters.u2)
-      c= 1/SystemParameters.timeSlice
-      sum = 1/(a+b+c)
-      return (a if self.tail.cpuStage == 1 else (b if self.type != Transition.TransitionType.CPU_TO_SELF else c))*sum
+      res = ((Params.alpha*Params.u1) + (Params.u2 * Params.beta))
+      b = (Params.alpha if self.tail.cpuStage == 1 else Params.beta) if self.tail.Ncpu > 0 else 1
+      if(self.type != Transition.TransitionType.CPU_TO_SELF):
+         a= (Params.u1 if self.head.cpuStage == 1 else Params.u2)
+         res= (a * 1/res)*b
+         pass
+      else:
+         res = ((Params.timeSlice) * 1/res )*b
+         pass
+      return res
       
 
    def CpuToIo(self):      
-      return self.CpuL()*SystemParameters.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else self.CpuL()*SystemParameters.qio2
+      return self.CpuL()*Params.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else self.CpuL()*Params.qio2
    
    def CpuToDelay(self):
-      return self.CpuL()*SystemParameters.qoutd
+      return 0
    
    def CpuToSelf(self):
-      return 0
+      return self.CpuL() + self.CpuL()*Params.qouts
    
    def IoToCpu(self):
       l = 1
       if self.head.Ncpu == 0:
-         l = SystemParameters.alpha if self.tail.cpuStage == 1 else SystemParameters.beta
+         l = Params.alpha if self.tail.cpuStage == 1 else Params.beta
          pass
-      return l * (1/SystemParameters.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else l* (1/SystemParameters.Sio2)
+      return l * (1/Params.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else l* (1/Params.Sio2)
 
    pass
 
@@ -201,10 +206,10 @@ def stage_enumerator(stage: int) -> list[State]:
     cpuStage = stage
     stages = [0,0,0,0]
     result = []
-    while stages[Ndelay] <= SystemParameters.numClients:
+    while stages[Ndelay] <= Params.numClients:
         for i in reversed(range(4)):
             stages[i] += 1
-            if stages[i] <= SystemParameters.numClients: break
+            if stages[i] <= Params.numClients: break
             elif i > 0 : stages[i] = 0
             pass
         state= State(stages[Ndelay], stages[Ncpu], stages[Nio1],stages[Nio2],stage)
@@ -368,7 +373,7 @@ class ChainGenerator:
          chain.add_node(str(node))
          pass
       for edge in self.edges:
-         chain.add_edge(str(edge.head),str(edge.tail),edge.p())
+         chain.add_edge(str(edge.head),str(edge.tail),round(edge.p(),6))
          pass
       return chain
    
@@ -474,7 +479,7 @@ def execute_markov(print_graph = False):
    nodes = node_enumerator()
    def start():
       for i in nodes:
-         if i.Ndelay == SystemParameters.numClients : return i
+         if i.Ndelay == Params.numClients : return i
       pass
 
    generator = ChainGenerator(nodes)
@@ -520,11 +525,11 @@ def execute_markov(print_graph = False):
        Nio2 += (state.Nio2 * p)
        pass
 
-   print("Ndelay {} Expected {}".format(Ndelay,meanClients["DELAY"][SystemParameters.numClients]))
-   print("Ncpu {} Expected {}".format(Ncpu,meanClients["CPU"][SystemParameters.numClients]))
-   print("Nio1 {} Expected {}".format(Nio1,meanClients["IO1"][SystemParameters.numClients]))
-   print("Nio2 {} Expected {}".format(Nio2,meanClients["IO2"][SystemParameters.numClients]))
-   print("Mean execution time {}".format((SystemParameters.u1*SystemParameters.alpha) + (SystemParameters.u2*SystemParameters.beta)))
+   print("Ndelay {} Expected {}".format(Ndelay,meanClients["DELAY"][Params.numClients]))
+   print("Ncpu {} Expected {}".format(Ncpu,meanClients["CPU"][Params.numClients]))
+   print("Nio1 {} Expected {}".format(Nio1,meanClients["IO1"][Params.numClients]))
+   print("Nio2 {} Expected {}".format(Nio2,meanClients["IO2"][Params.numClients]))
+   print("Mean execution time {}".format((Params.u1*Params.alpha) + (Params.u2*Params.beta)))
 
 
    return (Ndelay,Ncpu,Nio1,Nio2)
@@ -532,11 +537,11 @@ def execute_markov(print_graph = False):
 
 
 if __name__ == "__main__":
-   SystemParameters.u1 = 15
-   SystemParameters.u2 = 75
-   SystemParameters.alpha  = 0.8
-   SystemParameters.beta  = 0.2
-   SystemParameters.numClients = 1
+   Params.u1 = 15
+   Params.u2 = 75
+   Params.alpha  = 0.8
+   Params.beta  = 0.2
+   Params.numClients = 1
    execute_markov(True)
    pass
 
@@ -559,25 +564,25 @@ def __tests__():
     s1 = State(3,0,0,0)
     s2 = State(2,1,0,0,1)
     tr = Transition(s1,s2)
-    assert_p(tr,(1/SystemParameters.thinkTime)*SystemParameters.alpha*3)
+    assert_p(tr,(1/Params.thinkTime)*Params.alpha*3)
     s2 = State(2,1,0,0,2)
     tr = Transition(s1,s2)
-    assert_p(tr,(1/SystemParameters.thinkTime)*SystemParameters.beta*3)
+    assert_p(tr,(1/Params.thinkTime)*Params.beta*3)
     s1 = State(0,3,0,0,2)
     s2 = State(0,2,0,1,1)
     tr = Transition(s1,s2)
-    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
+    assert_p(tr, (1/Params.u2)*Params.alpha*Params.qio2)
 
     s1= State(0,2,1,0,2)
     s2 = State(0,1,1,1,1)
     tr = Transition(s1,s2)
-    assert_p(tr, (1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
-    test_p(State(0,3,0,0,2), State(0,2,0,1,2),(1/SystemParameters.u2)*SystemParameters.beta*SystemParameters.qio2)
-    test_p(State(0,2,1,0,1),State(0,3,0,0,1),(1/SystemParameters.Sio1))
-    test_p(State(0,1,1,1,1),State(0,0,1,2),(1/SystemParameters.u1)*SystemParameters.qio2)
-    test_p(State(0,2,1,0,2),State(0,1,1,1,1),(1/SystemParameters.u2)*SystemParameters.alpha*SystemParameters.qio2)
-    test_p(State(1,0,2,0),State(0,1,2,0,2),(1/SystemParameters.thinkTime)*SystemParameters.beta)
-    test_p(State(0,3,0,0,1),State(0,2,1,0,2),(1/SystemParameters.u1)*SystemParameters.beta*SystemParameters.qio1)
+    assert_p(tr, (1/Params.u2)*Params.alpha*Params.qio2)
+    test_p(State(0,3,0,0,2), State(0,2,0,1,2),(1/Params.u2)*Params.beta*Params.qio2)
+    test_p(State(0,2,1,0,1),State(0,3,0,0,1),(1/Params.Sio1))
+    test_p(State(0,1,1,1,1),State(0,0,1,2),(1/Params.u1)*Params.qio2)
+    test_p(State(0,2,1,0,2),State(0,1,1,1,1),(1/Params.u2)*Params.alpha*Params.qio2)
+    test_p(State(1,0,2,0),State(0,1,2,0,2),(1/Params.thinkTime)*Params.beta)
+    test_p(State(0,3,0,0,1),State(0,2,1,0,2),(1/Params.u1)*Params.beta*Params.qio1)
 
     generator = ChainGenerator(node_enumerator())
     generator(State(3,0,0,0))
