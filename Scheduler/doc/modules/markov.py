@@ -144,34 +144,30 @@ class Transition:
       pass
    
 
+   # define the CPU leave function 
+   def CpuL(self):
+      a= 1/Params.u1 if self.head.cpuStage == 1 else 1/Params.u2
+      b= Params.alpha if self.tail.cpuStage == 1 else Params.beta
+      if self.tail.Ncpu == 0: b=1 
+      return a * b 
+
    def DelayToCpu(self):
       l = self.head.Ndelay*(1/Params.thinkTime)
       if self.head.Ncpu == 0:
          l *= Params.alpha if self.tail.cpuStage == 1 else  Params.beta
       return l
-   
-   # define the CPU leave function 
-   def CpuL(self):
-      res = ((Params.alpha*Params.u1) + (Params.u2 * Params.beta))
-      b = (Params.alpha if self.tail.cpuStage == 1 else Params.beta) if self.tail.Ncpu > 0 else 1
-      if(self.type != Transition.TransitionType.CPU_TO_SELF):
-         a= (Params.u1 if self.head.cpuStage == 1 else Params.u2)
-         res= (a * 1/res)*b
-         pass
-      else:
-         res = ((Params.timeSlice) * 1/res )*b
-         pass
-      return res
+
       
 
-   def CpuToIo(self):      
-      return self.CpuL()*Params.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else self.CpuL()*Params.qio2
+   def CpuToIo(self): 
+      a = Params.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else Params.qio2   
+      return self.CpuL()* a
    
    def CpuToDelay(self):
-      return 0
+      return self.CpuL()* Params.qoutd
    
    def CpuToSelf(self):
-      return self.CpuL() + self.CpuL()*Params.qouts
+      return 0
    
    def IoToCpu(self):
       l = 1
@@ -452,7 +448,7 @@ def get_adj_matrix(generator: ChainGenerator):
        for j in range(len(nodes)):
            to = nodes[j]
            if to in adj[ref]:
-               mat[j][i] = round(adj[ref][to]["weight"],10)
+               mat[i][j] = round(adj[ref][to]["weight"],10)
            pass
        pass
    return mat
@@ -488,7 +484,7 @@ def execute_markov(print_graph = False):
       print(Printer.nx_to_graphviz(generator.chain()))
       pass
    # the matrix is generated for columns so it need to be transposed before balancing
-   q = balance_ctmc(get_adj_matrix(generator).transpose())
+   q = balance_ctmc(get_adj_matrix(generator))
 
 
    # transpose again since pi Q =0 must be transformed in Q pi = b
@@ -541,7 +537,7 @@ if __name__ == "__main__":
    Params.u2 = 75
    Params.alpha  = 0.8
    Params.beta  = 0.2
-   Params.numClients = 1
+   Params.numClients = 3
    execute_markov(True)
    pass
 
