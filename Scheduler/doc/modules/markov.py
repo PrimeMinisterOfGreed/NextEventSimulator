@@ -150,9 +150,16 @@ class Transition:
       b= Params.alpha if self.tail.cpuStage == 1 else Params.beta
       if self.tail.Ncpu == 0: b=1 
       return a * b 
+   
+   def Cput(self):
+      a = Params.u1 * Params.alpha
+      b = Params.u2 * Params.beta
+      t = 1/(a+b)
+      return (a,b,t)
+
 
    def DelayToCpu(self):
-      l = self.head.Ndelay*(1/Params.thinkTime)
+      l = (1/(Params.thinkTime))*self.head.Ndelay
       if self.head.Ncpu == 0:
          l *= Params.alpha if self.tail.cpuStage == 1 else  Params.beta
       return l
@@ -161,13 +168,14 @@ class Transition:
 
    def CpuToIo(self): 
       a = Params.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else Params.qio2   
-      return self.CpuL()* a
+      return (self.CpuL())* a
    
    def CpuToDelay(self):
-      return self.CpuL()* Params.qoutd
+      return (self.CpuL())* Params.qoutd
    
    def CpuToSelf(self):
       return 0
+      
    
    def IoToCpu(self):
       l = 1
@@ -538,7 +546,7 @@ if __name__ == "__main__":
    Params.alpha  = 0.8
    Params.beta  = 0.2
    Params.numClients = 3
-   execute_markov(True)
+   execute_markov()
    pass
 
 
