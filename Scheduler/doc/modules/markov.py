@@ -142,49 +142,84 @@ class Transition:
       elif self.type == Transition.TransitionType.CPU_TO_DELAY : return self.CpuToDelay()
       elif self.type == Transition.TransitionType.CPU_TO_SELF: return self.CpuToSelf()
       pass
+
+
+
    
+   def CpuR(self):
+      #return (1 if self.tail.Ncpu == 0 else (Params.alpha if self.tail.cpuStage == 1 else Params.beta))
+      if self.tail.Ncpu == 0:
+         return 1
+      elif self.tail.cpuStage == 1:
+         return Params.alpha
+      elif self.tail.cpuStage == 2:
+         return Params.beta
+      raise "Invalid stage specifier"
+      pass
+   
+   def CpuA(self):
+      #return (1 if self.head.Ncpu > 0 else Params.alpha if self.tail.cpuStage == 1 else Params.beta)
+      if self.head.Ncpu > 0:
+         return 1
+      elif self.tail.cpuStage == 1:
+         return Params.alpha
+      elif self.tail.cpuStage == 2:
+         return Params.beta 
+      raise "invalid stage specifier"
+      pass
 
    # define the CPU leave function 
    def CpuL(self):
-      a= 1/Params.u1 if self.head.cpuStage == 1 else 1/Params.u2
-      b= Params.alpha if self.tail.cpuStage == 1 else Params.beta
-      if self.tail.Ncpu == 0: b=1 
-      return a * b 
+      #return Params.u1 if self.head.cpuStage == 1 else Params.u2
+      assert self.head.Ncpu != 0
+      if self.head.cpuStage == 1:
+         return Params.u1
+      elif self.head.cpuStage == 2:
+         return Params.u2
+      raise "Invalid stage specifier"
+      pass
+      
    
-   def Cput(self):
-      a = Params.u1 * Params.alpha
-      b = Params.u2 * Params.beta
-      t = 1/(a+b)
-      return (a,b,t)
-
+   def CpuV(self):
+      return 1/((self.CpuL())*self.CpuR())
 
    def DelayToCpu(self):
-      l = (1/(Params.thinkTime))*self.head.Ndelay
-      if self.head.Ncpu == 0:
-         l *= Params.alpha if self.tail.cpuStage == 1 else  Params.beta
-      return l
+      return (1/(Params.thinkTime))*self.head.Ndelay*self.CpuA()
 
       
 
    def CpuToIo(self): 
-      a = Params.qio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else Params.qio2   
-      return (self.CpuL())* a
+      a = 1
+      if self.type == Transition.TransitionType.CPU_TO_IO1:
+         a = Params.qio1
+         pass
+      elif self.type == Transition.TransitionType.CPU_TO_IO2:
+         a = Params.qio2
+         pass
+      else:
+         raise "Invalid transition" 
+      return self.CpuV() * a
    
    def CpuToDelay(self):
-      return (self.CpuL())* Params.qoutd
+      return self.CpuV() * Params.qoutd
    
    def CpuToSelf(self):
       return 0
       
    
    def IoToCpu(self):
-      l = 1
-      if self.head.Ncpu == 0:
-         l = Params.alpha if self.tail.cpuStage == 1 else Params.beta
+      #return (1/(Params.Sio1 if self.type == Transition.TransitionType.CPU_TO_IO1 else Params.Sio2))*self.CpuA()
+      a = 1
+      if self.type == Transition.TransitionType.IO1_TO_CPU:
+         a = 1/Params.Sio1
          pass
-      return l * (1/Params.Sio1) if self.type == Transition.TransitionType.IO1_TO_CPU else l* (1/Params.Sio2)
-
-   pass
+      elif self.type == Transition.TransitionType.IO2_TO_CPU:
+         a=  1/Params.Sio2
+         pass
+      else:
+         raise "Invalid Transition"
+      return a * self.CpuA()
+      pass
 
 
 # support class that prints graph in to a viewable object in graphviz
@@ -534,19 +569,20 @@ def execute_markov(print_graph = False):
    print("Nio1 {} Expected {}".format(Nio1,meanClients["IO1"][Params.numClients]))
    print("Nio2 {} Expected {}".format(Nio2,meanClients["IO2"][Params.numClients]))
    print("Mean execution time {}".format((Params.u1*Params.alpha) + (Params.u2*Params.beta)))
-
+   if Params.u1 != Params.u2:
+      print("Exponential are different so the chain is not isomorphic, ignore expected")
 
    return (Ndelay,Ncpu,Nio1,Nio2)
    pass
 
 
 if __name__ == "__main__":
-   Params.u1 = 15
-   Params.u2 = 75
+   Params.u1 = 27
+   Params.u2 = 27
    Params.alpha  = 0.8
    Params.beta  = 0.2
    Params.numClients = 3
-   execute_markov()
+   execute_markov(True)
    pass
 
 
