@@ -49,9 +49,6 @@ class State:
 
     # a state is valid when the sum of all the clients in station equals N
     def isValid(self)->bool:
-        if self.Ncpu > 0:
-            return (self.cpuStage == 1 or self.cpuStage == 2) and (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == Params.numClients
-        else:
             return (self.Ncpu + self.Nio1 + self.Nio2 + self.Ndelay) == Params.numClients
     
     # string representation for visualization in graphviz
@@ -181,7 +178,7 @@ class Transition:
       
    
    def CpuV(self):
-      return 1/((self.CpuL())*self.CpuR())
+      return 1/self.CpuL()*self.CpuR()
 
    def DelayToCpu(self):
       return (1/(Params.thinkTime))*self.head.Ndelay*self.CpuA()
@@ -204,7 +201,7 @@ class Transition:
       return self.CpuV() * Params.qoutd
    
    def CpuToSelf(self):
-      return 0
+      return self.CpuV()*Params.qouts + 1/Params.timeSlice*self.CpuA()
       
    
    def IoToCpu(self):
@@ -230,7 +227,7 @@ class Printer:
         graph.node(node)
         pass
       for edge in nxgraph.graph.edges:
-       graph.edge(edge[0],edge[1],str(nxgraph.graph.get_edge_data(edge[0],edge[1])["weight"]))
+       graph.edge(edge[0],edge[1],str(round(nxgraph.graph.get_edge_data(edge[0],edge[1])["weight"],6)))
        pass
       return graph
    pass
@@ -303,7 +300,7 @@ class DiGraph():
       pass
     self.lastHead = headLabel
     self.lastTail = tailLabel 
-    self.graph.add_edge(headLabel,tailLabel,weight=round(p,15))
+    self.graph.add_edge(headLabel,tailLabel,weight=p)
     return (headLabel,tailLabel)
 
    def Graph(self):
@@ -412,7 +409,7 @@ class ChainGenerator:
          chain.add_node(str(node))
          pass
       for edge in self.edges:
-         chain.add_edge(str(edge.head),str(edge.tail),round(edge.p(),6))
+         chain.add_edge(str(edge.head),str(edge.tail),edge.p())
          pass
       return chain
    
@@ -452,6 +449,7 @@ class ChainGenerator:
 def balance_ctmc(mat : np.ndarray[np.ndarray]) -> np.ndarray:
     copy = mat.copy()
     for i in range(len(mat)):
+        copy[i][i] = 0
         copy[i][i] = -copy[i].sum()
         pass
     return copy
@@ -484,17 +482,36 @@ def convert_to_dtmc(mat: np.ndarray[np.ndarray]) -> np.ndarray:
 #convert a graph from the chainGenerator to an adjacency matrix
 def get_adj_matrix(generator: ChainGenerator):
    nodes = generator.ordered
-   mat = np.zeros((len(nodes),len(nodes)))
+   mat = np.zeros((len(nodes),len(nodes)),dtype=np.double)
    adj :dict = generator.chain().graph.adj
    for i in range(len(nodes)):
        ref = nodes[i]
        for j in range(len(nodes)):
            to = nodes[j]
            if to in adj[ref]:
-               mat[i][j] = round(adj[ref][to]["weight"],10)
+               mat[i][j] = adj[ref][to]["weight"]
            pass
        pass
    return mat
+
+def print_state_distribution(states, probabilities):
+   Ndelay = [0]*(Params.numClients+1)
+   Ncpu = [0]*(Params.numClients+1)
+   Nio1 = [0]*(Params.numClients+1)
+   Nio2 = [0]*(Params.numClients+1)
+   for state in states:
+      p = probabilities[states.index(state)]
+      Ndelay[state.Ndelay] += p
+      Ncpu[state.Ncpu] += p 
+      Nio1[state.Nio1] += p
+      Nio2[state.Nio2] += p
+      pass
+   print("State distribution for {} : {}".format("Ndelay",Ndelay))
+   print("State distribution for {} : {}".format("Ncpu",Ncpu))
+   print("State distribution for {} : {}".format("Nio1",Nio1))
+   print("State distribution for {} : {}".format("Nio2",Nio2))
+   pass
+
 
 # calculate the model and compare it to MVA
 def execute_markov(print_graph = False):
@@ -528,7 +545,7 @@ def execute_markov(print_graph = False):
       pass
    # the matrix is generated for columns so it need to be transposed before balancing
    q = balance_ctmc(get_adj_matrix(generator))
-
+   
 
    # transpose again since pi Q =0 must be transformed in Q pi = b
    m = q.copy().transpose()
@@ -545,16 +562,17 @@ def execute_markov(print_graph = False):
    x = np.linalg.lstsq(m,b,rcond=None)[0]
 
    # verify that solution approx 0
-   print(np.linalg.norm( (m@x) - b ,2).min())
-   print(sum(x))
-   print("Len ",len(generator.ordered))
-
+   print("Min norm of solution: ",np.linalg.norm( (m@x) - b ,2).min())
+   print("Sum of PI: ",sum(x))
+   print("Ordered states: " , len(generator.ordered))
+   print([str(x) for x in generator.ordered])   
    ordered = generator.ordered
    Ndelay = 0
    Ncpu = 0
    Nio1 = 0
    Nio2 = 0
 
+   print_state_distribution(ordered,x)
    # sum probability densities* numclients= mean clients
    for state in ordered:
        p = x[ordered.index(state)]
@@ -564,6 +582,7 @@ def execute_markov(print_graph = False):
        Nio2 += (state.Nio2 * p)
        pass
 
+   
    print("Ndelay {} Expected {}".format(Ndelay,meanClients["DELAY"][Params.numClients]))
    print("Ncpu {} Expected {}".format(Ncpu,meanClients["CPU"][Params.numClients]))
    print("Nio1 {} Expected {}".format(Nio1,meanClients["IO1"][Params.numClients]))
@@ -571,7 +590,6 @@ def execute_markov(print_graph = False):
    print("Mean execution time {}".format((Params.u1*Params.alpha) + (Params.u2*Params.beta)))
    if Params.u1 != Params.u2:
       print("Exponential are different so the chain is not isomorphic, ignore expected")
-
    return (Ndelay,Ncpu,Nio1,Nio2)
    pass
 
@@ -579,10 +597,10 @@ def execute_markov(print_graph = False):
 if __name__ == "__main__":
    Params.u1 = 27
    Params.u2 = 27
-   Params.alpha  = 0.8
-   Params.beta  = 0.2
+   Params.alpha  = 0.2
+   Params.beta  = 0.8
    Params.numClients = 3
-   execute_markov(True)
+   execute_markov()
    pass
 
 
