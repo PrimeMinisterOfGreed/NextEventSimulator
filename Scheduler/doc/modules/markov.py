@@ -513,6 +513,7 @@ def print_state_distribution(states, probabilities):
    pass
 
 
+
 # calculate the model and compare it to MVA
 def execute_markov(print_graph = False):
    # MVA description
@@ -543,10 +544,11 @@ def execute_markov(print_graph = False):
    if print_graph:
       print(Printer.nx_to_graphviz(generator.chain()))
       pass
-   # the matrix is generated for columns so it need to be transposed before balancing
+
    q = balance_ctmc(get_adj_matrix(generator))
    
-
+   # Useful to catch change in matrix that don't reflect in the resolution
+   print("Frobenius Norm: " + str(np.linalg.norm(q,'fro')))
    # transpose again since pi Q =0 must be transformed in Q pi = b
    m = q.copy().transpose()
 
@@ -555,7 +557,7 @@ def execute_markov(print_graph = False):
    m =np.vstack((m,norm))
 
    # vector of coefficient b with last element 1
-   b= np.zeros(len(m))
+   b= np.ones(len(m))
    b[-1] = 1
 
    #resolve for least squared
@@ -565,7 +567,7 @@ def execute_markov(print_graph = False):
    print("Min norm of solution: ",np.linalg.norm( (m@x) - b ,2).min())
    print("Sum of PI: ",sum(x))
    print("Ordered states: " , len(generator.ordered))
-   print([str(x) for x in generator.ordered])   
+   #print([str(x) for x in generator.ordered])   
    ordered = generator.ordered
    Ndelay = 0
    Ncpu = 0
@@ -590,17 +592,17 @@ def execute_markov(print_graph = False):
    print("Mean execution time {}".format((Params.u1*Params.alpha) + (Params.u2*Params.beta)))
    if Params.u1 != Params.u2:
       print("Exponential are different so the chain is not isomorphic, ignore expected")
-   return (Ndelay,Ncpu,Nio1,Nio2)
+   return (m)
    pass
 
 
 if __name__ == "__main__":
    Params.u1 = 27
    Params.u2 = 27
-   Params.alpha  = 0.2
-   Params.beta  = 0.8
+   Params.alpha  = 0.8
+   Params.beta  = 0.2
    Params.numClients = 3
-   execute_markov()
+   execute_markov(True)
    pass
 
 
