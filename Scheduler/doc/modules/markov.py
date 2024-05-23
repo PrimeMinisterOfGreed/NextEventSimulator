@@ -201,7 +201,7 @@ class Transition:
       return self.CpuV() * Params.qoutd
    
    def CpuToSelf(self):
-      return self.CpuV()*Params.qouts + 1/Params.timeSlice*self.CpuA()
+      return self.CpuV()*Params.qouts + 1/Params.timeSlice*self.CpuR()*self.CpuA()
       
    
    def IoToCpu(self):
@@ -494,6 +494,8 @@ def get_adj_matrix(generator: ChainGenerator):
        pass
    return mat
 
+
+
 def print_state_distribution(states, probabilities):
    Ndelay = [0]*(Params.numClients+1)
    Ncpu = [0]*(Params.numClients+1)
@@ -545,7 +547,11 @@ def execute_markov(print_graph = False):
       print(Printer.nx_to_graphviz(generator.chain()))
       pass
 
-   q = balance_ctmc(get_adj_matrix(generator))
+   adj = get_adj_matrix(generator)
+   if print_graph:
+      
+      pass
+   q = balance_ctmc(adj)
    
    # Useful to catch change in matrix that don't reflect in the resolution
    print("Frobenius Norm: " + str(np.linalg.norm(q,'fro')))
@@ -561,11 +567,12 @@ def execute_markov(print_graph = False):
    b[-1] = 1
 
    #resolve for least squared
-   x = np.linalg.lstsq(m,b,rcond=None)[0]
+   (x,c,k,m) = np.linalg.lstsq(m,b,rcond=None)
 
    # verify that solution approx 0
-   print("Min norm of solution: ",np.linalg.norm( (m@x) - b ,2).min())
+   print("Min norm of solution: ",c.min())
    print("Sum of PI: ",sum(x))
+   print("Rank of solution: ", k)
    print("Ordered states: " , len(generator.ordered))
    #print([str(x) for x in generator.ordered])   
    ordered = generator.ordered

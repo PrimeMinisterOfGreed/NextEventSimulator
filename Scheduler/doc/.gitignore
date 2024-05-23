@@ -5,3 +5,6 @@ Images
 *.log
 *.pdf
 *.gz
+
+target
+Cargo.lock
