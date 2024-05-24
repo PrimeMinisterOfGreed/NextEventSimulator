@@ -15,7 +15,7 @@ pub struct Params {
     pub qio2: f64,
     pub qoutd: f64,
     pub qouts: f64,
-    pub numclients: u32,
+    pub numclients: u8,
 }
 
 impl Params {

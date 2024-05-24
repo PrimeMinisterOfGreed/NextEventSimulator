@@ -9,7 +9,7 @@ mod transition;
 #[derive(Parser,Debug)]
 struct Cli{
     #[arg(short,long)]
-    numclients: u32,
+    numclients: u8,
     #[arg(short,long)]
     isomorphic : bool
 }
