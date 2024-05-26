@@ -36,8 +36,17 @@ impl Transition {
         }
     }
 
+    pub fn head(&self)-> &State{
+        &self.head
+    }
+
+    pub fn tail(&self) -> &State{
+        &self.tail
+    }
+
     pub fn detect(&mut self){
         let diff = self.tail - self.head;
+        if diff.max() > 1 || diff.min() < - 1 {return;}
         let argmin : StateDescriptor=  StateDescriptor::from_usize(diff.argmin().0).unwrap();
         let argmax = StateDescriptor::from_usize(diff.argmax().0).unwrap();
         match argmin {
@@ -139,7 +148,7 @@ impl Transition {
 
     // delay 
     fn delay_to_cpu(&self)-> f64{
-        (1.0/Params::instance().thinktime as f64)*self.cpu_onarrive_stage_selector()*self.head.n_cpu as f64
+        (1.0/Params::instance().thinktime)*self.cpu_onarrive_stage_selector()*self.head.n_delay as f64
     }
 
 }
@@ -152,6 +161,8 @@ impl Transition {
 
 #[cfg(test)]
 mod tests {
+    use std::process::Output;
+
     use super::*;
 
     #[test]
@@ -162,5 +173,19 @@ mod tests {
         );
         assert!(tr.is_valid());
         assert!(tr.t_type == TransitionType::DelayToCpu);
+    }
+
+    fn verify_state_transition(s1: State, s2: State, expected:f64){
+        let mut tr = Transition::new(s1, s2);
+        assert!(tr.is_valid(), "invalid transition");
+        assert!(tr.probability() == expected, "mismatch expected:{} value:{}", expected, tr.probability());
+    }
+
+
+    #[test]
+    fn test_transition_probability(){
+        verify_state_transition(State::new(3,0,0,0,0), State::new(2,1,0,0,1), 
+        (1.0/Params::instance().thinktime)*3.0*Params::instance().alpha
+    );
     }
 }
