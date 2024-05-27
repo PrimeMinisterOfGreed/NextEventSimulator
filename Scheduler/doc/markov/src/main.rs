@@ -3,10 +3,11 @@ use generator::ChainGenerator;
 use lstsq::Lstsq;
 use nalgebra::Dyn;
 use parameters::Params;
-use solver::Solver;
+use solver::{Solution, Solver};
 use state::State;
 
 mod state;
+mod mva;
 mod parameters;
 mod generator;
 mod transition;
@@ -14,9 +15,9 @@ mod solver;
 
 #[derive(Parser,Debug)]
 struct Cli{
-    #[arg(short,long)]
+    #[arg(short,long,default_value="3")]
     numclients: u8,
-    #[arg(short,long)]
+    #[arg(short,long, default_value="true")]
     isomorphic : bool
 }
 
@@ -33,11 +34,13 @@ fn main() {
         p.u2 = 27.0;
     }
     p.numclients = cli.numclients;
-    Params::instance().numclients = 3;
     let mut generator = ChainGenerator::new();
-    let mut chain = generator.generate(State::new(3, 0, 0, 0, 0)).adj_matrix();
+    let mut chain = generator.generate(State::new(Params::instance().numclients, 0, 0, 0, 0)).adj_matrix();
     let mut solver = Solver::new(chain).as_ctmc().add_normalization_condition().solve();
 
+    let mut solution = Solution::from_solution_vector(&solver, &generator.ordered());
+
+    println!("{:?}",solution);
     
 
 }

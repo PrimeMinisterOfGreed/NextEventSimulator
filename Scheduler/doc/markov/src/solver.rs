@@ -25,7 +25,7 @@ impl Solver {
 
     pub fn add_normalization_condition(&mut self) -> &mut Self{
         let mut mat = &mut self.mat.transpose();
-        let t = mat.clone().insert_row(mat.nrows() -1, 1.0);
+        let t = mat.clone().insert_row(mat.nrows(), 1.0);
         self.mat = t;
         self
     }
@@ -75,12 +75,13 @@ mod tests {
     #[test]
     fn test_matrix_solutor() {
         let mut generator = ChainGenerator::new();
-        Params::instance().numclients = 3;
-        let mut chain = generator.generate(State::new(3, 0, 0, 0, 0)).adj_matrix();
+        Params::instance().numclients = 1;
+        let mut chain = generator.generate(State::new(1, 0, 0, 0, 0)).adj_matrix();
         let mut solver = Solver::new(chain).as_ctmc().add_normalization_condition().solve();
         println!("{:?}", solver.solution);
 
         let mut solution = Solution::from_solution_vector(&solver, generator.ordered());
         println!("{:?}",solution);
+
     }
 }
