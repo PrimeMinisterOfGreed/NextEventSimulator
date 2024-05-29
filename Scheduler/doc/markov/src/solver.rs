@@ -68,7 +68,7 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    use crate::{generator::{self, ChainGenerator}, parameters::Params, state::State};
+    use crate::{generator::{self, ChainGenerator}, parameters::Params, state::State, transition::TransitionType};
 
     use super::*;
 
@@ -77,11 +77,29 @@ mod tests {
         let mut generator = ChainGenerator::new();
         Params::instance().numclients = 1;
         let mut chain = generator.generate(State::new(1, 0, 0, 0, 0)).adj_matrix();
-        let mut solver = Solver::new(chain).as_ctmc().add_normalization_condition().solve();
-        println!("{:?}", solver.solution);
+        let mut binding = Solver::new(chain);
+        let mut solver = binding.as_ctmc().add_normalization_condition();
+        let mut resolved = solver.solve();
+        println!("{:?}", resolved.solution);
 
-        let mut solution = Solution::from_solution_vector(&solver, generator.ordered());
+        let mut solution = Solution::from_solution_vector(&resolved, generator.ordered());
         println!("{:?}",solution);
+
+        
+        let node_ref = generator.ordered()[1];
+        let mut tail_example = 0;
+        for i in 2..generator.ordered().len(){
+            let transition= generator.get_transition(&node_ref,&generator.ordered()[i]);
+            if transition.is_none() {continue;}
+            let t = transition.unwrap();
+            if *t.t_type() == TransitionType::CpuToSelf && t.head().n_cpu > 0 && t.tail().n_cpu > 0 
+            && t.tail() != t.head()
+            {
+                tail_example = i;
+            }
+        }
+        
+        assert!(solver.mat[(1,tail_example)] > 0.0);
 
     }
 }

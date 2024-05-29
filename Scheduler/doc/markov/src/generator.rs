@@ -93,6 +93,7 @@ impl ChainGenerator {
         self
     }
 
+    
     pub fn ordered(&self)-> &Vec<State>{
         &self.ordered
     }
@@ -128,6 +129,8 @@ mod tests {
 
     use rustworkx_core::petgraph::visit::GetAdjacencyMatrix;
 
+    use crate::transition::TransitionType;
+
     use super::*;
 
     #[test]
@@ -147,6 +150,8 @@ mod tests {
         let mut mat = generator.adj_matrix();
         assert!(mat.row(0).len() == 30);
         assert!(mat.row(0).iter().any(|x| return *x>0.0));
+
+        
     }
 }
 

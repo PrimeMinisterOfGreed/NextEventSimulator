@@ -9,7 +9,7 @@ use crate::{
 };
 
 #[derive(PartialEq)]
-enum TransitionType {
+pub enum TransitionType {
     Unknown = -1,
     CpuToIo1 = 1,
     CpuToIo2 = 2,
@@ -43,6 +43,7 @@ impl Transition {
         &self.tail
     }
 
+    pub fn t_type(&self) -> &TransitionType {return &self.t_type;}
     pub fn detect(&mut self) {
         let diff = self.tail - self.head;
         if diff.iter().all(|&x| x == 0) && self.head.n_cpu > 0 && self.tail.n_cpu > 0{
@@ -133,7 +134,7 @@ impl Transition {
     // cpu handling
     fn cpu_to_self(&self) -> f64 {
         self.cpu_leave() * Params::instance().qouts
-            + 1.0 / Params::instance().timeslice * self.cpu_onleave_stage_selector()
+            + (1.0 / Params::instance().timeslice) * self.cpu_onleave_stage_selector()
     }
 
     fn cpu_to_io(&self) -> f64 {
