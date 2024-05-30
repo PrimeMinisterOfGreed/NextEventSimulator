@@ -1,11 +1,11 @@
-use std::{collections::VecDeque, vec};
+use std::{collections::VecDeque, io::Cursor, vec};
 
 use nalgebra::{DMatrix, SVector};
 use rustworkx_core::petgraph::{graph::{Node, NodeIndex}, Graph};
 
 use crate::{
     parameters::Params,
-    state::{State, StateDescriptor},
+    state::{GraphElement, State, StateDescriptor},
     transition::Transition,
 };
 
@@ -119,6 +119,27 @@ impl ChainGenerator {
             }
         }   
         mat
+    }
+
+    pub fn to_flow_chart(&self)-> String{
+        let mut lines = Vec::<String>::new();
+        lines.push("source,target,value".to_string());
+
+        for tr in &self.edges{
+            lines.push(format!("{},{},{}",tr.head().to_graph_element(),tr.tail().to_graph_element(),tr.probability()));
+        }
+        lines.join("\n")
+    }
+
+    pub fn to_dot(&self)-> String{
+        let mut lines = Vec::<String>::new();
+        lines.push("digraph {".to_string());
+        lines.push("rankdir=TB".to_string());
+        for edge in &self.edges{
+            lines.push(format!("\"{}\"->\"{}\"[label=\"{:.4}\"]",edge.head().to_graph_element(), edge.tail().to_graph_element(),edge.probability()));
+        }
+        lines.push("}".to_string());
+        lines.join("\n")
     }
 }
 

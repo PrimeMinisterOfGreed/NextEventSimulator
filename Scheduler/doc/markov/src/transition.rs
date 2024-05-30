@@ -101,6 +101,7 @@ impl Transition {
     }
 
     fn cpu_onarrive_stage_selector(&self) -> f64 {
+        debug_assert!(self.head.n_cpu <= self.tail.n_cpu);
         if self.head.n_cpu > 0 {
             return 1.0;
         } else if self.tail.cpu_stage == 1 {
@@ -112,6 +113,7 @@ impl Transition {
     }
 
     fn cpu_onleave_stage_selector(&self) -> f64 {
+        debug_assert!(self.head.n_cpu >= self.tail.n_cpu);
         if self.tail.n_cpu == 0 {
             return 1.0;
         } else if self.tail.cpu_stage == 1 {
@@ -128,13 +130,13 @@ impl Transition {
         } else {
             Params::instance().u2
         };
-        return 1.0 / (service as f64 * self.cpu_onleave_stage_selector());
+        return (1.0 / service as f64 )* self.cpu_onleave_stage_selector();
     }
 
     // cpu handling
     fn cpu_to_self(&self) -> f64 {
         self.cpu_leave() * Params::instance().qouts
-            + (1.0 / Params::instance().timeslice) * self.cpu_onleave_stage_selector()
+            
     }
 
     fn cpu_to_io(&self) -> f64 {

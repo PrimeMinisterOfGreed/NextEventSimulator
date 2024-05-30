@@ -18,7 +18,9 @@ struct Cli{
     #[arg(short,long,default_value="3")]
     numclients: u8,
     #[arg(short,long, default_value="true")]
-    isomorphic : bool
+    isomorphic : bool,
+    #[arg(short,long,default_value="true")]
+    print_graph: bool
 }
 
 
@@ -42,5 +44,8 @@ fn main() {
 
     println!("{:?}",solution);
     
+    if cli.print_graph{
+        println!("///////\n{}",generator.to_dot());
+    }
 
 }
