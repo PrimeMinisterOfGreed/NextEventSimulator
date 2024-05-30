@@ -130,13 +130,12 @@ impl Transition {
         } else {
             Params::instance().u2
         };
-        return (1.0 / service as f64 )* self.cpu_onleave_stage_selector();
+        return 1.0 / (service as f64 * self.cpu_onleave_stage_selector());
     }
 
     // cpu handling
     fn cpu_to_self(&self) -> f64 {
-        self.cpu_leave() * Params::instance().qouts
-            
+        self.cpu_leave() * Params::instance().qouts + 1.0/(Params::instance().timeslice*self.cpu_onleave_stage_selector())
     }
 
     fn cpu_to_io(&self) -> f64 {
@@ -197,6 +196,7 @@ mod tests {
 
     #[test]
     fn test_transition_probability() {
+        let params = Params::instance();
         verify_state_transition(
             State::new(3, 0, 0, 0, 0),
             State::new(2, 1, 0, 0, 1),
@@ -208,6 +208,12 @@ mod tests {
             State::new(1, 2, 0, 0, 2),
             (1.0/(Params::instance().u1*Params::instance().beta)) * Params::instance().qouts
                 + 1.0 / (Params::instance().timeslice * Params::instance().beta),
-        )
+        );
+
+        verify_state_transition(
+            State::new(2, 1, 0 , 0, 1), 
+            State::new(2, 1, 0 , 0, 2), 
+            1.0/(params.u1*params.beta) * params.qouts  + 1.0 / (params.timeslice * params.beta)
+            )
     }
 }
