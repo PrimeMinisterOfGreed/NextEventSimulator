@@ -1,5 +1,6 @@
 use std::{collections::VecDeque, io::Cursor, vec};
 
+use indicatif::ProgressBar;
 use nalgebra::{DMatrix, SVector};
 use rustworkx_core::petgraph::{graph::{Node, NodeIndex}, Graph};
 
@@ -85,10 +86,13 @@ impl ChainGenerator {
     }
 
     pub fn generate(&mut self, starter: State) -> &mut Self{
+        let mut progress = ProgressBar::new_spinner()
+        .with_message("generating nodes");
         self.node_generator.generate();
         self.frontier.push_back(starter);
         while !self.frontier.is_empty(){
             self.next();
+            progress.inc(1);
         }
         self
     }
@@ -108,21 +112,24 @@ impl ChainGenerator {
     }
 
     pub fn adj_matrix(&self)-> DMatrix<f64>{
+
         let nodes = &self.ordered;
         let mut mat = DMatrix::<f64>::zeros(nodes.len(), nodes.len());
+        let mut progress = ProgressBar::new(mat.len() as u64).with_message("Generating matrix");
         for i in 0..nodes.len(){
             let reference = nodes[i];
             for j in 0..nodes.len(){
                 let mut tr = self.get_transition(&nodes[i], &nodes[j]);
                 mat[(i,j)] = if tr.is_none() {0.0} 
                 else{tr.unwrap().probability()};
+                progress.inc(1);
             }
         }   
         mat
     }
 
     pub fn to_flow_chart(&self)-> String{
-        let mut lines = Vec::<String>::new();
+        let mut lines: Vec<String> = Vec::<String>::new();
         lines.push("source,target,value".to_string());
 
         for tr in &self.edges{

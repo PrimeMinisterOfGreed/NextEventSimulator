@@ -130,7 +130,7 @@ impl Transition {
         } else {
             Params::instance().u2
         };
-        return 1.0 / (service as f64 * self.cpu_onleave_stage_selector());
+        return 1.0 / (service as f64)* self.cpu_onleave_stage_selector();
     }
 
     // cpu handling
