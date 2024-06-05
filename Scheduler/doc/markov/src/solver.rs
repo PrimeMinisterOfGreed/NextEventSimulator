@@ -115,7 +115,7 @@ impl Solution {
 
 impl fmt::Display for Solution{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Delay: {:.6}, CPU: {:.6}, IO1: {:.6}, IO6: {:.6}, Stage1:{:.6}, Stage2:{:.6}", self.n_delay, self.n_cpu, self.n_io1, self.n_io2,self.stage_1,self.stage_2)?;
+        writeln!(f, "Delay: {:.6}, CPU: {:.6}, IO1: {:.6}, IO2: {:.6}, Stage1:{:.6}, Stage2:{:.6}", self.n_delay, self.n_cpu, self.n_io1, self.n_io2,self.stage_1,self.stage_2)?;
         writeln!(f, "Delay D: {:?}", self.n_delay_distrib)?;
         writeln!(f, "Cpu D: {:?}", self.n_cpu_distrib)?;
         writeln!(f, "Io1 D: {:?}", self.n_io1_distrib)?;

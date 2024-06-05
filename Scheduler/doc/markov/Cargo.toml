@@ -10,4 +10,4 @@ lstsq = "0.5.0"
 nalgebra = "0.32.5"
 num-derive = "0.4.2"
 num-traits = "0.2.19"
-rustworkx-core = "0.14.2"
+

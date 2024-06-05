@@ -8,7 +8,7 @@ use crate::{
     state::{State, StateDescriptor},
 };
 
-#[derive(PartialEq)]
+#[derive(PartialEq,Clone)]
 pub enum TransitionType {
     Unknown = -1,
     CpuToIo1 = 1,
@@ -20,6 +20,7 @@ pub enum TransitionType {
     Io2ToCpu = 7,
 }
 
+#[derive(Clone)]
 pub struct Transition {
     t_type: TransitionType,
     head: State,
@@ -47,7 +48,7 @@ impl Transition {
     pub fn detect(&mut self) {
         let diff = self.tail - self.head;
         if diff.iter().all(|&x| x == 0) && self.head.n_cpu > 0 && self.tail.n_cpu > 0{
-            self.t_type = TransitionType::CpuToDelay;
+            self.t_type = TransitionType::CpuToSelf;
             return;
         }
         if diff.max() > 1 || diff.min() < -1 {
@@ -130,15 +131,21 @@ impl Transition {
         } else {
             Params::instance().u2
         };
-        return 1.0 / (service as f64)* self.cpu_onleave_stage_selector();
+        return (1.0 / (service as f64))* self.cpu_onleave_stage_selector();
     }
 
     // cpu handling
     fn cpu_to_self(&self) -> f64 {
-        self.cpu_leave() * Params::instance().qouts + 1.0/(Params::instance().timeslice*self.cpu_onleave_stage_selector())
+        debug_assert!(self.head.n_cpu == self.tail.n_cpu);
+        self.cpu_leave() * Params::instance().qouts + 1.0/(Params::instance().timeslice)*self.cpu_onleave_stage_selector()
     }
 
     fn cpu_to_io(&self) -> f64 {
+        debug_assert!(self.head.n_cpu > self.tail.n_cpu && 
+        if self.t_type == TransitionType::CpuToIo1{self.head.n_io1 < self.tail.n_io1}
+        else{self.head.n_io2 < self.tail.n_io2}
+        , "{}->{}",self.head,self.tail);
+
         self.cpu_leave()
             * if self.t_type == TransitionType::CpuToIo1 {
                 Params::instance().qio1
@@ -148,12 +155,20 @@ impl Transition {
     }
 
     fn cpu_to_delay(&self) -> f64 {
+        debug_assert!(
+            self.head.n_cpu > self.tail.n_cpu && self.head.n_delay < self.tail.n_delay
+        , "{}->{}",self.head,self.tail);
         self.cpu_leave() * Params::instance().qoutd
     }
 
     //io handling
 
     fn io_to_cpu(&self) -> f64 {
+        debug_assert!(self.head.n_cpu < self.tail.n_cpu && 
+            if self.t_type == TransitionType::Io1ToCpu{self.head.n_io1 > self.tail.n_io1}
+            else{self.head.n_io2 > self.tail.n_io2}
+            , "{}->{}",self.head,self.tail);
+            
         let service = if self.t_type == TransitionType::Io1ToCpu {
             Params::instance().sio1
         } else {
@@ -164,6 +179,9 @@ impl Transition {
 
     // delay
     fn delay_to_cpu(&self) -> f64 {
+        debug_assert!(self.head.n_cpu < self.tail.n_cpu &&
+            self.head.n_delay > self.tail.n_delay
+        );
         (1.0 / Params::instance().thinktime)
             * self.cpu_onarrive_stage_selector()
             * self.head.n_delay as f64

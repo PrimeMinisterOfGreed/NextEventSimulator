@@ -37,7 +37,7 @@ fn main() {
         p.u1 = 27.0;
         p.u2 = 27.0;
     }
-    p.numclients = 10;
+    p.numclients = 3;
     let mut generator = ChainGenerator::new();
     let mut chain = generator.generate(State::new(Params::instance().numclients, 0, 0, 0, 0)).adj_matrix();
     let mut solver = Solver::new(chain).as_ctmc().add_normalization_condition().solve();
