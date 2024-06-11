@@ -8,8 +8,9 @@ use crate::{
     state::{State, StateDescriptor},
 };
 
-#[derive(PartialEq,Clone)]
+#[derive(PartialEq, Clone)]
 pub enum TransitionType {
+    Absolute = -2,
     Unknown = -1,
     CpuToIo1 = 1,
     CpuToIo2 = 2,
@@ -25,6 +26,7 @@ pub struct Transition {
     t_type: TransitionType,
     head: State,
     tail: State,
+    prob: f64,
 }
 
 impl Transition {
@@ -33,6 +35,16 @@ impl Transition {
             head,
             t_type: TransitionType::Unknown,
             tail,
+            prob: 0.0,
+        }
+    }
+
+    pub fn from_value(head: State, tail: State, value: f64) -> Self {
+        Transition {
+            t_type: TransitionType::Absolute,
+            head: head,
+            tail: tail,
+            prob: value,
         }
     }
 
@@ -44,10 +56,15 @@ impl Transition {
         &self.tail
     }
 
-    pub fn t_type(&self) -> &TransitionType {return &self.t_type;}
+    pub fn t_type(&self) -> &TransitionType {
+        return &self.t_type;
+    }
     pub fn detect(&mut self) {
+        if self.prob != 0.0 {
+            return;
+        }
         let diff = self.tail - self.head;
-        if diff.iter().all(|&x| x == 0) && self.head.n_cpu > 0 && self.tail.n_cpu > 0{
+        if diff.iter().all(|&x| x == 0) && self.head.n_cpu > 0 && self.tail.n_cpu > 0 {
             self.t_type = TransitionType::CpuToSelf;
             return;
         }
@@ -88,17 +105,25 @@ impl Transition {
         self.t_type != TransitionType::Unknown
     }
 
-    pub fn probability(&self) -> f64 {
-        match self.t_type {
-            TransitionType::Unknown => panic!("Don't use p on invalid transitions"),
-            TransitionType::CpuToIo1 => self.cpu_to_io(),
-            TransitionType::CpuToIo2 => self.cpu_to_io(),
-            TransitionType::CpuToSelf => self.cpu_to_self(),
-            TransitionType::CpuToDelay => self.cpu_to_delay(),
-            TransitionType::DelayToCpu => self.delay_to_cpu(),
-            TransitionType::Io1ToCpu => self.io_to_cpu(),
-            TransitionType::Io2ToCpu => self.io_to_cpu(),
+    pub fn probability(&mut self) -> f64 {
+        if self.prob != 0.0 {
+            return self.prob;
+        } else {
+            self.prob = {
+                match self.t_type {
+                    TransitionType::Absolute => self.prob,
+                    TransitionType::Unknown => panic!("Don't use p on invalid transitions"),
+                    TransitionType::CpuToIo1 => self.cpu_to_io(),
+                    TransitionType::CpuToIo2 => self.cpu_to_io(),
+                    TransitionType::CpuToSelf => self.cpu_to_self(),
+                    TransitionType::CpuToDelay => self.cpu_to_delay(),
+                    TransitionType::DelayToCpu => self.delay_to_cpu(),
+                    TransitionType::Io1ToCpu => self.io_to_cpu(),
+                    TransitionType::Io2ToCpu => self.io_to_cpu(),
+                }
+            }
         }
+        self.prob
     }
 
     fn cpu_onarrive_stage_selector(&self) -> f64 {
@@ -131,20 +156,28 @@ impl Transition {
         } else {
             Params::instance().u2
         };
-        return (1.0 / (service as f64))* self.cpu_onleave_stage_selector();
+        return (1.0 / (service as f64)) * self.cpu_onleave_stage_selector();
     }
 
     // cpu handling
     fn cpu_to_self(&self) -> f64 {
         debug_assert!(self.head.n_cpu == self.tail.n_cpu);
-        self.cpu_leave() * Params::instance().qouts + 1.0/(Params::instance().timeslice)*self.cpu_onleave_stage_selector()
+        self.cpu_leave() * Params::instance().qouts
+            + 1.0 / (Params::instance().timeslice) * self.cpu_onleave_stage_selector()
     }
 
     fn cpu_to_io(&self) -> f64 {
-        debug_assert!(self.head.n_cpu > self.tail.n_cpu && 
-        if self.t_type == TransitionType::CpuToIo1{self.head.n_io1 < self.tail.n_io1}
-        else{self.head.n_io2 < self.tail.n_io2}
-        , "{}->{}",self.head,self.tail);
+        debug_assert!(
+            self.head.n_cpu > self.tail.n_cpu
+                && if self.t_type == TransitionType::CpuToIo1 {
+                    self.head.n_io1 < self.tail.n_io1
+                } else {
+                    self.head.n_io2 < self.tail.n_io2
+                },
+            "{}->{}",
+            self.head,
+            self.tail
+        );
 
         self.cpu_leave()
             * if self.t_type == TransitionType::CpuToIo1 {
@@ -156,19 +189,29 @@ impl Transition {
 
     fn cpu_to_delay(&self) -> f64 {
         debug_assert!(
-            self.head.n_cpu > self.tail.n_cpu && self.head.n_delay < self.tail.n_delay
-        , "{}->{}",self.head,self.tail);
+            self.head.n_cpu > self.tail.n_cpu && self.head.n_delay < self.tail.n_delay,
+            "{}->{}",
+            self.head,
+            self.tail
+        );
         self.cpu_leave() * Params::instance().qoutd
     }
 
     //io handling
 
     fn io_to_cpu(&self) -> f64 {
-        debug_assert!(self.head.n_cpu < self.tail.n_cpu && 
-            if self.t_type == TransitionType::Io1ToCpu{self.head.n_io1 > self.tail.n_io1}
-            else{self.head.n_io2 > self.tail.n_io2}
-            , "{}->{}",self.head,self.tail);
-            
+        debug_assert!(
+            self.head.n_cpu < self.tail.n_cpu
+                && if self.t_type == TransitionType::Io1ToCpu {
+                    self.head.n_io1 > self.tail.n_io1
+                } else {
+                    self.head.n_io2 > self.tail.n_io2
+                },
+            "{}->{}",
+            self.head,
+            self.tail
+        );
+
         let service = if self.t_type == TransitionType::Io1ToCpu {
             Params::instance().sio1
         } else {
@@ -179,9 +222,7 @@ impl Transition {
 
     // delay
     fn delay_to_cpu(&self) -> f64 {
-        debug_assert!(self.head.n_cpu < self.tail.n_cpu &&
-            self.head.n_delay > self.tail.n_delay
-        );
+        debug_assert!(self.head.n_cpu < self.tail.n_cpu && self.head.n_delay > self.tail.n_delay);
         (1.0 / Params::instance().thinktime)
             * self.cpu_onarrive_stage_selector()
             * self.head.n_delay as f64
@@ -224,14 +265,14 @@ mod tests {
         verify_state_transition(
             State::new(1, 2, 0, 0, 1),
             State::new(1, 2, 0, 0, 2),
-            (1.0/(Params::instance().u1*Params::instance().beta)) * Params::instance().qouts
+            (1.0 / (Params::instance().u1 * Params::instance().beta)) * Params::instance().qouts
                 + 1.0 / (Params::instance().timeslice * Params::instance().beta),
         );
 
         verify_state_transition(
-            State::new(2, 1, 0 , 0, 1), 
-            State::new(2, 1, 0 , 0, 2), 
-            1.0/(params.u1*params.beta) * params.qouts  + 1.0 / (params.timeslice * params.beta)
-            )
+            State::new(2, 1, 0, 0, 1),
+            State::new(2, 1, 0, 0, 2),
+            1.0 / (params.u1 * params.beta) * params.qouts + 1.0 / (params.timeslice * params.beta),
+        )
     }
 }

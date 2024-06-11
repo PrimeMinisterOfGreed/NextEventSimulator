@@ -1,5 +1,5 @@
 use clap::{arg, Args, Parser};
-use generator::ChainGenerator;
+use generator::{ChainGenerator, Graph};
 use lstsq::Lstsq;
 use nalgebra::Dyn;
 use parameters::Params;
@@ -36,18 +36,20 @@ fn main() {
         p.beta = 0.5;
         p.u1 = 27.0;
         p.u2 = 27.0;
+        
     }
     p.numclients = 3;
     let mut generator = ChainGenerator::new();
-    let mut chain = generator.generate(State::new(Params::instance().numclients, 0, 0, 0, 0)).adj_matrix();
-    let mut solver = Solver::new(chain).as_ctmc().add_normalization_condition().solve();
-
-    let mut solution = Solution::from_solution_vector(&solver, &generator.ordered());
+    let mut chain = generator.generate(State::new(Params::instance().numclients, 0, 0, 0, 0));
+    let mut graph = chain.graph();
+    let mut solver = Solver::new(graph.adj_matrix());
+    let mut q = Graph::from_adj_matrix(solver.as_ctmc().mat(),generator.ordered());
+    let mut solution = Solution::from_solution_vector(&solver.add_normalization_condition().solve(), &generator.ordered());
 
     println!("{}",solution);
     
     if cli.print_graph{
-        println!("///////\n{}",generator.to_dot());
+        println!("///////\n{}",q.to_dot());
     }
 
 }

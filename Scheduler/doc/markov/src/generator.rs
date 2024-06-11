@@ -87,10 +87,10 @@ impl Graph {
         mat
     }   
     
-    pub fn get_transition(&self, head: &State, tail: &State) -> Option<&Transition> {
+    pub fn get_transition(&self, head: &State, tail: &State) -> Option<Transition> {
         for tr in &self.edges {
             if *tr.head() == *head && *tr.tail() == *tail {
-                return Some(tr);
+                return Some(tr.clone());
             }
         }
         None
@@ -100,11 +100,11 @@ impl Graph {
         self.edges.push(transition);
     }
 
-    pub fn to_flow_chart(&self) -> String {
+    pub fn to_flow_chart(&mut self) -> String {
         let mut lines: Vec<String> = Vec::<String>::new();
         lines.push("source,target,value".to_string());
 
-        for tr in &self.edges {
+        for tr in &mut self.edges {
             lines.push(format!(
                 "{},{},{}",
                 tr.head().to_graph_element(),
@@ -115,12 +115,12 @@ impl Graph {
         lines.join("\n")
     }
 
-    pub fn to_dot(&self) -> String {
+    pub fn to_dot(&mut self) -> String {
         let mut lines = Vec::<String>::new();
         lines.push("digraph {".to_string());
         lines.push("rankdir=TB".to_string());
         lines.push("overlap=scale".to_string());
-        for edge in &self.edges {
+        for edge in &mut self.edges {
             lines.push(format!(
                 "\"{}\"->\"{}\"[label=\"{:.4}\"]",
                 edge.head().to_graph_element(),
@@ -130,6 +130,31 @@ impl Graph {
         }
         lines.push("}".to_string());
         lines.join("\n")
+    }
+
+    pub fn nodes(&self) -> &Vec<State>{
+        &self.nodes
+    }
+
+    pub fn edges(&self) -> &Vec<Transition>{
+        &self.edges
+    }
+
+    pub fn from_adj_matrix(data: &DMatrix<f64>, nodes: &Vec<State>) -> Self{
+        let mut graph = Self::new();
+        let progress = ProgressBar::new(data.nrows() as u64).with_message("Building graph");
+        for i in 0..nodes.len(){
+            let noderef = nodes[i].clone();
+            for j in 0..nodes.len() {
+                if data[(i,j)] != 0.0{
+                    graph.add_edge(Transition::from_value(noderef.clone(), nodes[j].clone(),data[(i,j)]));
+                }
+            }
+            progress.inc(1);
+        }
+        graph.nodes = nodes.clone();
+        progress.finish();
+        graph
     }
 
 }

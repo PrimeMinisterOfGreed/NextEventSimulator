@@ -34,6 +34,10 @@ impl Solver {
         self
     }
 
+    pub fn mat(&self)-> &DMatrix<f64>{
+        &self.mat
+    }
+
     pub fn solve(&mut self) -> Lstsq<f64, Dyn> {
         let mut mat = &mut self.mat;
         let mut b = DVector::<f64>::zeros(mat.nrows());
@@ -141,8 +145,9 @@ mod tests {
     fn test_matrix_solutor() {
         let mut generator = ChainGenerator::new();
         Params::instance().numclients = 1;
-        let mut chain = generator.generate(State::new(1, 0, 0, 0, 0)).adj_matrix();
-        let mut binding = Solver::new(chain);
+        let mut chain = generator.generate(State::new(1, 0, 0, 0, 0));
+        let mut graph = chain.graph();
+        let mut binding = Solver::new(graph.adj_matrix());
         let mut solver = binding.as_ctmc().add_normalization_condition();
         let mut resolved = solver.solve();
         println!("{:?}", resolved.solution);
@@ -150,10 +155,10 @@ mod tests {
         let mut solution = Solution::from_solution_vector(&resolved, generator.ordered());
         println!("{:?}", solution);
 
-        let node_ref = generator.ordered()[1];
+        let node_ref = graph.nodes()[1];
         let mut tail_example = 0;
-        for i in 2..generator.ordered().len() {
-            let transition = generator.get_transition(&node_ref, &generator.ordered()[i]);
+        for i in 2..graph.nodes().len() {
+            let transition = graph.get_transition(&node_ref, &generator.ordered()[i]);
             if transition.is_none() {
                 continue;
             }
