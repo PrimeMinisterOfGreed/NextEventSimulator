@@ -20,10 +20,10 @@ class Params:
     timeSlice = 3
     Sio1 = 40
     Sio2 = 180
-    qio1 = 0.65 #route to io1
-    qio2 = 0.25 # route to io2
-    qoutd = 0.1*0.4 #go to delay station
-    qouts = 0.1*0.6 # renter the system
+    qio1 = 0.64 #route to io1
+    qio2 = 0.26 # route to io2
+    qoutd = 0.04 #go to delay station
+    qouts = 0.06 # renter the system
     numClients = 3
     pass
 
@@ -144,6 +144,7 @@ class Transition:
 
    
    def CpuR(self):
+     
       #return (1 if self.tail.Ncpu == 0 else (Params.alpha if self.tail.cpuStage == 1 else Params.beta))
       if self.tail.Ncpu == 0:
          return 1
@@ -155,6 +156,7 @@ class Transition:
       pass
    
    def CpuA(self):
+  
       #return (1 if self.head.Ncpu > 0 else Params.alpha if self.tail.cpuStage == 1 else Params.beta)
       if self.head.Ncpu > 0:
          return 1
@@ -181,7 +183,7 @@ class Transition:
       return 1/self.CpuL()*self.CpuR()
 
    def DelayToCpu(self):
-      return (1/(Params.thinkTime))*self.head.Ndelay*self.CpuA()
+      return (1/Params.thinkTime)*self.head.Ndelay*self.CpuA()
 
       
 
@@ -604,12 +606,12 @@ def execute_markov(print_graph = False):
 
 
 if __name__ == "__main__":
-   Params.u1 = 27
-   Params.u2 = 27
+   Params.u1 = 15
+   Params.u2 = 75
    Params.alpha  = 0.8
    Params.beta  = 0.2
    Params.numClients = 3
-   execute_markov(True)
+   execute_markov(False)
    pass
 
 
