@@ -9,7 +9,10 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/Scheduler/scheduler",
-            "args": ["--program","scenario Default; lmeasures; init; group 5;nr -1"],
+            "args": [
+                "--program",
+                "scenario Default; lmeasures; init; group 5;nr -1"
+            ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
@@ -27,7 +30,14 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "type": "cmake",
+            "request": "launch",
+            "name": "Debug portfile(s)",
+            "cmakeDebugType": "external",
+            "pipeName": "/tmp/vcpkg_ext_portfile_dbg",
+            "preLaunchTask": "Debug vcpkg commands"
         }
-
     ]
 }

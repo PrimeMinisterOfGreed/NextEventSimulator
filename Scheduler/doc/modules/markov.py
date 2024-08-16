@@ -20,8 +20,8 @@ class Params:
     timeSlice = 3
     Sio1 = 40
     Sio2 = 180
-    qio1 = 0.64 #route to io1
-    qio2 = 0.26 # route to io2
+    qio1 = 0.65 #route to io1
+    qio2 = 0.25 # route to io2
     qoutd = 0.04 #go to delay station
     qouts = 0.06 # renter the system
     numClients = 3
@@ -107,7 +107,13 @@ class Transition:
          pass
       # return diff without last item that is cpu stage
       diff = np.array(self.head.state[:-1]) - np.array(self.tail.state[:-1])
-      return diff.max() == 1 and diff.min() == -1 and diff.sum() == 0
+      counter = 0
+      for i in diff:
+         if abs(i) > 0:
+            counter+=1
+         pass
+      if counter > 2: return False
+      return diff.max() == 1 and diff.min() == -1 and diff.sum() == 0 
    
    # search for increment / decrement in the states, discarding ones not valid
    def detectMovement(self) -> tuple[str,str]:
@@ -127,7 +133,7 @@ class Transition:
       elif decrement == "Nio2" and increment == "Ncpu" : self.type = Transition.TransitionType.IO2_TO_CPU
       elif decrement == "Ndelay" and increment == "Ncpu" : self.type = Transition.TransitionType.DELAY_TO_CPU
       elif decrement == "Ncpu" and increment == "Ndelay" : self.type = Transition.TransitionType.CPU_TO_DELAY
-      elif decrement == "" and increment == "" and self.head.partially_eq(self.tail) and self.head.Ncpu > 0: self.type = Transition.TransitionType.CPU_TO_SELF
+      elif decrement == "" and increment == "" and self.head.partially_eq(self.tail) and self.head.Ncpu > 0 and self.head.cpuStage != self.tail.cpuStage: self.type = Transition.TransitionType.CPU_TO_SELF
       pass
    
    # calculate the P of the transition using the type
@@ -143,7 +149,7 @@ class Transition:
 
 
    
-   def CpuR(self):
+   def cpu_on_leave_stage_selector(self):
      
       #return (1 if self.tail.Ncpu == 0 else (Params.alpha if self.tail.cpuStage == 1 else Params.beta))
       if self.tail.Ncpu == 0:
@@ -155,7 +161,7 @@ class Transition:
       raise "Invalid stage specifier"
       pass
    
-   def CpuA(self):
+   def cpu_on_arrive_stage_selector(self):
   
       #return (1 if self.head.Ncpu > 0 else Params.alpha if self.tail.cpuStage == 1 else Params.beta)
       if self.head.Ncpu > 0:
@@ -168,7 +174,7 @@ class Transition:
       pass
 
    # define the CPU leave function 
-   def CpuL(self):
+   def cpu_leave(self):
       #return Params.u1 if self.head.cpuStage == 1 else Params.u2
       assert self.head.Ncpu != 0
       if self.head.cpuStage == 1:
@@ -179,11 +185,9 @@ class Transition:
       pass
       
    
-   def CpuV(self):
-      return 1/self.CpuL()*self.CpuR()
 
    def DelayToCpu(self):
-      return (1/Params.thinkTime)*self.head.Ndelay*self.CpuA()
+      return (1/Params.thinkTime)*self.head.Ndelay*self.cpu_on_arrive_stage_selector()
 
       
 
@@ -197,13 +201,13 @@ class Transition:
          pass
       else:
          raise "Invalid transition" 
-      return self.CpuV() * a
+      return 1/self.cpu_leave() * self.cpu_on_leave_stage_selector() * a
    
    def CpuToDelay(self):
-      return self.CpuV() * Params.qoutd
+      return 1/self.cpu_leave() * self.cpu_on_leave_stage_selector() * Params.qoutd
    
    def CpuToSelf(self):
-      return self.CpuV()*Params.qouts + 1/Params.timeSlice*self.CpuR()*self.CpuA()
+      return 1/self.cpu_leave() * self.cpu_on_leave_stage_selector() *Params.qouts + 1/Params.timeSlice*self.cpu_on_leave_stage_selector()*self.cpu_on_arrive_stage_selector()
       
    
    def IoToCpu(self):
@@ -217,7 +221,7 @@ class Transition:
          pass
       else:
          raise "Invalid Transition"
-      return a * self.CpuA()
+      return a  * self.cpu_on_arrive_stage_selector()
       pass
 
 
@@ -564,12 +568,11 @@ def execute_markov(print_graph = False):
    norm = np.ones(len(m))
    m =np.vstack((m,norm))
 
-   # vector of coefficient b with last element 1
+   # vector of coefficient 1 
    b= np.ones(len(m))
-   b[-1] = 1
-
+   
    #resolve for least squared
-   (x,c,k,m) = np.linalg.lstsq(m,b,rcond=None)
+   (x,c,k,m) = np.linalg.lstsq(m,b,rcond=1e-15)
 
    # verify that solution approx 0
    print("Min norm of solution: ",c.min())
@@ -606,12 +609,12 @@ def execute_markov(print_graph = False):
 
 
 if __name__ == "__main__":
-   Params.u1 = 15
-   Params.u2 = 75
-   Params.alpha  = 0.8
-   Params.beta  = 0.2
-   Params.numClients = 3
-   execute_markov(False)
+   Params.u1 = 27
+   Params.u2 = 27
+   Params.alpha  = 0.5
+   Params.beta  = 0.5
+   Params.numClients = 10
+   execute_markov(True)
    pass
 
 
