@@ -32,18 +32,18 @@ void CovariatedMeasure::Accumulate(double value, double time)
     _weightedsum += (value * time);
 }
 
-double CovariatedMeasure::R()
+double CovariatedMeasure::R() const
 {
     return _sum[0] / _times[0];
 }
 
-double CovariatedMeasure::variance()
+double CovariatedMeasure::variance() const
 {
     auto a = (sqrt(_sum[1] - (2 * R() * _weightedsum) + (pow(R(), 2) * _times[1])));
     return a/(_count-1);
 }
 
-Interval CovariatedMeasure::confidence()
+Interval CovariatedMeasure::confidence() const
 {
     double alpha = 1 - _confidence;
     double r = _sum[0] / _times[0];

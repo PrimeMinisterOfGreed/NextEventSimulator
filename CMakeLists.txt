@@ -1,5 +1,5 @@
-project(Simulator)
-cmake_minimum_required(VERSION 3.04)
+cmake_minimum_required(VERSION 3.24)
+project(Simulator C CXX)
 find_package(GTest REQUIRED CONFIG)
 find_package(fmt REQUIRED CONFIG)
 find_package(argparse REQUIRED)

@@ -609,10 +609,10 @@ def execute_markov(print_graph = False):
 
 
 if __name__ == "__main__":
-   Params.u1 = 27
-   Params.u2 = 27
-   Params.alpha  = 0.5
-   Params.beta  = 0.5
+   Params.u1 = 15
+   Params.u2 = 75
+   Params.alpha  = 0.8
+   Params.beta  = 0.2
    Params.numClients = 10
    execute_markov(True)
    pass

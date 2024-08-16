@@ -65,7 +65,7 @@ void LogEngine::Trace(LogType type, std::string message)
     char buffer[log.size() + 1];
     sprintf(buffer, "%s\n", log.c_str());
     if ((_printStdout && !_pauseStdout))
-        fmt::print(fmt::fg(LogTypeToColor(type)), log);
+        fmt::print(fmt::fg(LogTypeToColor(type)), "[{}]{}\n",type,message);
     _buffer.write(buffer, log.size() + 1);
     if (_buffer.tellp() > 1024 * 1024)
     {

@@ -20,7 +20,7 @@ enum class LogType : int
 
 template <> struct fmt::formatter<enum LogType> : formatter<string_view>
 {
-    auto format(LogType type, format_context &ctx) -> format_context::iterator
+    auto format(const LogType& type, format_context &ctx) const -> format_context::iterator
     {
         switch (type)
         {

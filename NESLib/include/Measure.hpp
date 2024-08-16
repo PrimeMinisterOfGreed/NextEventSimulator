@@ -440,9 +440,9 @@ struct CovariatedMeasure : BaseMeasure
     double _weightedsum{};
     virtual void Accumulate(double value, double time);
 
-    double R();
-    double variance();
-    Interval confidence();
+    double R() const;
+    double variance() const;
+    Interval confidence() const;
 
     CovariatedMeasure(std::string name, std::string unit) : BaseMeasure(name, unit)
     {
@@ -510,7 +510,7 @@ template <> struct fmt::formatter<CovariatedMeasure>
         return itr;
     }
 
-    auto format(CovariatedMeasure &m, format_context &ctx) -> format_context::iterator
+    auto format(const CovariatedMeasure &m, format_context &ctx) const -> format_context::iterator
     {
 
         if (strcmp(mode, "csv") == 0)

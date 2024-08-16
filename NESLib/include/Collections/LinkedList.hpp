@@ -286,7 +286,7 @@ template <typename T> struct fmt::formatter<DoubleLinkedList<T>>
         return p.parse(ctx);
     }
 
-    auto format(const DoubleLinkedList<T> &list, format_context &ctx) -> format_context::iterator
+    auto format(const DoubleLinkedList<T> &list, format_context &ctx) const -> format_context::iterator
     {
         std::string result = "";
         if (list.Count() == 0)

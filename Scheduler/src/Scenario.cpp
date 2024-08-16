@@ -113,12 +113,12 @@ SCENARIO(NegExpLt) // last request
                            {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
 }
 
-SCENARIO(Markov_20_NegExp)
+SCENARIO(Markov_10_NegExp)
 {
     auto &params = SystemParameters::Parameters();
     params.cpuQuantum = 3;
     params.multiProgrammingDegree = 1000;
-    params.numclients = 20;
+    params.numclients = 10;
     // params.u1 = 15;
     // params.u2 = 75;
     // params.alpha = 0.8;
@@ -138,12 +138,12 @@ SCENARIO(Markov_20_NegExp)
                            {{"CPU", 0}, {"IO1", 0}, {"IO2", 16}, {"delay_station", 3}, {"RESERVE_STATION", 0}});
 }
 
-SCENARIO(Markov_20)
+SCENARIO(Markov_10)
 {
     auto &params = SystemParameters::Parameters();
     params.cpuQuantum = 3;
     params.multiProgrammingDegree = 1000;
-    params.numclients = 20;
+    params.numclients = 10;
     params.u1 = 15;
     params.u2 = 75;
     params.burstMode = SystemParameters::FIXED;
