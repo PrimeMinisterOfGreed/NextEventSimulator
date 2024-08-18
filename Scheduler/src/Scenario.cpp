@@ -55,7 +55,7 @@ SCENARIO(Simplified_N20)
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
     // NDelay:3, NReserve:0, NSwap:0, NCPU:0, NIO1:0, NIO2:16,NOUT:0, hits:24
     AddClientConditionRule(regPoint.get(),
-                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 16}, {"delay_station", 3}, {"RESERVE_STATION", 0}});
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 15}, {"delay_station", 4}, {"RESERVE_STATION", 0}});
 }
 
 SCENARIO(Default) // first request

@@ -604,7 +604,7 @@ def execute_markov(print_graph = False):
    print("Mean execution time {}".format((Params.u1*Params.alpha) + (Params.u2*Params.beta)))
    if Params.u1 != Params.u2:
       print("Exponential are different so the chain is not isomorphic, ignore expected")
-   return (m)
+   return (Ndelay,Ncpu,Nio1,Nio2)
    pass
 
 
@@ -613,8 +613,9 @@ if __name__ == "__main__":
    Params.u2 = 75
    Params.alpha  = 0.8
    Params.beta  = 0.2
-   Params.numClients = 10
-   execute_markov(True)
+   Params.numClients = 20
+   result = execute_markov()
+   print(result[1])
    pass
 
 

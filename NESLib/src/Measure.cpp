@@ -39,8 +39,9 @@ double CovariatedMeasure::R() const
 
 double CovariatedMeasure::variance() const
 {
-    auto a = (sqrt(_sum[1] - (2 * R() * _weightedsum) + (pow(R(), 2) * _times[1])));
-    return a/(_count-1);
+    auto mean = _sum[0]/_count;
+    auto a = _sum[1]- (_count*pow(mean,2));
+    return a*(1.0/(_count-1));
 }
 
 Interval CovariatedMeasure::confidence() const

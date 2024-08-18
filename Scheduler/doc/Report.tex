@@ -144,49 +144,39 @@
 \section{Description of the simulator}
 In this section a brief analysis of the code and other technical aspect of the simulator will be discussed.
 \subsection{Events}
-The simulator is designed to manage a range of events within this system, with a particular focus on two crucial types: the arrival of a client and the departure. Each event type has a distinct impact on the simulator's state, influenced by the specific target under consideration.
+The simulator generate and handle 2 type of events: an arrival of a client at a specific station or its departure.
 \subsubsection{Delay station}
-
-\textbf{Departure from the delay station}: The client leaving the delay station will be scheduled for arrival to the Reserve station.
-\\
-\textbf{Arrival at the delay station}:
-an arrival will trigger a departure with a certain delay, that is a Random Variable with a negative exponential distribution with expected value of 5000 ms
+The delay station is an infinite server in which all the clients are served at the same time with a service time of 5000ms. When a client arrives at this station it is immediately scheduled for leaving, with a time that is has a negative exponential distribution with mean 5000ms. When a client leave it is scheduled for arrival to the reserve station.
 \\
 \subsubsection{Reserve station}
-\textbf{Arrival at the Reserve station:} if the counter of the process allocated in the system is less than the MPD. Then the  arrival event is immediately scheduled for the swap in. Otherwise, the information are stored in a queue and used when a process will exit from the swap out (and the counter decremented).
+The reserve station is a FCFS station with instantaneous service time and a cap on how many clients can enter the system. So when the system has fewer clients than the maximum allowed by the MPD parameter it schedules an immediate departure whenever a client arrives, vice versa it will hold the client inside until the swap out complete a departure. When a client leaves it is scheduled for arrival to the swap in station.
 
 \subsubsection{Swap in}
-\textbf{Arrival at the swap in station:} when a client arrive 2 behavior can happen: 1) the client arrives and found the queue empty, then it will be immediately scheduled for departure with a delay based on an exponential RV with expected value of 210 ms. 2) the client find the station busy, then it will be enqueued for later processing with FCFS policy.
-\\
-\textbf{Departure from the swap in station:} a departure from the swap in will trigger an immediate arrival at the CPU.
-
+The swap in station is managed with an FCFS policy with a service time that is a random variable whose distribution is a negative exponential with a mean of 210 ms. When a client arrive and the station is free it is immediately scheduled for leaving using the service time distribution, instead if the station is occupied it is queued for later processing when all the other clients in the queue are served. When a clients leave it is scheduled for arrival at the CPU
 
 \subsubsection{CPU}
-\textbf{Arrival at the CPU}: when a process arrives at the CPU a service time based on a hyper exponential distribution is assigned and then 2 things can happen. 1) The CPU is not busy, then the current process will occupy the CPU and a departure will be scheduled for a time equivalent to the actual clock plus time slice, the same time will be decreased from the remaining service time of the process. 2) The CPU is busy, then the process will be enqueued in the process queue.
-\\
-\textbf{Departure from the CPU}: A process can leave the CPU only when its service time is 0. So when a departure is scheduled 2 case exists: 1) The process's service time is > 0, in this case the process is enqueued again in the process queue. 2) The process's service time is 0, in this case the next station will be randomly chosen (using proper probabilities) and the event will be scheduled as arrival for that station. If there is a process in the queue, after those operations, it will be dequeued and processed by the CPU using the same mechanism described for the arrivals.
+
+The cpu is a round robin policy station with a service time that is a random variable distributed as a hyper exponential, the service times associated to this distribution are $u_1=15ms$ and $u_2=75ms$ with the corresponding weights $\alpha_1=0.8$ and $\alpha_2=0.2$. When a client arrives if it finds the station empty it's immediately processed, otherwise it's enqueued for later processing. The client stand in process for a time equal to $\min\{R,\delta\}$ where R is the remaining service time (given to the client the first time it entered in process using the hyper exponential distribution) and the parameter $\delta$ that is a "time slice" of 2.7 ms, when the remaining service time is 0 the client leaves the station, this behavior implement the round robin policy. When the departure occurs the client can be sent in one of the IOs or at the swap out. 
 
 \subsubsection{IO}
 
-\textbf{Arrival to IO1/IO2:} in both cases an arrival will trigger a departure from the relative station that is an RV with negative exponential distribution.
-\\
-\textbf{Departure from IO1/IO2:} in both cases this will result in an immediate arrival event to the CPU.
+Both IO1 and IO2 are FCFS stations (as the swap in), whose service times are random variables with negative exponential distribution with means $E[S_{IO_1}] = 180ms$ and $E[S_{IO_2}]= 40ms$. When a client leaves the stations it is scheduled for arrival at the CPU.
 
 \subsubsection{Swap Out}
-\textbf{Arrival to swap out:} this event will trigger an immediate departure for the swap out
-\\
-\textbf{Departure from swap out:} this event will trigger an immediate arrival to the delay station with p 0.4 or an immediate arrival to the reserve station with p 0.6. In any case this event will decrement by 1 the counter of allocated process in the reserve station.
+The swap out is a FCFS station with service time 0, so whenever client arrives it is immediately scheduled for departure. When a client leaves, the counter of the processes in the system (held from the swap in) is decremented, and then it can go to the delay station or to the swap in.
 
 
 \subsection{Choice of the regeneration point}
-The regeneration point is chosen starting from some pilot simulation. In those simulations when the tagged customer exit the swap out the current status of the simulator is collected. After 1000 runs those where most recognized observed state when this kind of event happen.
+In order to choose the regeneration point, it's possible to run some pilot simulation to see what is the system behaviour in the long run. Let's represent the state of the system by taking the number of customers actually present in each station at certain event. All the station but the CPU respect a markovnian distribution so each arrival or departure from those station is a suitable event to use as a regeneration point, let's then use the departure from the swap out, in order to catch a suitable state as a regeneration point a pilot run is performed, the state is catched when the tagged customer leaves the swap out station, as the tagged customer the first client that leaves the swap out is chosen for the duration of the run, after 1000 cycles this the output.
 \begin{verbatim}
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:18
     NDelay:5, NReserve:5, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:16
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
-The sum of clients in this print-out is always 19 because the measure is taken when the client is exiting the swap out, so the tagged customer is not counted. In this case a good fit is 0 clients at the CPU , 0 clients at the IO1 and 9 at the IO2, 3 at the delay station and 7 at the Reserve. The regeneration point will be then evaluated each time the tagged customer approach the swap out and if the conditions are met then the measure will be collected and the accumulators reset.
+
+
+
 
 \section{Simulation results}
 The following subsection will illustrate 4 different scenarios of execution:
