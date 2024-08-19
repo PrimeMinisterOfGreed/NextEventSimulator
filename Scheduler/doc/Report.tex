@@ -175,7 +175,7 @@ In order to choose the regeneration point, it's possible to run some pilot simul
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
 
-
+Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. 
 
 
 \section{Simulation results}
@@ -834,13 +834,8 @@ Nio2 12.243004107406223
 
 that can be compared with the results provided by the simulator. Here the HB is the Higher bound of the estimated interval, LB the lower bound ,R the point estimator and expected is the value calculated from the markov chain.
 
-\includegraphics[width=0.8\textwidth]{./Images/Markov_20_wrong.png}
 
-La versione precedente è stata eseguita come richiesto dall'esercizio, cioè con un time slice che è un istanza di una esponenziale invece che un valore fisso , in più ogni volta che un cliente viene processato viene ottenuta una nuova istanza del tempo di burst. Se invece eseguo il simulatore con un time slice molto più alto il ottengo questo risultato 
 
-\includegraphics[width=0.8\textwidth]{./Images/Markov_20_modified.png}
-
-Che mi sembra più vicino a ciò che il modello di markov sta predicendo.
 
 \section{Simulator description}
 \subsection{Brief description of the implementation}

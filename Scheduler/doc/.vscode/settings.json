@@ -2,7 +2,7 @@
     "python.analysis.extraPaths": [
         "./modules"
     ],
-    "latex-workshop.latex.recipe.default": "lastUsed",
+    "latex-workshop.latex.recipe.default": "tectonic",
     "cSpell.enableFiletypes": [
         "latex"
     ],

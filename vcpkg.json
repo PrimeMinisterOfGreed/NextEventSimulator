@@ -1,0 +1,14 @@
+{
+    "dependencies": [
+        "fmt",
+      "argparse",
+      "gtest"
+    ],
+    "builtin-baseline":"ffc46d49755e5aa5cd64da5352db5a23fcf8e160",
+    "overrides":[
+        {
+            "name":"fmt",
+            "version":"11.0.2"
+        }
+    ]
+  }

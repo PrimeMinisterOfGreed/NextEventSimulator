@@ -28,7 +28,7 @@ struct SimulationManager
 {
 
     std::vector<BaseScenario *> _scenarios{};
-    BaseScenario* _currScenario;
+    BaseScenario *_currScenario;
     std::vector<std::function<void()>> _collectFunctions{};
     std::unique_ptr<OS> os;
     std::unique_ptr<RegenerationPoint> regPoint;
@@ -63,6 +63,11 @@ struct SimulationManager
     void SetupEnvironment();
     void CollectSamples(int samples, bool logMeasures = false, bool logActualState = false);
     void SearchStates(int iterations, bool logActualState = false);
+
+    // COMMANDS
+    void select_scenario(const char *ctx);
+    void perform_number_regeneration(const char *ctx);
+    void search_states(const char *ctx);
 };
 
 struct BaseScenario

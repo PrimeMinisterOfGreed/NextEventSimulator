@@ -1,7 +1,7 @@
 {
       "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
       "clangd.arguments": [
-            "--compile-commands-dir=/home/drfaust/Scrivania/uni/Magistrale/SIMMOD/exercises/simulator/build/Debug"
+            "--compile-commands-dir=./build/Debug"
       ],
       "files.associations": {
             "cmath": "cpp",

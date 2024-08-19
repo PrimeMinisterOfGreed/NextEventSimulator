@@ -3,6 +3,7 @@
 #include "Enums.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
+#include "LogEngine.hpp"
 #include "Measure.hpp"
 #include "MvaSolver.hpp"
 #include "OperativeSystem.hpp"
@@ -27,6 +28,161 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+// region COMMANDS
+void list_stats(OS *os, TraceSource &logger, const char *c)
+{
+    char buffer[32]{};
+    std::istringstream read{c};
+    read >> buffer;
+    if (strlen(buffer) == 0)
+    {
+        for (auto s : os->GetStations())
+        {
+            os->Sync();
+            logger.Result("S:{},B:{},O:{},A:{},C:{},N:{},W:{},MAXN:{},AN:{},AS:{}", s->Name(), s->busyTime(),
+                          s->observation(), s->arrivals(), s->completions(), s->sysClients(), s->avg_waiting(),
+                          s->max_sys_clients(), s->areaN(), s->areaS());
+        }
+    }
+    else
+    {
+        std::string statName{buffer};
+        auto ref = os->GetStation(statName);
+        if (!ref.has_value())
+        {
+            logger.Exception("Station : {} not found", statName);
+            return;
+        }
+        auto stat = ref.value();
+        logger.Result("Station:{} \n Arrivals:{}\n Completions:{} \n Throughput:{} \n Utilization:{} \n "
+                      "Avg_serviceTime:{} \n "
+                      "Avg_Delay:{}\n Avg_interarrival:{} \n Avg_waiting:{} \n ",
+                      stat->Name(), stat->arrivals(), stat->completions(), stat->throughput(), stat->utilization(),
+                      stat->avg_serviceTime(), stat->avg_delay(), stat->avg_interArrival(), stat->avg_waiting());
+    }
+}
+
+void show_queue(OS *os, TraceSource &logger)
+{
+    logger.Result("Scheduler Queue:{}", os->EventQueue());
+    for (auto s : os->GetStations())
+    {
+        auto p = std::dynamic_pointer_cast<IQueueHolder>(s);
+        if (p != nullptr)
+        {
+            logger.Result("Queue {}: {}", s->Name(), p->GetEventList());
+        }
+    }
+}
+
+void group_cycles(const char *c)
+{
+    auto stream = std::stringstream(c);
+    char buffer[16]{};
+    stream >> buffer;
+    int group = atoi(buffer);
+    SystemParameters::Parameters().groupRegCycle = group > 0 ? group : 1;
+}
+
+void attach(const char *context, SimulationShell *shell, bool arrival, OS *os, TraceSource &logger)
+{
+    char buffer[36]{};
+    std::stringstream read{context};
+    read >> buffer;
+    if (strlen(buffer) == 0)
+        shell->Log()->Exception("Must select a station to let the event arrive");
+    std::string stat{buffer};
+    memset(buffer, 0, sizeof(buffer));
+    read >> buffer;
+    bool end = false;
+    if (strlen(buffer) == 0)
+    {
+        // first event to arrive
+        if (arrival)
+            os->GetStation(stat).value()->OnArrivalOnce([&end](auto s, auto e) { end = true; });
+        else
+            os->GetStation(stat).value()->OnDepartureOnce([&end](auto s, auto e) { end = true; });
+    }
+    else
+    {
+        std::string capName{buffer};
+        if (arrival)
+            os->GetStation(stat).value()->OnArrivalOnce([&end, capName](auto s, Event &e) {
+                if (e.Name == capName)
+                {
+                    end = true;
+                }
+            });
+        else
+            os->GetStation(stat).value()->OnDepartureOnce([&end, capName](auto s, Event &e) {
+                if (e.Name == capName)
+                {
+                    end = true;
+                }
+            });
+    }
+    while (!end)
+    {
+        os->Execute();
+    }
+    logger.Information("{} of event detected", arrival ? "Arrival" : "Departure");
+}
+
+void SimulationManager::search_states(const char *ctx)
+{
+    regPoint->SetRules(false);
+    std::stringstream stream{ctx};
+    char buffer[32]{};
+    stream >> buffer;
+    int m = atoi(buffer);
+    SearchStates(m);
+    regPoint->SetRules(true);
+}
+
+void SimulationManager::select_scenario(const char *ctx)
+{
+    char buffer[64]{};
+    std::stringstream read(ctx);
+    read >> buffer;
+    if (strcmp(buffer, "list") == 0)
+    {
+        for (auto s : _scenarios)
+        {
+            fmt::println("Scenario: {}", s->name);
+        }
+    }
+    else
+    {
+        std::string sc{buffer};
+        SetupScenario(sc);
+    }
+}
+
+void SimulationManager::perform_number_regeneration(const char *ctx)
+{
+    char buffer[12]{};
+    std::stringstream stream{ctx};
+    stream >> buffer;
+    int m = 1;
+    if (strlen(buffer) > 0)
+    {
+        m = atoi(buffer);
+    }
+    if (!stream.eof())
+    {
+        stream >> buffer;
+        int log = atoi(buffer);
+        if (log)
+        {
+            CollectSamples(m, true);
+            return;
+        }
+    }
+    CollectSamples(m);
+}
+
+// endregion COMMANDS
 
 void SimulationManager::CollectMeasures()
 {
@@ -103,149 +259,17 @@ void SimulationManager::SetupShell(SimulationShell *shell)
     });
     SystemParameters::Parameters().AddControlCommands(shell);
 
-    shell->AddCommand("lstats", [this](auto s, auto c) {
-        char buffer[32]{};
-        std::istringstream read{c};
-        read >> buffer;
-        if (strlen(buffer) == 0)
-        {
-            for (auto s : os->GetStations())
-            {
-                os->Sync();
-                logger.Result("S:{},B:{},O:{},A:{},C:{},N:{},W:{},MAXN:{},AN:{},AS:{}", s->Name(), s->busyTime(),
-                              s->observation(), s->arrivals(), s->completions(), s->sysClients(), s->avg_waiting(),
-                              s->max_sys_clients(), s->areaN(), s->areaS());
-            }
-        }
-        else
-        {
-            std::string statName{buffer};
-            auto ref = os->GetStation(statName);
-            if (!ref.has_value())
-            {
-                logger.Exception("Station : {} not found", statName);
-                return;
-            }
-            auto stat = ref.value();
-            logger.Result("Station:{} \n Arrivals:{}\n Completions:{} \n Throughput:{} \n Utilization:{} \n "
-                          "Avg_serviceTime:{} \n "
-                          "Avg_Delay:{}\n Avg_interarrival:{} \n Avg_waiting:{} \n ",
-                          stat->Name(), stat->arrivals(), stat->completions(), stat->throughput(), stat->utilization(),
-                          stat->avg_serviceTime(), stat->avg_delay(), stat->avg_interArrival(), stat->avg_waiting());
-        }
-    });
-    shell->AddCommand("lqueue", [this](auto s, auto c) {
-        logger.Result("Scheduler Queue:{}", os->EventQueue());
-        for (auto s : os->GetStations())
-        {
-            auto p = std::dynamic_pointer_cast<IQueueHolder>(s);
-            if (p != nullptr)
-            {
-                logger.Result("Queue {}: {}", s->Name(), p->GetEventList());
-            }
-        }
-    });
-    shell->AddCommand("group", [](auto s, auto c){
-        auto stream = std::stringstream(c);
-        char buffer[16]{};
-        stream >> buffer;
-        int group = atoi(buffer);
-        SystemParameters::Parameters().groupRegCycle = group>0?group:1;
-    });
-    shell->AddCommand("scenario", [this](SimulationShell *shell, const char *ctx) {
-        char buffer[64]{};
-        std::stringstream read(ctx);
-        read >> buffer;
-        if (strcmp(buffer, "list") == 0)
-        {
-            for (auto s : _scenarios)
-            {
-                fmt::println("Scenario: {}", s->name);
-            }
-        }
-        else
-        {
-            std::string sc{buffer};
-            SetupScenario(sc);
-        }
-    });
+    shell->AddCommand("lstats", [this](auto s, auto c) { list_stats(os.get(), logger, c); });
+    shell->AddCommand("lqueue", [this](auto s, auto c) { show_queue(os.get(), logger); });
+    shell->AddCommand("group", [](auto s, auto c) { group_cycles(c); });
+    shell->AddCommand("scenario", [this](SimulationShell *shell, const char *ctx) { this->select_scenario(ctx); });
+    shell->AddCommand("sreset", [&](auto... ns) { this->results.Reset(); });
+    shell->AddCommand("nr", [this](SimulationShell *shell, auto ctx) { perform_number_regeneration(ctx); });
 
-    shell->AddCommand("nr", [this](SimulationShell *shell, auto ctx) {
-        char buffer[12]{};
-        std::stringstream stream{ctx};
-        stream >> buffer;
-        int m = 1;
-        if (strlen(buffer) > 0)
-        {
-            m = atoi(buffer);
-        }
-        if (!stream.eof())
-        {
-            stream >> buffer;
-            int log = atoi(buffer);
-            if (log)
-            {
-                CollectSamples(m, true);
-                return;
-            }
-        }
-        CollectSamples(m);
-    });
-
-    auto l = [this](SimulationShell *shell, const char *context, bool arrival) {
-        char buffer[36]{};
-        std::stringstream read{context};
-        read >> buffer;
-        if (strlen(buffer) == 0)
-            shell->Log()->Exception("Must select a station to let the event arrive");
-        std::string stat{buffer};
-        memset(buffer, 0, sizeof(buffer));
-        read >> buffer;
-        bool end = false;
-        if (strlen(buffer) == 0)
-        {
-            // first event to arrive
-            if (arrival)
-                os->GetStation(stat).value()->OnArrivalOnce([&end](auto s, auto e) { end = true; });
-            else
-                os->GetStation(stat).value()->OnDepartureOnce([&end](auto s, auto e) { end = true; });
-        }
-        else
-        {
-            std::string capName{buffer};
-            if (arrival)
-                os->GetStation(stat).value()->OnArrivalOnce([&end, capName](auto s, Event &e) {
-                    if (e.Name == capName)
-                    {
-                        end = true;
-                    }
-                });
-            else
-                os->GetStation(stat).value()->OnDepartureOnce([&end, capName](auto s, Event &e) {
-                    if (e.Name == capName)
-                    {
-                        end = true;
-                    }
-                });
-        }
-        while (!end)
-        {
-            os->Execute();
-        }
-        logger.Information("{} of event detected", arrival ? "Arrival" : "Departure");
-    };
-
-    shell->AddCommand("na", [this, l](SimulationShell *shell, const char *context) { l(shell, context, true); });
-    shell->AddCommand("nd", [l](auto s, auto ctx) { l(s, ctx, false); });
-    shell->AddCommand("ns", [this](SimulationShell *shell, const char *ctx) {
-        regPoint->SetRules(false);
-        std::stringstream stream{ctx};
-        char buffer[32]{};
-        stream >> buffer;
-        int m = atoi(buffer);
-        SearchStates(m);
-        regPoint->SetRules(true);
-    });
+    shell->AddCommand(
+        "na", [&](SimulationShell *shell, const char *context) { attach(context, shell, true, os.get(), logger); });
+    shell->AddCommand("nd", [&](auto s, auto ctx) { attach(ctx, s, true, os.get(), logger); });
+    shell->AddCommand("ns", [this](SimulationShell *shell, const char *ctx) { search_states(ctx); });
     results.AddShellCommands(shell);
 };
 

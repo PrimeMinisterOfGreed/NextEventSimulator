@@ -27,7 +27,7 @@ void AddClientConditionRule(RegenerationPoint *reg, std::vector<std::pair<std::s
         });
     }
 
-    //add regroup rule
+    // add regroup rule
     reg->AddRule([](auto r) {
         static int iterations = 0;
         iterations++;
@@ -69,7 +69,7 @@ SCENARIO(Default) // first request
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
 
     AddClientConditionRule(regPoint.get(),
-                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 2}, {"RESERVE_STATION", 8}});
 };
 
 SCENARIO(NegExpCpu) // second request
@@ -113,32 +113,7 @@ SCENARIO(NegExpLt) // last request
                            {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
 }
 
-SCENARIO(Markov_10_NegExp)
-{
-    auto &params = SystemParameters::Parameters();
-    params.cpuQuantum = 3;
-    params.multiProgrammingDegree = 1000;
-    params.numclients = 10;
-    // params.u1 = 15;
-    // params.u2 = 75;
-    // params.alpha = 0.8;
-    params.averageSwapIn = 0;
-    // params.beta = 0.2;
-    params.u1 = 27;
-    params.u2 = 27;
-    params.alpha = 0.5;
-    params.beta = 0.5;
-    params.burstMode = SystemParameters::FIXED;
-    params.slicemode = SystemParameters::NEG_EXP;
-    auto &regPoint = manager->regPoint;
-    manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
-
-    // first CPU must have 0 clients because is hyperexp
-    AddClientConditionRule(regPoint.get(),
-                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 16}, {"delay_station", 3}, {"RESERVE_STATION", 0}});
-}
-
-SCENARIO(Markov_10)
+SCENARIO(Markov_20)
 {
     auto &params = SystemParameters::Parameters();
     params.cpuQuantum = 3;
