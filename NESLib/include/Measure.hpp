@@ -294,7 +294,7 @@ template <> struct fmt::formatter<Accumulator<>>
         return itr;
     }
 
-    auto format(Accumulator<> &m, format_context &ctx) -> format_context::iterator
+    auto format(Accumulator<> m, format_context &ctx) const -> format_context::iterator
     {
 
         if (strcmp(mode, "csv") == 0)
@@ -419,7 +419,7 @@ template <int Esemble> struct fmt::formatter<EsembledMeasure<Esemble>>
         return ctx.begin();
     }
 
-    auto format(EsembledMeasure<Esemble> &m, format_context &ctx) -> format_context::iterator
+    auto format( EsembledMeasure<Esemble> m, format_context &ctx) const -> format_context::iterator
     {
         format_context::iterator it = fmt::format_to(ctx.out(), "Measure:{},unit:{} ########\n", m.Name(), m.Unit());
         for (int i = 0; i < Esemble; i++)
@@ -429,6 +429,20 @@ template <int Esemble> struct fmt::formatter<EsembledMeasure<Esemble>>
         return it;
     }
 };
+
+
+class MobileMeanMeasure : BaseMeasure
+{
+    std::vector<double> _means;
+    std::vector<double> _buffer;
+    int _meansPtr;
+    int _bufferPtr;
+  public:
+    void push(double value);
+    double epsilon() const;
+    MobileMeanMeasure(int bufferSize, int maxMeans);
+};
+
 
 struct CovariatedMeasure : BaseMeasure
 {

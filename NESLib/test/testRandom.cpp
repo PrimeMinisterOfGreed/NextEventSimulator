@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <gtest/gtest.h>
 #include <stdio.h>
 #include <vector>

@@ -4,8 +4,10 @@
 #include "LogEngine.hpp"
 #include "Measure.hpp"
 #include "Station.hpp"
+#include "rngs.hpp"
 #include "TestEnv.hpp"
 #include "gtest/gtest.h"
+#include <fmt/base.h>
 #include <fmt/core.h>
 #include <memory>
 
@@ -34,3 +36,15 @@ TEST(TestStation, test_fcfs_arrival)
     ASSERT_EQ(2, stat->GetEventList().Count());
 }
 
+
+
+TEST(TestMeasure, test_mobile_mean){
+    MobileMeanMeasure measure{10,5};
+    auto& stream = RandomStream::Global();
+    stream.PlantSeeds(123456789);
+    stream.SelectStream(1);
+    for(int i = 0; i < 100; i++){
+        measure.push(stream.Random());
+    }
+    fmt::print("epsilon:{}", measure.epsilon());
+}

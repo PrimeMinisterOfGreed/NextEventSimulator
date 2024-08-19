@@ -63,3 +63,40 @@ int CovariatedMeasure::SampleNeedsForPrecision()
     auto b = R() * _precision;
     return floor(pow(a / b, 2));
 }
+
+
+void MobileMeanMeasure::push(double value)
+{
+    _buffer[_bufferPtr] = value;
+    if (_bufferPtr == _buffer.size() - 1)
+    {
+        double mean = 0;
+        // calculate mean in _buffer
+
+        for (auto it = _buffer.begin(); it != _buffer.end(); ++it)
+        {
+            mean += *it;
+        }
+        mean /= _buffer.size();
+        // push mean in _means
+        _means[_meansPtr] = mean;
+        _meansPtr = (_meansPtr + 1) % _means.size();
+        _bufferPtr = 0;
+    }
+    else
+    {
+        _bufferPtr++;
+    }
+}
+
+double MobileMeanMeasure::epsilon() const
+{
+    double u1 = _means[(_meansPtr-2)%_means.size()];
+    double u2 = _means[(_meansPtr-1)%_means.size()];
+    return u1-u2;
+}
+
+MobileMeanMeasure::MobileMeanMeasure(int bufferSize, int maxMeans)
+    : _means(bufferSize), _buffer(maxMeans), _bufferPtr(), _meansPtr(), BaseMeasure("mobilemean", "s")
+{
+}
