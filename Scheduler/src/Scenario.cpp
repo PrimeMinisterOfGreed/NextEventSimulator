@@ -118,7 +118,7 @@ SCENARIO(Markov_20)
     auto &params = SystemParameters::Parameters();
     params.cpuQuantum = 3;
     params.multiProgrammingDegree = 1000;
-    params.numclients = 10;
+    params.numclients = 20;
     params.u1 = 15;
     params.u2 = 75;
     params.burstMode = SystemParameters::FIXED;

@@ -26,9 +26,9 @@ void CovariatedMeasure::Accumulate(double value, double time)
     _current[0] = value;
     _current[1] = time;
     _sum[0] += value;
-    _sum[1] += value*value;
+    _sum[1] += value * value;
     _times[0] += time;
-    _times[1] += time*time;
+    _times[1] += time * time;
     _weightedsum += (value * time);
 }
 
@@ -39,9 +39,9 @@ double CovariatedMeasure::R() const
 
 double CovariatedMeasure::variance() const
 {
-    auto mean = _sum[0]/_count;
-    auto a = _sum[1]- (_count*pow(mean,2));
-    return a*(1.0/(_count-1));
+
+    auto a = _sum[1] - 2 * R() * _weightedsum + pow(R(), 2) * _times[1];
+    return a * (1.0 / (_count - 1));
 }
 
 Interval CovariatedMeasure::confidence() const
@@ -63,7 +63,6 @@ int CovariatedMeasure::SampleNeedsForPrecision()
     auto b = R() * _precision;
     return floor(pow(a / b, 2));
 }
-
 
 void MobileMeanMeasure::push(double value)
 {
@@ -89,11 +88,15 @@ void MobileMeanMeasure::push(double value)
     }
 }
 
-double MobileMeanMeasure::epsilon() const
+double MobileMeanMeasure::delta() const
 {
-    double u1 = _means[(_meansPtr-2)%_means.size()];
-    double u2 = _means[(_meansPtr-1)%_means.size()];
-    return u1-u2;
+    double u1 = _means[(_meansPtr - 2) % _means.size()];
+    double u2 = _means[(_meansPtr - 1) % _means.size()];
+    if (u1 == 0 && u2 == 0)
+    {
+        return HUGE_VAL;
+    }
+    return u1 - u2;
 }
 
 MobileMeanMeasure::MobileMeanMeasure(int bufferSize, int maxMeans)

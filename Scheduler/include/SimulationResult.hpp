@@ -1,4 +1,5 @@
 #pragma once
+#include "LogEngine.hpp"
 #include "Measure.hpp"
 #include "MvaSolver.hpp"
 #include "Scheduler.hpp"
@@ -7,7 +8,9 @@
 #include "Strategies/TaggedCustomer.hpp"
 #include <fmt/core.h>
 #include <map>
+#include <optional>
 #include <string>
+#include <tuple>
 #include <vector>
 
 struct ConfidenceHits
@@ -59,6 +62,7 @@ struct SimulationResult
     std::map<std::string, ConfidenceHits> _confidenceHits{};
     std::vector<int> seeds;
     TaggedCustomer tgt{};
+    TraceSource _logger;
 
     void CollectResult(int seed);
     SimulationResult();
@@ -66,6 +70,7 @@ struct SimulationResult
     void Reset();
     void Collect(BaseStation *station);
     void CollectCustomMeasure(std::string name, double value, double clock);
+    void CollectActiveTime(double value);
     bool PrecisionReached();
     void LogSimResults();
     void AddPrecisionTarget(std::string name)

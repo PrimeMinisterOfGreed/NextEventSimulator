@@ -95,7 +95,7 @@ void BaseStation::Process(Event &event)
     switch (event.Type)
     {
     case EventType::ARRIVAL:
-        _logger.Information("Arrival:{}", event);
+        _logger.Transfer("Arrival:{}", event);
         for (auto &h : _onArrival)
             h(this, event);
         for (auto &j : _onArrivalOnce)
@@ -110,12 +110,12 @@ void BaseStation::Process(Event &event)
         for (auto &j : _onDepartureOnce)
             j(this, event);
         _onDepartureOnce.clear();
-        _logger.Information("Departure:{}", event);
+        _logger.Transfer("Departure:{}", event);
         break;
     case EventType::NO_EVENT:
         break;
     case EventType::END:
-        _logger.Information("End:{}", event);
+        _logger.Transfer("End:{}", event);
         ProcessEnd(event);
         break;
     case EventType::PROBE:
@@ -135,4 +135,3 @@ Station::Station(std::string name, int station) : BaseStation(name), _stationInd
 void Station::Initialize()
 {
 }
-

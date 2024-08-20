@@ -14,13 +14,13 @@ enum class LogType : int
     EXCEPTION,
     RESULT,
     INFORMATION,
-    TRANSFER,
-    DEBUG
+    DEBUG,
+    TRANSFER
 };
 
 template <> struct fmt::formatter<enum LogType> : formatter<string_view>
 {
-    auto format(const LogType& type, format_context &ctx) const -> format_context::iterator
+    auto format(const LogType &type, format_context &ctx) const -> format_context::iterator
     {
         switch (type)
         {

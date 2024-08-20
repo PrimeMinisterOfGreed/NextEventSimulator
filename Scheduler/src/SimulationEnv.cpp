@@ -198,8 +198,8 @@ void SimulationManager::CollectMeasures()
 
         return results._acc[name][StationStats::meancustomer].R();
     };
-    results._activeTime((activeTime("CPU") + activeTime("IO1") + activeTime("IO2")) /
-                        results._acc["SWAP_IN"][StationStats::throughput].R());
+    results.CollectActiveTime((activeTime("CPU") + activeTime("IO1") + activeTime("IO2")) /
+                              results._acc["SWAP_IN"][StationStats::throughput].R());
 }
 
 void SimulationManager::SetupScenario(std::string name)
@@ -222,7 +222,7 @@ void SimulationManager::SetupScenario(std::string name)
     HReset();
     s->Setup(this);
     regPoint->AddAction([this](RegenerationPoint *point) {
-        // os->Sync();
+        os->Sync();
         CollectMeasures();
         point->scheduler->Reset();
         os->Sync();

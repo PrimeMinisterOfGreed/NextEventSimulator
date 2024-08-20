@@ -10,6 +10,7 @@
 #include <utility>
 struct TaggedCustomer
 {
+    MobileMeanMeasure _transitory{10, 10};
     CovariatedMeasure _mean{"cycleTime", "ms"};
     Accumulator<> _acc{"regTime", "ms"};
     std::optional<std::function<void(Event &)>> _onEntrance;

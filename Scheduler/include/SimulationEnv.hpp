@@ -27,6 +27,7 @@ struct BaseScenario;
 struct SimulationManager
 {
 
+    MobileMeanMeasure _transition{20, 10};
     std::vector<BaseScenario *> _scenarios{};
     BaseScenario *_currScenario;
     std::vector<std::function<void()>> _collectFunctions{};

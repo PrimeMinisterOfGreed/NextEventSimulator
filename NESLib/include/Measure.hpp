@@ -338,7 +338,6 @@ template <int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
     }
 };
 
-
 template <> struct fmt::formatter<BufferedMeasure<>> : fmt::formatter<string_view>
 {
     auto format(BufferedMeasure<> &m, format_context &ctx) -> format_context::iterator
@@ -419,7 +418,7 @@ template <int Esemble> struct fmt::formatter<EsembledMeasure<Esemble>>
         return ctx.begin();
     }
 
-    auto format( EsembledMeasure<Esemble> m, format_context &ctx) const -> format_context::iterator
+    auto format(EsembledMeasure<Esemble> m, format_context &ctx) const -> format_context::iterator
     {
         format_context::iterator it = fmt::format_to(ctx.out(), "Measure:{},unit:{} ########\n", m.Name(), m.Unit());
         for (int i = 0; i < Esemble; i++)
@@ -430,19 +429,18 @@ template <int Esemble> struct fmt::formatter<EsembledMeasure<Esemble>>
     }
 };
 
-
 class MobileMeanMeasure : BaseMeasure
 {
     std::vector<double> _means;
     std::vector<double> _buffer;
     int _meansPtr;
     int _bufferPtr;
+
   public:
     void push(double value);
-    double epsilon() const;
+    double delta() const;
     MobileMeanMeasure(int bufferSize, int maxMeans);
 };
-
 
 struct CovariatedMeasure : BaseMeasure
 {
@@ -534,9 +532,9 @@ template <> struct fmt::formatter<CovariatedMeasure>
         }
         else
         {
-            return fmt::format_to(ctx.out(), "Measure: {}, R: {},LB:{}, HB:{}, Samples:{}, Variance:{} ,Precision:{}",
-                                  m.Name(), m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(),
-                                  m.variance(), m.confidence().precision());
+            return fmt::format_to(ctx.out(), "Measure: {}, R: {},LB:{}, HB:{}, Samples:{} ,Precision:{}", m.Name(),
+                                  m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(),
+                                  m.confidence().precision());
         }
     }
 };

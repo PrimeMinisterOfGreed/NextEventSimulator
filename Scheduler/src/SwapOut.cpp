@@ -16,13 +16,12 @@ void SwapOut::ProcessArrival(Event &evt)
 
 void SwapOut::ProcessDeparture(Event &evt)
 {
-        static Router router(2,{0.6,0.4},{RESERVE_STATION,0});
+    static Router router(2, {0.6, 0.4}, {RESERVE_STATION, 0});
     Station::ProcessDeparture(evt);
     evt.Type = EventType::ARRIVAL;
     evt.OccurTime = _clock;
     evt.Station = router();
-    _logger.Information("Swapping out Process:{} to {}", evt,
-                        evt.Station == RESERVE_STATION ? "Reserve" : "DelayStation");
+    _logger.Transfer("Swapping out Process:{} to {}", evt, evt.Station == RESERVE_STATION ? "Reserve" : "DelayStation");
     _scheduler->Schedule(evt);
 }
 

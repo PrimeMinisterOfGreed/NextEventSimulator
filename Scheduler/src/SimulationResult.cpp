@@ -61,7 +61,7 @@ void SimulationResult::CollectResult(int seed)
     }
 }
 
-SimulationResult::SimulationResult()
+SimulationResult::SimulationResult() : _logger("SimulationResults", 1)
 {
 }
 
@@ -93,7 +93,8 @@ void SimulationResult::AddShellCommands(SimulationShell *shell)
         stream >> buffer;
         if (station == "ActiveTime")
         {
-            fmt::println("ActiveTime;{:csv};{}",tgt._mean,mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+            fmt::println("ActiveTime;{:csv};{}", tgt._mean,
+                         mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
             return;
         }
         auto measure = std::string(buffer);
@@ -118,7 +119,14 @@ void SimulationResult::Reset()
 
 void SimulationResult::Collect(BaseStation *station)
 {
-    _acc[station->Name()].Collect(station);
+    if (tgt._transitory.delta() <= 0.1)
+        _acc[station->Name()].Collect(station);
+}
+
+void SimulationResult::CollectActiveTime(double value)
+{
+    if (tgt._transitory.delta() <= 0.1)
+        _activeTime.Accumulate(value);
 }
 
 bool SimulationResult::PrecisionReached()
@@ -222,10 +230,10 @@ bool StationStats::Ready()
 void StationStats::Collect(BaseStation *station)
 {
     auto &self = *this;
-    //self[throughput](station->completions(), station->clock() - self[throughput].times());
-    //self[utilization](station->busyTime(), station->clock() - self[utilization].times());
+    // self[throughput](station->completions(), station->clock() - self[throughput].times());
+    // self[utilization](station->busyTime(), station->clock() - self[utilization].times());
     self[meanwait](station->areaN(), station->completions());
-    self[meancustomer](station->areaN(), station->clock() - self[meancustomer].times());
+    self[meancustomer](station->areaN(), station->observation());
 }
 
 StationStats::StationStats()
