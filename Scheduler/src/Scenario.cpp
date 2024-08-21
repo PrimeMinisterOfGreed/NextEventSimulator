@@ -55,7 +55,7 @@ SCENARIO(Simplified_N20)
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
     // NDelay:3, NReserve:0, NSwap:0, NCPU:0, NIO1:0, NIO2:16,NOUT:0, hits:24
     AddClientConditionRule(regPoint.get(),
-                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 15}, {"delay_station", 4}, {"RESERVE_STATION", 0}});
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 16}, {"delay_station", 3}, {"RESERVE_STATION", 0}});
 }
 
 SCENARIO(Default) // first request
@@ -85,7 +85,7 @@ SCENARIO(NegExpCpu) // second request
     auto &regPoint = manager->regPoint;
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
     AddClientConditionRule(regPoint.get(),
-                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 2}, {"RESERVE_STATION", 8}});
 }
 
 SCENARIO(LTCpu) // third request
@@ -97,7 +97,7 @@ SCENARIO(LTCpu) // third request
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
 
     AddClientConditionRule(regPoint.get(),
-                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 2}, {"RESERVE_STATION", 8}});
 }
 
 SCENARIO(NegExpLt) // last request
@@ -110,7 +110,7 @@ SCENARIO(NegExpLt) // last request
     params.u2 = 27;
     auto &regPoint = manager->regPoint;
     AddClientConditionRule(regPoint.get(),
-                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 3}, {"RESERVE_STATION", 7}});
+                           {{"CPU", 0}, {"IO1", 0}, {"IO2", 9}, {"delay_station", 2}, {"RESERVE_STATION", 8}});
 }
 
 SCENARIO(Markov_20)

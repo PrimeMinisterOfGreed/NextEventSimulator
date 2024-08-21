@@ -209,7 +209,7 @@ In order to choose the regeneration point, it's possible to run some pilot simul
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
-Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. 
+Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. So the regeneration point will be the state in which 2 clients are in being served at the delay station, 8 are at the reserve station , the swap in , the cpu and the IO1 are empty and the IO2 has 9 clients.
 
 
 
@@ -229,15 +229,14 @@ Legend for Plots:
 \end{itemize}
 
 \subsection{Default scenario}
-In the default scenario despite having 20 clients the active part of the system has never more then 10 clients.
+In the default scenario the MPD is activated and all the parameters are left untouched. This means that also if there are 20 clients in the system , in the active part only 10 will be admitted because the reserve station will prevent them to go any further, until a process will exit from the swap out.
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_Default.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanclients.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanwaits.png}
 
-this is possible because the Reserve Station is limiting the number of clients that can be present in the active part of the system. Thus reducing the size of the queues in the system. If this station wasn't present, then probably the system would experience trashing, due to the high service time of IO2.
-
+This will reduce the size of the queues in the system, 
 \begin{table}[!ht]
     \centering
     \begin{tabular}{|l|l|l|l|l|l|l|l|}
@@ -255,6 +254,170 @@ this is possible because the Reserve Station is limiting the number of clients t
     \end{tabular}
 \end{table}
 In this table is noticeable that the mean size of the bottleneck station (IO2) is half than expected and then is not going in saturation. 
+
+\subsubsection{printout of the first 30 events processed}
+
+\begin{lstlisting}
+[Transfer](OS)Processing:J:11,OC:256.645482,Tp:D,Station:0
+[Transfer](OS)Departure:J:11,OC:256.645482,Tp:D,Station:0
+[Transfer](delay_station)Processing:J:11,OC:256.645482,Tp:D,Station:0
+[Transfer](OS)Scheduling:J:11,OC:256.645482,Tp:A,Station:1
+[Transfer](delay_station)Departure:J:11,OC:256.645482,Tp:A,Station:1
+[Transfer](OS)Processing:J:11,OC:256.645482,Tp:A,Station:1
+[Transfer](OS)Arrival:J:11,OC:256.645482,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Processing:J:11,OC:256.645482,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Arrival:J:11,OC:256.645482,Tp:A,Station:1
+[Transfer](OS)Scheduling:J:11,OC:256.645482,Tp:A,Station:2
+[Transfer](OS)Processing:J:11,OC:256.645482,Tp:A,Station:2
+[Transfer](OS)Arrival:J:11,OC:256.645482,Tp:A,Station:2
+[Transfer](SWAP_IN)Processing:J:11,OC:256.645482,Tp:A,Station:2
+[Transfer](SWAP_IN)Arrival:J:11,OC:256.645482,Tp:A,Station:2
+[Transfer](OS)Scheduling:J:11,OC:527.927291,Tp:D,Station:2
+[Transfer](OS)Processing:J:3,OC:262.599360,Tp:D,Station:0
+[Transfer](OS)Departure:J:3,OC:262.599360,Tp:D,Station:0
+[Transfer](delay_station)Processing:J:3,OC:262.599360,Tp:D,Station:0
+[Transfer](OS)Scheduling:J:3,OC:262.599360,Tp:A,Station:1
+[Transfer](delay_station)Departure:J:3,OC:262.599360,Tp:A,Station:1
+[Transfer](OS)Processing:J:3,OC:262.599360,Tp:A,Station:1
+[Transfer](OS)Arrival:J:3,OC:262.599360,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Processing:J:3,OC:262.599360,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Arrival:J:3,OC:262.599360,Tp:A,Station:1
+[Transfer](OS)Scheduling:J:3,OC:262.599360,Tp:A,Station:2
+[Transfer](OS)Processing:J:3,OC:262.599360,Tp:A,Station:2
+[Transfer](OS)Arrival:J:3,OC:262.599360,Tp:A,Station:2
+[Transfer](SWAP_IN)Processing:J:3,OC:262.599360,Tp:A,Station:2
+[Transfer](SWAP_IN)Arrival:J:3,OC:262.599360,Tp:A,Station:2
+[Transfer](OS)Processing:J:2,OC:402.334526,Tp:D,Station:0
+[Transfer](OS)Departure:J:2,OC:402.334526,Tp:D,Station:0
+[Transfer](delay_station)Processing:J:2,OC:402.334526,Tp:D,Station:0
+[Transfer](OS)Scheduling:J:2,OC:402.334526,Tp:A,Station:1
+[Transfer](delay_station)Departure:J:2,OC:402.334526,Tp:A,Station:1
+[Transfer](OS)Processing:J:2,OC:402.334526,Tp:A,Station:1
+[Transfer](OS)Arrival:J:2,OC:402.334526,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Processing:J:2,OC:402.334526,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Arrival:J:2,OC:402.334526,Tp:A,Station:1
+[Transfer](OS)Scheduling:J:2,OC:402.334526,Tp:A,Station:2
+[Transfer](OS)Processing:J:2,OC:402.334526,Tp:A,Station:2
+[Transfer](OS)Arrival:J:2,OC:402.334526,Tp:A,Station:2
+[Transfer](SWAP_IN)Processing:J:2,OC:402.334526,Tp:A,Station:2
+[Transfer](SWAP_IN)Arrival:J:2,OC:402.334526,Tp:A,Station:2
+[Transfer](OS)Processing:J:11,OC:527.927291,Tp:D,Station:2
+[Transfer](OS)Departure:J:11,OC:527.927291,Tp:D,Station:2
+[Transfer](SWAP_IN)Processing:J:11,OC:527.927291,Tp:D,Station:2
+[Transfer](OS)Scheduling:J:3,OC:691.351901,Tp:D,Station:2
+[Transfer](OS)Scheduling:J:11,OC:527.927291,Tp:A,Station:3
+[Transfer](SWAP_IN)Departure:J:11,OC:527.927291,Tp:A,Station:3
+[Transfer](OS)Processing:J:11,OC:527.927291,Tp:A,Station:3
+[Transfer](OS)Arrival:J:11,OC:527.927291,Tp:A,Station:3
+[Transfer](CPU)Processing:J:11,OC:527.927291,Tp:A,Station:3
+[Transfer](CPU)Arrival:J:11,OC:527.927291,Tp:A,Station:3
+[Debug](CPU)Assigned burst time 9.490965185472163
+[Transfer](OS)Scheduling:J:11,OC:530.627291,Tp:D,Station:3
+[Transfer](OS)Processing:J:11,OC:530.627291,Tp:D,Station:3
+[Transfer](OS)Departure:J:11,OC:530.627291,Tp:D,Station:3
+[Transfer](CPU)Processing:J:11,OC:530.627291,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:11,OC:533.327291,Tp:D,Station:3
+[Debug](CPU)Managing J:11,OC:533.327291,Tp:D,Station:3 from ready queue, remainig SV time 4.090965185472163
+[Transfer](CPU)Departure:J:11,OC:530.627291,Tp:D,Station:3
+[Transfer](OS)Processing:J:11,OC:533.327291,Tp:D,Station:3
+[Transfer](OS)Departure:J:11,OC:533.327291,Tp:D,Station:3
+[Transfer](CPU)Processing:J:11,OC:533.327291,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:11,OC:536.027291,Tp:D,Station:3
+[Debug](CPU)Managing J:11,OC:536.027291,Tp:D,Station:3 from ready queue, remainig SV time 1.3909651854721625
+[Transfer](CPU)Departure:J:11,OC:533.327291,Tp:D,Station:3
+[Transfer](OS)Processing:J:11,OC:536.027291,Tp:D,Station:3
+[Transfer](OS)Departure:J:11,OC:536.027291,Tp:D,Station:3
+[Transfer](CPU)Processing:J:11,OC:536.027291,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:11,OC:537.418256,Tp:D,Station:3
+[Debug](CPU)Managing J:11,OC:537.418256,Tp:D,Station:3 from ready queue, remainig SV time 0
+[Transfer](CPU)Departure:J:11,OC:536.027291,Tp:D,Station:3
+[Transfer](OS)Processing:J:11,OC:537.418256,Tp:D,Station:3
+[Transfer](OS)Departure:J:11,OC:537.418256,Tp:D,Station:3
+[Transfer](CPU)Processing:J:11,OC:537.418256,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:11,OC:537.418256,Tp:A,Station:5
+[Transfer](CPU)Departure:J:11,OC:537.418256,Tp:A,Station:5
+[Transfer](OS)Processing:J:11,OC:537.418256,Tp:A,Station:5
+[Transfer](OS)Arrival:J:11,OC:537.418256,Tp:A,Station:5
+[Transfer](IO2)Processing:J:11,OC:537.418256,Tp:A,Station:5
+[Transfer](IO2)Arrival:J:11,OC:537.418256,Tp:A,Station:5
+[Transfer](OS)Scheduling:J:11,OC:723.327231,Tp:D,Station:5
+[Transfer](OS)Processing:J:6,OC:586.062860,Tp:D,Station:0
+[Transfer](OS)Departure:J:6,OC:586.062860,Tp:D,Station:0
+[Transfer](delay_station)Processing:J:6,OC:586.062860,Tp:D,Station:0
+[Transfer](OS)Scheduling:J:6,OC:586.062860,Tp:A,Station:1
+[Transfer](delay_station)Departure:J:6,OC:586.062860,Tp:A,Station:1
+[Transfer](OS)Processing:J:6,OC:586.062860,Tp:A,Station:1
+[Transfer](OS)Arrival:J:6,OC:586.062860,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Processing:J:6,OC:586.062860,Tp:A,Station:1
+[Transfer](RESERVE_STATION)Arrival:J:6,OC:586.062860,Tp:A,Station:1
+[Transfer](OS)Scheduling:J:6,OC:586.062860,Tp:A,Station:2
+[Transfer](OS)Processing:J:6,OC:586.062860,Tp:A,Station:2
+[Transfer](OS)Arrival:J:6,OC:586.062860,Tp:A,Station:2
+[Transfer](SWAP_IN)Processing:J:6,OC:586.062860,Tp:A,Station:2
+[Transfer](SWAP_IN)Arrival:J:6,OC:586.062860,Tp:A,Station:2
+[Transfer](OS)Processing:J:3,OC:691.351901,Tp:D,Station:2
+[Transfer](OS)Departure:J:3,OC:691.351901,Tp:D,Station:2
+[Transfer](SWAP_IN)Processing:J:3,OC:691.351901,Tp:D,Station:2
+[Transfer](OS)Scheduling:J:2,OC:939.461306,Tp:D,Station:2
+[Transfer](OS)Scheduling:J:3,OC:691.351901,Tp:A,Station:3
+[Transfer](SWAP_IN)Departure:J:3,OC:691.351901,Tp:A,Station:3
+[Transfer](OS)Processing:J:3,OC:691.351901,Tp:A,Station:3
+[Transfer](OS)Arrival:J:3,OC:691.351901,Tp:A,Station:3
+[Transfer](CPU)Processing:J:3,OC:691.351901,Tp:A,Station:3
+[Transfer](CPU)Arrival:J:3,OC:691.351901,Tp:A,Station:3
+[Debug](CPU)Assigned burst time 9.341093139628544
+[Transfer](OS)Scheduling:J:3,OC:694.051901,Tp:D,Station:3
+[Transfer](OS)Processing:J:3,OC:694.051901,Tp:D,Station:3
+[Transfer](OS)Departure:J:3,OC:694.051901,Tp:D,Station:3
+[Transfer](CPU)Processing:J:3,OC:694.051901,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:3,OC:696.751901,Tp:D,Station:3
+[Debug](CPU)Managing J:3,OC:696.751901,Tp:D,Station:3 from ready queue, remainig SV time 3.941093139628544
+[Transfer](CPU)Departure:J:3,OC:694.051901,Tp:D,Station:3
+[Transfer](OS)Processing:J:3,OC:696.751901,Tp:D,Station:3
+[Transfer](OS)Departure:J:3,OC:696.751901,Tp:D,Station:3
+[Transfer](CPU)Processing:J:3,OC:696.751901,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:3,OC:699.451901,Tp:D,Station:3
+[Debug](CPU)Managing J:3,OC:699.451901,Tp:D,Station:3 from ready queue, remainig SV time 1.2410931396285436
+[Transfer](CPU)Departure:J:3,OC:696.751901,Tp:D,Station:3
+[Transfer](OS)Processing:J:3,OC:699.451901,Tp:D,Station:3
+[Transfer](OS)Departure:J:3,OC:699.451901,Tp:D,Station:3
+[Transfer](CPU)Processing:J:3,OC:699.451901,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:3,OC:700.692994,Tp:D,Station:3
+[Debug](CPU)Managing J:3,OC:700.692994,Tp:D,Station:3 from ready queue, remainig SV time 0
+[Transfer](CPU)Departure:J:3,OC:699.451901,Tp:D,Station:3
+[Transfer](OS)Processing:J:3,OC:700.692994,Tp:D,Station:3
+[Transfer](OS)Departure:J:3,OC:700.692994,Tp:D,Station:3
+[Transfer](CPU)Processing:J:3,OC:700.692994,Tp:D,Station:3
+[Transfer](OS)Scheduling:J:3,OC:700.692994,Tp:A,Station:6
+[Transfer](CPU)Departure:J:3,OC:700.692994,Tp:A,Station:6
+[Transfer](OS)Processing:J:3,OC:700.692994,Tp:A,Station:6
+[Transfer](OS)Arrival:J:3,OC:700.692994,Tp:A,Station:6
+[Transfer](SWAP_OUT)Processing:J:3,OC:700.692994,Tp:A,Station:6
+[Transfer](SWAP_OUT)Arrival:J:3,OC:700.692994,Tp:A,Station:6
+[Transfer](OS)Scheduling:J:3,OC:700.692994,Tp:D,Station:6
+[Transfer](OS)Processing:J:3,OC:700.692994,Tp:D,Station:6
+[Transfer](OS)Departure:J:3,OC:700.692994,Tp:D,Station:6
+[Transfer](SWAP_OUT)Processing:J:3,OC:700.692994,Tp:D,Station:6
+[Transfer](SWAP_OUT)Swapping out Process:J:3,OC:700.692994,Tp:A,Station:0 to DelayStation
+[Transfer](OS)Scheduling:J:3,OC:700.692994,Tp:A,Station:0
+[Transfer](SWAP_OUT)Departure:J:3,OC:700.692994,Tp:A,Station:0
+[Transfer](OS)Processing:J:3,OC:700.692994,Tp:A,Station:0
+[Transfer](OS)Arrival:J:3,OC:700.692994,Tp:A,Station:0
+[Transfer](delay_station)Processing:J:3,OC:700.692994,Tp:A,Station:0
+[Transfer](delay_station)Arrival:J:3,OC:700.692994,Tp:A,Station:0
+[Transfer](OS)Scheduling:J:3,OC:15948.345652,Tp:D,Station:0
+[Transfer](OS)Processing:J:11,OC:723.327231,Tp:D,Station:5
+[Transfer](OS)Departure:J:11,OC:723.327231,Tp:D,Station:5
+[Transfer](IO2)Processing:J:11,OC:723.327231,Tp:D,Station:5
+[Transfer](OS)Scheduling:J:11,OC:723.327231,Tp:A,Station:3
+[Transfer](IO2)Departure:J:11,OC:723.327231,Tp:A,Station:3
+[Transfer](OS)Processing:J:11,OC:723.327231,Tp:A,Station:3
+[Transfer](OS)Arrival:J:11,OC:723.327231,Tp:A,Station:3
+[Transfer](CPU)Processing:J:11,OC:723.327231,Tp:A,Station:3
+[Transfer](CPU)Arrival:J:11,OC:723.327231,Tp:A,Station:3
+[Debug](CPU)Assigned burst time 32.77313247192449
+[Transfer](OS)Scheduling:J:11,OC:726.027231,Tp:D,Station:3
+\end{lstlisting}
 
 \subsection{Negative Exponential scenario}
 
@@ -346,6 +509,8 @@ In this scenario the time slice is set to a very high value, but burst times are
 \end{table}
 
 The active times are slightly higher then the non LT cases, but lower that the previous case.
+
+
 
 \subsection{Conclusion}
 The Worst case is the case when the system has a very high time slice and a hyper exponential distribution of the service times, that is equivalent to disable the time slice mechanism in a real OS, where process are divided into long term (batch) execution and short term (foreground) processes. The major consequences of this actions would be an increasing in the response times, that translate in lack of responsiveness when the user is trying to actively use the system. This happen because the time slice mechanism has the 2 responsibility: A) let the CPU do more thing at the same time (or give the impression that is doing that), B) let the processes that requires less time to be processed or that are requesting resources from the IO to be processed also when processes with larger execution times are present in the queue. Without the time slice mechanism i would not be able to type on the computer and have a feedback in a decent time, then my understanding would be that the system is unusable. 
@@ -587,7 +752,11 @@ def __init__(self, head: State, tail : State) -> None:
     pass
 \end{lstlisting}
 
+\pagebreak
+
 Not all possible edges in the graph are valid, so it is necessary to impose some constraints accepted ones. Since the chain is a directed graph let's give some definitions, the head of an edge is the actual state considered, the tail is the destination of the transition. Fixed those elements a transition is valid only if:
+
+
 \begin{itemize}
     \item The tail has one station with less one client than the head 
     \item The tail has one station with more one client than the head 
@@ -602,7 +771,14 @@ in this manner only the node that are one step away are considered.
        pass
     # return diff without last item that is cpu stage
     diff = np.array(self.head.state[:-1]) - np.array(self.tail.state[:-1])
-    return diff.max() == 1 and diff.min() == -1 and diff.sum() == 0
+    counter = 0
+    # check for one step behavior
+    for i in diff:
+       if abs(i) > 0:
+          counter+=1
+       pass
+    if counter > 2: return False
+    return diff.max() == 1 and diff.min() == -1 and diff.sum() == 0 
 \end{lstlisting}
 
 At this point is possible to define the type of the transition simply by observing what station decremented its customer and the one that increased. A transition will be than of type: 
@@ -712,7 +888,8 @@ All the transition may be described then as:
        return self.CpuL()*SystemParameters.qoutd
         
     def CpuToSelf(self):
-       return self.CpuL()*SystemParameters.qouts
+    return 1/self.cpu_leave() * self.cpu_on_leave_stage_selector() *Params.qouts + 1/Params.timeSlice*self.cpu_on_leave_stage_selector()*self.cpu_on_arrive_stage_selector()
+
         
     def IoToCpu(self):
        l = 1
@@ -848,14 +1025,14 @@ Now in order to validate the model, is possible to introduce some small modifica
        meanClients = mvaToDataframe(mva.meanclients)
 \end{lstlisting}
 \pagebreak
-Then is possible to set the parameters $u_1=u_2=27$ and $\alpha=\beta=0.5$, so the hyper exponential distribution of the CPU will decade to a negative exponential and the model become comparable with MVA. 
+Then is possible to set the parameters $u_1=u_2=27$, so the hyper exponential distribution of the CPU will decade to a negative exponential and the model become comparable with MVA. Running the program give this output , where in the left column are listed the measure calculated using the markov chain and at right (labeled as expected) there are the values calculated with MVA. 
 
 \begin{verbatim}
 Values calculated with 20 clients:
-Ndelay 4.438722522557087 Expected 4.438722599034795
-Ncpu 1.484271926654976 Expected 1.4842718857968777
-Nio1 1.3563025397011728 Expected 1.3563025143771892
-Nio2 12.72070301108653 Expected 12.720703000791138
+Ndelay 4.438583915356682 Expected 4.438722599034795
+Ncpu 1.4842782312774234 Expected 1.4842718857968777
+Nio1 1.3563127132526536 Expected 1.3563025143771892
+Nio2 12.720825140111968 Expected 12.720703000791138
 \end{verbatim}
 
 Where expected are the values returned by MVA for the same measure. Now using instead the parameters given with a real hyper exponential the values obtained are 
@@ -869,7 +1046,7 @@ Nio2 12.243004107406223
 
 that can be compared with the results provided by the simulator. Here the HB is the Higher bound of the estimated interval, LB the lower bound ,R the point estimator and expected is the value calculated from the markov chain.
 
-
+\includegraphics[width=0.9\textwidth]{./Images/Markov_20.png}
 
 
 \section{Simulator description}

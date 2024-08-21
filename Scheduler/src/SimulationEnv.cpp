@@ -283,7 +283,7 @@ void SimulationManager::CollectSamples(int samples, bool logMeasures, bool logAc
             os->Execute();
         }
         logger.Information("Collected {} samples (RegPoint end)", i);
-        if (logMeasures)
+        if (logMeasures && !results.IsTransitoryPeriod())
         {
             for (auto tg : results._precisionTargets)
             {

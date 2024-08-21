@@ -160,6 +160,11 @@ void SimulationResult::LogSimResults()
     }
 }
 
+bool SimulationResult::IsTransitoryPeriod()
+{
+    return this->tgt._transitory.delta() > 0.1;
+}
+
 void SimulationResult::LogResult(std::string name)
 {
     if (name == "ALL")
