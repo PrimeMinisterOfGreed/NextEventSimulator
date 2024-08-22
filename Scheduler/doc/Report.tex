@@ -209,7 +209,7 @@ In order to choose the regeneration point, it's possible to run some pilot simul
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
-Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. So the regeneration point will be the state in which 2 clients are in being served at the delay station, 8 are at the reserve station , the swap in , the cpu and the IO1 are empty and the IO2 has 9 clients.
+Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. The last state in the output that is the state in which  the swap in , the cpu and the IO1 are empty, 2 clients are in being served at the delay station, 8 are at the reserve station  and 9 clients are at the IO2 , is hit 1 time every 66,6 passage of the tagged customer at the swap out, some trials revealed that this state was good enough to provide measures with precision lower that 0.05 (with a confidence of 0.9) if used as a regeneration point, and so be it.
 
 
 
@@ -229,14 +229,15 @@ Legend for Plots:
 \end{itemize}
 
 \subsection{Default scenario}
-In the default scenario the MPD is activated and all the parameters are left untouched. This means that also if there are 20 clients in the system , in the active part only 10 will be admitted because the reserve station will prevent them to go any further, until a process will exit from the swap out.
+The default scenario leave the parameter untouched, so the Multi Programming Degree will be 10 and the number of clients in the system 20.
+
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_Default.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanclients.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanwaits.png}
 
-This will reduce the size of the queues in the system, 
+
 \begin{table}[!ht]
     \centering
     \begin{tabular}{|l|l|l|l|l|l|l|l|}
@@ -253,8 +254,10 @@ This will reduce the size of the queues in the system,
         ActiveTime & cycleTime & 4082.56087 & 3880.03462 & 4285.08711 & 154 & 0.04961 & 6630.26191 \\ \hline
     \end{tabular}
 \end{table}
-In this table is noticeable that the mean size of the bottleneck station (IO2) is half than expected and then is not going in saturation. 
 
+In the table it's possible to read the measure retrieved, along with point estimation (R) , the confidence interval (HB = Higher Bound and LB = lower bound), the Precision and the expected value calculated by the MVA algorithm. By a first look is immediately clear that the system performs better than expected by MVA, this is possible because MVA know nothing about the reserve station, that is holding some processes for being accepted in to the system. Thus reducing the mean clients per queue in the active part of the system and so lowering the response time that each process experience.
+
+\pagebreak
 \subsubsection{printout of the first 30 events processed}
 
 \begin{lstlisting}
@@ -421,7 +424,7 @@ In this table is noticeable that the mean size of the bottleneck station (IO2) i
 
 \subsection{Negative Exponential scenario}
 
-In the negative exponential scenario the performance are comparable to the previous one. This is expected since the mean time of the hyper exponential distribution is 27. 
+In this scenario the hyper exponential distribution used for generate the service times of the processes in the CPU is replaced by a negative exponential one with mean 27 ms. 
 
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_NegExp.png}
 
@@ -447,10 +450,12 @@ In the negative exponential scenario the performance are comparable to the previ
     \end{tabular}
 \end{table}
 
+This scene is typical of certain batch systems, for example a login server whose only job is to get credentials , verify it with a database and return a login response, each client require more or less the same time to be processed. In this case the Reserve Station and the time slice in the CPU are continuing to do their job, thus the performance obtained are pretty much the same of the previous case with an hyper exponential distribution.
+
 
 \subsection{LTCpu scenario}
 
-In this scenario the slice time is very high, since the hyper exponential distribution sometimes gives service times with high values, those clients can remain in processing for a long time. As a result the CPU queue tend to grow because the clients remains in the station for a much longer time, this means higher waiting times and higher mean queue length.
+In this case the CPU quantum (time slice) has a very high value of 2700 ms, in practice is disabled and is not working anymore. This scene would happen for example if the kernel of the operative system is compiled with the preemption feature disabled, this is equivalent to change the policy of the CPU from round robin to First Come First Served.
 
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_LTCpu.png}
 
@@ -478,7 +483,8 @@ In this scenario the slice time is very high, since the hyper exponential distri
     \end{tabular}
 \end{table}
 
-The result of this behavior is that the mean active times tend to be higher than the previous cases.
+Without the time slice neither the response time of the system nor the mean clients at the other peripherals change much, just the response time increase a bit, the same is not true for the CPU, that is experiencing a drastic reduction of its performance. The main feature of the time slice is that it let the processes with a tiny service time to free the queue almost immediately, and they are the prevalent part of the processes in this situation in which the distribution is hyper exponential (because of the weights imposed by the problem 0.95 for 10 ms and 0.05 for 350 ms). Thus whenever a process with a large service time is processed by the CPU, it is occupied for all the duration of that process, then all the new processes that are enqueued will not be delivered until the one in process has terminated its service time, this means a drastic increase in the mean quantity of clients that are enqueued at the CPU.
+
 
 \subsection{NegExpLT Scenario}
 
