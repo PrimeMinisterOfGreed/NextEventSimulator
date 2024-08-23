@@ -211,6 +211,8 @@ In order to choose the regeneration point, it's possible to run some pilot simul
 \end{verbatim}
 Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. The last state in the output that is the state in which  the swap in , the cpu and the IO1 are empty, 2 clients are in being served at the delay station, 8 are at the reserve station  and 9 clients are at the IO2 , is hit 1 time every 66,6 passage of the tagged customer at the swap out, some trials revealed that this state was good enough to provide measures with precision lower that 0.05 (with a confidence of 0.9) if used as a regeneration point, and so be it.
 
+\subsection{Collection of measures}
+
 
 
 \section{Simulation results}
@@ -455,7 +457,8 @@ This scene is typical of certain batch systems, for example a login server whose
 
 \subsection{LTCpu scenario}
 
-In this case the CPU quantum (time slice) has a very high value of 2700 ms, in practice is disabled and is not working anymore. This scene would happen for example if the kernel of the operative system is compiled with the preemption feature disabled, this is equivalent to change the policy of the CPU from round robin to First Come First Served.
+In this case the CPU quantum (time slice) has a very high value of 2700 ms, in practice is disabled and is not working anymore. This scene would happen for example if the user manage to enqueue process in the FCFS queue of the linux kernel.
+\\
 
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_LTCpu.png}
 
@@ -488,7 +491,7 @@ Without the time slice neither the response time of the system nor the mean clie
 
 \subsection{NegExpLT Scenario}
 
-In this scenario the time slice is set to a very high value, but burst times are distributed with a negative exponential RV with mean 27 ms. So the mean waiting time of customer is naturally higher than the scenarios with a time slice of 2.7 ms, but no queue tend to form in front of the station since there are no customers with very high service time.
+Also in this case, the cpu quantum is very high, so the preemption is disabled. But the service time of the CPU is a random variable with negative exponential distribution instead of an hyper exponential one.
 
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_NegExpLt.png}
 
@@ -514,16 +517,18 @@ In this scenario the time slice is set to a very high value, but burst times are
     \end{tabular}
 \end{table}
 
-The active times are slightly higher then the non LT cases, but lower that the previous case.
+Thus the CPU became an FCFS policy station, but the variability of the service times is much lower, in fact there aren't process with very high service time like in the previous case, the result is that the mean clients are comparable to the negative exponential case when using the round robin queue. 
 
 
 
 \subsection{Conclusion}
-The Worst case is the case when the system has a very high time slice and a hyper exponential distribution of the service times, that is equivalent to disable the time slice mechanism in a real OS, where process are divided into long term (batch) execution and short term (foreground) processes. The major consequences of this actions would be an increasing in the response times, that translate in lack of responsiveness when the user is trying to actively use the system. This happen because the time slice mechanism has the 2 responsibility: A) let the CPU do more thing at the same time (or give the impression that is doing that), B) let the processes that requires less time to be processed or that are requesting resources from the IO to be processed also when processes with larger execution times are present in the queue. Without the time slice mechanism i would not be able to type on the computer and have a feedback in a decent time, then my understanding would be that the system is unusable. 
+
+The four cases presented previously simulate the system with 2 different types of jobs (interactive and batch) with 2 types of queues (FCFS and Round Robin). This hypothetical cases are in reality possible in modern operative systems, also if in this simulator there are some simplifications. For example, the CPU doesn't consider in any way the cost (in terms of time) of a context switch, cost that will show that for example the case in which we use an FCFS queue for the CPU with Batch processes could have a slightly better performance that if a Round Robin queue is used in the same situation, because the CPU is avoiding the context switch delay, hoverer usually the context switch time is negligible in moderns CPU since it is orders of magnitude lower respect to the context switch time (nanoseconds vs milliseconds) . In this simulation instead they have comparable performance in terms of mean clients at the CPU, in conclusion the difference in terms of performance when Batch processes (negative exponential distribution of service times at the CPU) are considered is minimal when FCFS queue or Round Robin one are used for the CPU. 
 \\
-In the negative exponential scenarios ,the observable difference is that when the time slice mechanism is present the mean waiting time of customers is significantly lower. This difference is imputable to the fact that in the LT case the CPU discipline became the same as a First Come First Served queue, and then process that could experience a slightly lower execution time must wait for process ahead of them,that might have a slightly higher execution time, to finish their work first.
+A very different situation happen when also interactive processes are considered. In this case the role of the time slice is fundamental for the system to work properly, because when it's disabled the CPU tend to accumulate process in the queue and to strongly increase the waiting times for all those processes, this is due to those process that have an high service time and that must be completed when the CPU has an FCFS queue. This behavior can lead to trashing the system very quickly in case the multi programming degree is increased, the user would enqueue more processes but the throughput tend to lower instead of increasing, demonstrating the importance of the time slice mechanism (the use of the Round Robin queue) when the kernel should manage interactive processes (and so a user interacting with the OS in some way).\\
+Another important aspect is the comparison against MVA, due to its intrinsics nature it cannot take in consideration the presence of the reserve station, this show an important impact that this station is having on the whole system, the reduction of the mean queue in the IO2 (in general in all the peripherals) and the response time of the system that otherwise would be much higher. Thus taking the MPD as a parameter and supposing to increase it ,after having reached the optimal point , the system will lower its throughput as long as the MPD increase, this behavior is known as thrashing.
 \\
-The default and first proposed scenario is the more realistic and efficient one. Since in this case the CPU is virtually managing 2 queues with batch and foreground processes, but using a time slice mechanism. Process experience an average waiting time lower then the Negative exponential scenario because the foreground jobs, which have a very short execution time, will be executed in a short time thanks to the time slice mechanism and since they tend to leave the CPU queue very fast this decrease the number of clients in the queue. On the other hand the average active time is slightly higher than the negative exponential case, principally due to the batch jobs, which can remain a long time in the CPU queue and so experience an high sojourn time in the active part of the system.  
+\includegraphics[width=0.8\textwidth]{data/images/ThrashingDiagram.png}
 
 \section{First validation step}
 \subsection{Bottleneck analysis}
