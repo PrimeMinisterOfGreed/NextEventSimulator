@@ -209,11 +209,31 @@ In order to choose the regeneration point, it's possible to run some pilot simul
     NDelay:3, NReserve:7, NSwap:0, NCPU:0, NIO1:1, NIO2:8,NOUT:0, hits:16
     NDelay:2, NReserve:8, NSwap:0, NCPU:0, NIO1:0, NIO2:9,NOUT:0, hits:15
 \end{verbatim}
-Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. The last state in the output that is the state in which  the swap in , the cpu and the IO1 are empty, 2 clients are in being served at the delay station, 8 are at the reserve station  and 9 clients are at the IO2 , is hit 1 time every 66,6 passage of the tagged customer at the swap out, some trials revealed that this state was good enough to provide measures with precision lower that 0.05 (with a confidence of 0.9) if used as a regeneration point, and so be it.
+Now in order to chose a suitable state as regeneration point it's mandatory to keep in mind that the CPU hasn't a markovnian distribution, the only states that can be used are the ones in which the number of client in the CPU are 0. Also another important aspect is the probability that the state is reached, a too frequent hit would mean a relatively small interval of observation leading to high variability of data, a too rare would mean long interval of observation and so a too long simulation. The last state in the output that is the state in which  the swap in , the cpu and the IO1 are empty, 2 clients are in being served at the delay station, 8 are at the reserve station  and 9 clients are at the IO2 , is hit 1 time every 66,6 passage of the tagged customer at the swap out, some trials revealed that this state was good enough to provide measures with precision lower that 0.05 (with a confidence of 0.9) if used as a regeneration point, and so will be chosen as regeneration point.
 
 \subsection{Collection of measures}
 
+The measure are collected using a particular type of accumulator, every time the regeneration point is met the following measure are collected:
+\begin{enumerate}
+    \item the areaN $N(t)$ accumulated by the station = $A_i$
+    \item the duration of the regeneration cycle = $v_i$
+\end{enumerate}
 
+this measures are accumulated in 5 different variables as 
+\begin{enumerate}
+    \item $s_A=\sum_{i=1}^{p} A_i$
+    \item $S_{AA} = \sum_{i=1}^{p} A_i^2$
+    \item $s_v = \sum_{i=1}^{p} v_i$
+    \item $s_{vv} = \sum_{i=1}^{p} v_i^2$
+    \item $S_{Av} = \sum_{i=1}^{p} A_i*v_i$
+\end{enumerate}
+
+now define $\hat{r}=\frac{\bar{A}}{\bar{v}}$ and $\bar{Z}=\bar{A}-r*\bar{v}$ it's possible to calculate the confidence interval as 
+$$Pr\{\hat{r}-t_{p-1,\alpha/2}* \frac{\hat{\sigma_Z}}{\bar{v}*\sqrt[]{p}}  \leq r \leq \hat{r}+t_{p-1,\alpha/2}* \frac{\hat{\sigma_Z}}{\bar{v}*\sqrt[]{p}} \} \approx (1-\alpha)$$
+knowing that 
+$$\frac{\hat{\sigma_Z}}{\bar{v}*\sqrt[]{p}} = \sqrt[]{\frac{p}{p-1}}*\frac{\sqrt[]{\hat{s}_{AA}-2\hat{r}\hat{s}_{av}+\hat{r}^2\hat{s}_{vv}}}{\hat{s}_v}$$
+
+The collection of measure will be done until almost 40 samples are collected and the precision reached by the confidence interval $\frac{\Delta}{\bar{Y}} \leq \epsilon$ where $\epsilon = 0.05$ 
 
 \section{Simulation results}
 The following subsection will illustrate 4 different scenarios of execution:

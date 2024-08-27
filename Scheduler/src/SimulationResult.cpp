@@ -174,13 +174,15 @@ void SimulationResult::LogResult(std::string name)
             std::string result = "";
             for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
             {
-                auto expected = mva.ExpectedForAccumulator(s.first, &s.second[(StationStats::MeasureType)i]);
+                auto expected = mva.ExpectedForAccumulator(
+                    s.first, &s.second[(StationStats::MeasureType)i].WithConfidence(SimulationResult::confidence));
                 result += fmt::format("{}, Expected Value:{}\n", s.second[(StationStats::MeasureType)i], expected);
             }
             SimulationShell::Instance().Log()->Result("Station:{}\n{}", s.first, result);
         }
 
-        SimulationShell::Instance().Log()->Result("{},Expected:{}", tgt._mean,
+        SimulationShell::Instance().Log()->Result("{},Expected:{}",
+                                                  tgt._mean.WithConfidence(SimulationResult::confidence),
                                                   mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
     }
     else if (name == "ActiveTime")
@@ -194,8 +196,11 @@ void SimulationResult::LogResult(std::string name)
         std::string result = "";
         for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
         {
-            auto expected = mva.ExpectedForAccumulator(name, &acc[(StationStats::MeasureType)i]);
-            result += fmt::format("{}, Expected Value:{}\n", acc[(StationStats::MeasureType)i], expected);
+            auto expected = mva.ExpectedForAccumulator(
+                name, &acc[(StationStats::MeasureType)i].WithConfidence(SimulationResult::confidence));
+            result +=
+                fmt::format("{}, Expected Value:{}\n",
+                            acc[(StationStats::MeasureType)i].WithConfidence(SimulationResult::confidence), expected);
         }
         SimulationShell::Instance().Log()->Result("Station:{}\n{}", name, result);
     }
@@ -237,8 +242,8 @@ void StationStats::Collect(BaseStation *station)
     auto &self = *this;
     // self[throughput](station->completions(), station->clock() - self[throughput].times());
     // self[utilization](station->busyTime(), station->clock() - self[utilization].times());
-    self[meanwait](station->areaN(), station->completions());
-    self[meancustomer](station->areaN(), station->observation());
+    self[meanwait].WithConfidence(0.90)(station->areaN(), station->completions());
+    self[meancustomer].WithConfidence(0.90)(station->areaN(), station->observation());
 }
 
 StationStats::StationStats()
