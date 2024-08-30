@@ -921,7 +921,7 @@ All the transition may be described then as:
        return self.CpuL()*SystemParameters.qoutd
         
     def CpuToSelf(self):
-    return 1/self.cpu_leave() * self.cpu_on_leave_stage_selector() *Params.qouts + 1/Params.timeSlice*self.cpu_on_leave_stage_selector()*self.cpu_on_arrive_stage_selector()
+    return 1/self.CpuL() *Params.qouts + 1/Params.timeSlice*self.CpuL()
 
         
     def IoToCpu(self):
@@ -1110,7 +1110,7 @@ this class hold all the functions need to make the program interactive, in the s
     \item exit: quit the program
     \item regstats: display the statistics on hit and call of regeneration point , each hit correspond to an event that call the regeneration point, each call correspond to the regeneration point being satisfied.
     \item env: Display the environment variables (SystemParameters) that describe the scenario used for the simulator (MPD, slice ecc\dots)
-    \item lstats: Display the actual status of the stations , B=busy time, O= observation time, A=arrivals,C=completions,N: sysclients, W:meanWaits (sample mean), MAXN: max sysclients observed, AN: area of N (sysclients*interval), AS:area of S ((sysclients-1)*interval).
+    \item lstats: Display the actual status of the stations , B=busy time, O= observation time, A=arrivals,\\C=completions ,N: sysclients, W:meanWaits (sample mean), MAXN: max sysclients observed, AN: area of N (sysclients*interval), AS:area of S ((sysclients-1)*interval).
     \item lqueue <name>: Display the actual status of all the queues
     \item scenario <list|scenarioname>: set the scenario for the simulation. A brief description of the available scenario is available in the section Scenarios.
     \item nr <numCycles:0+|untilPrecisionReached:-1> <showMeasure:1|0>: compute the n regeneration cycle or stop when the requested precision (0.05) is reached (using -1 as argument). The second argument ask to display or not the measure after each regeneration cycle (0 false, 1 true).
