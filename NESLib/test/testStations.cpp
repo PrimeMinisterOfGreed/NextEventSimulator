@@ -38,13 +38,3 @@ TEST(TestStation, test_fcfs_arrival)
 
 
 
-TEST(TestMeasure, test_mobile_mean){
-    MobileMeanMeasure measure{10,5};
-    auto& stream = RandomStream::Global();
-    stream.PlantSeeds(123456789);
-    stream.SelectStream(1);
-    for(int i = 0; i < 100; i++){
-        measure.push(stream.Random());
-    }
-    fmt::print("epsilon:{}", measure.epsilon());
-}
