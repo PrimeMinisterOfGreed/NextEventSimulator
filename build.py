@@ -23,6 +23,7 @@ def build():
     c_compiler = detect_c_compiler()
     os.system(f"cmake -DCMAKE_TOOLCHAIN_FILE={toolchain} -DCMAKE_CXX_COMPILER={cxx_compiler} -DCMAKE_C_COMPILER={c_compiler} -DCMAKE_MAKE_PROGRAM='ninja' -DCMAKE_BUILD_TYPE=Release -G Ninja  ..")
     os.system("cmake --build .")
+    
     pass
 
 def check_weapon(cmd) -> bool:
