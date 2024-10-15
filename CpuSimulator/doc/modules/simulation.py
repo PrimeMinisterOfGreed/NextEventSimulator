@@ -9,9 +9,9 @@ class SimulatorCommander():
     def __init__(self) -> None:
         self.results = []
         if platform.system() == "Windows":
-            self.command = "..\\..\\build\\Release\\Scheduler\\scheduler.exe"
+            self.command = "..\\..\\build\\Release\\CpuSimulator\\CpuSimulator.exe"
         else:
-            self.command = "../../build/Release/Scheduler/scheduler"
+            self.command = "../../build/Release/CpuSimulator/CpuSimulator"
         self.preamble = ""
         self.postexecution = ""
         self.stationToRecord = ["CPU","IO1","IO2","SWAP_IN"]
@@ -94,12 +94,3 @@ class SimulatorCommander():
 
 
 
-if __name__ == "__main__":
-    comm = SimulatorCommander("C:/Users/matteo.ielacqua/OneDrive - INPECO SPA/Desktop/Personal/NextEventSimulator/build/Scheduler/scheduler.exe")
-    comm.enable_logger(False)
-    comm.scenario = "Simplified"
-    p = comm.run()
-    p.wait()
-    out,err = p.communicate()
-    print(out)
-    pass

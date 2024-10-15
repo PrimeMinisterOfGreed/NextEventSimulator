@@ -8,10 +8,10 @@
             "name": "Lancia scheduler",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/Scheduler/scheduler",
+            "program": "${workspaceFolder}/build/CpuSimulator/CpuSimulator",
             "args": [
                 "--program",
-                "scenario Default; lmeasures; init;nr -1"
+                "scenario Default; lmeasures; init;nr -1 40"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
