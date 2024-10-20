@@ -1,8 +1,6 @@
 {
       "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-      "clangd.arguments": [
-            "--compile-commands-dir=./build/Debug"
-      ],
+
       "files.associations": {
             "cmath": "cpp",
             "cstddef": "cpp",

@@ -28,12 +28,13 @@ struct ConfidenceHits
     void Accumulate(bool x_in, bool u_in, bool n_in, bool w_in, bool activeTime_in);
 };
 
-auto format_as(ConfidenceHits b);
+std::string format_as(ConfidenceHits b);
 
 struct StationStats
 {
+    std::string station_name{};
     CovariatedMeasure _acc[4];
-    void Collect(BaseStation *station);
+    void Collect(const BaseStation& station);
     StationStats();
     enum MeasureType
     {
@@ -49,7 +50,8 @@ struct StationStats
     bool Ready();
 };
 
-auto format_as(StationStats stats);
+
+std::string format_as(StationStats stats);
 
 struct SimulationResult
 {
@@ -68,7 +70,7 @@ struct SimulationResult
     SimulationResult();
     void AddShellCommands(SimulationShell *shell);
     void Reset();
-    void Collect(BaseStation *station);
+    void Collect(const BaseStation &station);
     void CollectCustomMeasure(std::string name, double value, double clock);
     void CollectActiveTime(double value);
     bool PrecisionReached();

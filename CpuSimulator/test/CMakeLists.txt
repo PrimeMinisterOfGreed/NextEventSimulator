@@ -1,0 +1,6 @@
+
+enable_testing()
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} UT_SRC)
+list(FILTER SRC_FILES EXCLUDE REGEX main.cpp)
+generate_gtest(PROJECT_NAME ${PROJECT_NAME} SRC_FILES ${SRC_FILES} TEST_SRC_FILES ${UT_SRC} INCLUDE_DIRS  ../src  ADDITIONAL_TARGET_LIBS  "fmt::fmt" "NESLib")

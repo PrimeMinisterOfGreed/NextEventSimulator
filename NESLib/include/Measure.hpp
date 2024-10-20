@@ -532,7 +532,7 @@ template <> struct fmt::formatter<CovariatedMeasure>
         }
         else
         {
-            return fmt::format_to(ctx.out(), "Measure: {}, R: {},LB:{}, HB:{}, Samples:{} ,Precision:{}", m.Name(),
+            return fmt::format_to(ctx.out(), "Measure: {}, R: {:5f},LB:{:5f}, HB:{:5f}, Samples:{} ,Precision:{:5f}", m.Name(),
                                   m.R(), m.confidence().lower(), m.confidence().higher(), m.Count(),
                                   m.confidence().precision());
         }

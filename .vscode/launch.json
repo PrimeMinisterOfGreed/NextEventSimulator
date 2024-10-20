@@ -5,10 +5,37 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Lancia scheduler",
+            "name": "Lancia Simulatore Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/CpuSimulator/CpuSimulator",
+            "program": "${workspaceFolder}/build/Debug/CpuSimulator/CpuSimulator",
+            "args": [
+                "--program",
+                "scenario Default; lmeasures; init;nr -1 40"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Abilita la riformattazione per gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Imposta Versione Disassembly su Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Lancia Simulatore Release",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/CpuSimulator/CpuSimulator",
             "args": [
                 "--program",
                 "scenario Default; lmeasures; init;nr -1 40"

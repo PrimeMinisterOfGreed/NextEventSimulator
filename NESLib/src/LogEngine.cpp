@@ -62,7 +62,8 @@ void LogEngine::Trace(LogType type, std::string message)
 {
     using namespace std;
     std::string log = fmt::format("[{}]{}\n", type, message);
-    char buffer[log.size() + 1];
+    char buffer[log.size() + 1+ 1024];
+    memset(buffer, 0, sizeof(buffer));
     sprintf(buffer, "%s\n", log.c_str());
     if ((_printStdout && !_pauseStdout))
         fmt::print(fmt::fg(LogTypeToColor(type)), "[{}]{}\n",type,message);

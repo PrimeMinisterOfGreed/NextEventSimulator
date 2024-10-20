@@ -186,10 +186,10 @@ void SimulationManager::perform_number_regeneration(const char *ctx)
 
 void SimulationManager::CollectMeasures()
 {
-    results.Collect(os->GetStation("CPU")->get());
-    results.Collect(os->GetStation("IO1")->get());
-    results.Collect(os->GetStation("IO2")->get());
-    results.Collect(os->GetStation("SWAP_IN")->get());
+    results.Collect(*os->GetStation("CPU")->get());
+    results.Collect(*os->GetStation("IO1")->get());
+    results.Collect(*os->GetStation("IO2")->get());
+    results.Collect(*os->GetStation("SWAP_IN")->get());
 
     auto activeTime = [this](std::string name) {
         auto s = os->GetStation(name).value();

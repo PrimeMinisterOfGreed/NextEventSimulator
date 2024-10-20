@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-static Matrix<double> q{
+const Matrix<double> q{
     {{0, 1, 0, 0, 0}, {0, 0, 1, 0, 0}, {0.004, 0.006, 0.9, 0.065, 0.025}, {0, 0, 1, 0, 0}, {0, 0, 1, 0, 0}}};
 
 const std::vector<double> stimes{5000, 210, 2.7, 40, 180};
@@ -115,6 +115,7 @@ std::vector<double> MVASolver::MeanWaits(std::string stationName)
 
 std::vector<double> MVASolver::ActiveTimes()
 {
+    // the times will be computed only on the first call
     static std::vector<double> times{};
     if (times.size() > 0)
         return times;
