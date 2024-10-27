@@ -4,13 +4,14 @@ import sys
 
 def build():
     toolchain = ""
+    scriptDir = os.path.abspath(os.path.dirname(__file__))
     if not check_weapons():
         exit(1)
         pass
     if os.system("vcpkg") > 0:
         os.system("git clone https://github.com/microsoft/vcpkg")
         sys.path.append("./vcpkg")
-        toolchain = os.path.abspath(os.curdir) + "/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        toolchain = scriptDir + "/vcpkg/scripts/buildsystems/vcpkg.cmake"
         pass
     else:
         toolchain = shutil.which("vcpkg") + "/scripts/buildsystems/vcpkg.cmake"
@@ -23,7 +24,10 @@ def build():
     c_compiler = detect_c_compiler()
     os.system(f"cmake -DCMAKE_TOOLCHAIN_FILE={toolchain} -DCMAKE_CXX_COMPILER={cxx_compiler} -DCMAKE_C_COMPILER={c_compiler} -DCMAKE_MAKE_PROGRAM='ninja' -DCMAKE_BUILD_TYPE=Release -G Ninja  ..")
     os.system("cmake --build .")
-    
+    shutil.copy("{}/build/CpuSimulator/CpuSimulator".format(scriptDir),"{}/Simulator".format(os.pardir))
+    print("##############")
+    print("The Simulator is now available in ./Simulator, run chmod +x to enable execution")
+    print("##############")
     pass
 
 def check_weapon(cmd) -> bool:

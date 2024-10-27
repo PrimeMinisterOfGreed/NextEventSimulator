@@ -38,6 +38,6 @@ void abort()
     fmt::println("[CriticalException] Error abort called");
     while (1)
     {
-        panic("abort called");
+       //trap 
     }
 }
