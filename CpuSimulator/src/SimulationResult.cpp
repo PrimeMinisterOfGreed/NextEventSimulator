@@ -202,7 +202,7 @@ void SimulationResult::LogResult(std::string name)
     {
         for (auto s : _acc)
         {
-            log += format_measure_output(name, format_station_measures(name, mva, _acc[name]));
+            log += format_measure_output(s.first, format_station_measures(name, mva, _acc[s.first]));
         }
         log += get_active_time(mva, tgt);
     }

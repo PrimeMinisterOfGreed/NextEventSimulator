@@ -213,29 +213,17 @@ Now in order to chose a suitable state as regeneration point it's mandatory to k
 
 \subsection{Collection of measures}
 
-The measure are collected using a particular type of accumulator, every time the regeneration point is met the following measure are collected:
-\begin{enumerate}
-    \item the areaN $N(t)$ accumulated by the station = $A_i$
-    \item the duration of the regeneration cycle = $v_i$
-\end{enumerate}
+All measure are collected by respecting the length of the regeneration cycle, so that a pair $(A_j,v_j)$ is created for each measure collected. In this instance 2 measures of interested are taken for each station: 1) Mean Clients $\int_{t_s}^{t_e}N(t)dt$ with $v_j=t_e-t_s$ and 2) Mean waiting time $\int_{t_s}^{t_e}N(t)dt$ with $v_j=C_i$ (where i is the station considered).
 
-this measures are accumulated in 5 different variables as 
-\begin{enumerate}
-    \item $s_A=\sum_{i=1}^{p} A_i$
-    \item $S_{AA} = \sum_{i=1}^{p} A_i^2$
-    \item $s_v = \sum_{i=1}^{p} v_i$
-    \item $s_{vv} = \sum_{i=1}^{p} v_i^2$
-    \item $S_{Av} = \sum_{i=1}^{p} A_i*v_i$
-\end{enumerate}
-
-now define $\hat{r}=\frac{\bar{A}}{\bar{v}}$ and $\bar{Z}=\bar{A}-r*\bar{v}$ it's possible to calculate the confidence interval as 
-$$Pr\{\hat{r}-t_{p-1,\alpha/2}* \frac{\hat{\sigma_Z}}{\bar{v}*\sqrt[]{p}}  \leq r \leq \hat{r}+t_{p-1,\alpha/2}* \frac{\hat{\sigma_Z}}{\bar{v}*\sqrt[]{p}} \} \approx (1-\alpha)$$
-knowing that 
-$$\frac{\hat{\sigma_Z}}{\bar{v}*\sqrt[]{p}} = \sqrt[]{\frac{p}{p-1}}*\frac{\sqrt[]{\hat{s}_{AA}-2\hat{r}\hat{s}_{av}+\hat{r}^2\hat{s}_{vv}}}{\hat{s}_v}$$
-
-The collection of measure will be done until almost 40 samples are collected and the precision reached by the confidence interval $\frac{\Delta}{\bar{Y}} \leq \epsilon$ where $\epsilon = 0.05$, this overall process count as one simulation with one seed. 
-
+For each measure an instance of an accumulator is created, when the regeneration cycle ends the needed value is accumulated. A simulation is complete on the following conditions:
+\begin{itemize}
+    \item The target precision is reached $\frac{\Delta}{\bar{Y}}<\epsilon$
+    \item The sample is at least composed by 40 observation, so that instead of a student, is possible to assume the distribution is quasi-normal in the computation of the interval.
+\end{itemize}
+At the end of the simulation the results are collected, the seed changed, the simulator reset and the process start over again.
+Another measure of interest is taken: The active time in the subsystem composed by CPU and IOs, by just applying the tagged customer example. In this instance each time is accumulated in $A_j$ meanwhile each passage increment the counter $v_j$, again this pair $(A_j,v_j)$ is used to build the sample of measure to analyze by using the interval estimation technique.
 \section{Simulation results}
+
 The following subsection will illustrate 4 different scenarios of execution:
 \begin{enumerate}
     \item Default scenario: the CPU has a Hyper exponential distribution of service time and a fixed slice time of 2.7 ms.
@@ -251,16 +239,14 @@ Legend for Plots:
 \end{itemize}
 
 \subsection{Default scenario}
-The default scenario leave the parameter untouched, so the Multi Programming Degree will be 10 and the number of clients in the system 20.
-
+The default scenario is the scenario we want to simulate, with a multi program degree of 10 and a time slice of 2.7 ms 
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_Default.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanclients.png}
 
 \includegraphics[width=0.9\textwidth]{./Images/Default_CPU_meanwaits.png}
 
-The table features the data extracted from the simulator after a run with seed 123456789.
-
+The table features the data extracted from the simulator after a run with seed 123456789. Subsequent seed are the ending state of the generator in each simulation.
 
 \begin{table}[!ht]
     \centering
@@ -279,7 +265,7 @@ The table features the data extracted from the simulator after a run with seed 1
     \end{tabular}
 \end{table}
 
-In the table it's possible to read the measure retrieved, along with point estimation (R) , the confidence interval (HB = Higher Bound and LB = lower bound), the Precision and the expected value calculated by the MVA algorithm. By a first look is immediately clear that the system performs better than expected by MVA, this is possible because MVA know nothing about the reserve station, that is holding some processes for being accepted in to the system. Thus reducing the mean clients per queue in the active part of the system and so lowering the response time that each process experience.
+In the table it's possible to read the measure retrieved, along with point estimation (R), the confidence interval (HB = Higher Bound and LB = lower bound), the Precision and the expected value calculated by the MVA algorithm. By a first look is immediately clear that the system performs better than expected by MVA, this is possible because MVA know nothing about the reserve station, that is holding some processes for being accepted in to the system. Thus reducing the mean clients per queue in the active part of the system, that leads to an important decrease in the average time taken by a client to pass the subsystem.
 
 \pagebreak
 \subsubsection{printout of the first 30 events processed}
@@ -476,12 +462,12 @@ The table features the data extracted from the simulator after a run with seed 1
     \end{tabular}
 \end{table}
 
-This scene is typical of certain batch systems, for example a login server whose only job is to get credentials , verify it with a database and return a login response, each client require more or less the same time to be processed. In this case the Reserve Station and the time slice in the CPU are continuing to do their job, thus the performance obtained are pretty much the same of the previous case with an hyper exponential distribution.
+This case is typical in system where all the jobs are very similar, for example in a server whose unique task is to authenticate the users. All observable measure indicate that the performance of the system in this case is similar to the previous one with hyper exponential distribution, this is possible because the expected value of the hyper exponential in the previous case is equal to this negative exponential distribution, and more importantly because the time slice and the reserve station are actively reducing the active time of the clients, thus improving the overall performance. In the subsequent case we will see that the removing of the time slice feature will lead to an important decrease in terms of those same performance.
 
 
 \subsection{LTCpu scenario}
 
-In this case the CPU quantum (time slice) has a very high value of 2700 ms, in practice is disabled and is not working anymore. This scene would happen for example if the linux kernel is recompiled with preemption disabled (a very bad thing to do in most of modern systems).
+In this case the CPU quantum (time slice) has a very high value of 2700 ms, in practice is disabled and is not working anymore. Tipically in a modern system there isn't any reason to disable the preemption, except for some kind of real time devices with very short tasks in which the preemption would probably decrease the performance due to the context switch time. Notice also that in a kernel the preemption can be enabled, but if the time slice is higher than the maximum possible time in which a process will leave the CPU, then is practically disabled, like in this case. This is useful, because let the system administrator to install one kernel policy with preemption always enabled, and he/she can choose to disable it just by varying the time slice parameter. 
 \\
 
 \includegraphics[width=0.9\textwidth]{./Images/meanActiveTime_LTCpu.png}
@@ -552,7 +538,7 @@ Thus the CPU became an FCFS policy station, but the variability of the service t
 
 
 
-The four cases presented previously simulate the system with 2 different kind of jobs: process with service time distributed as a negative exponential and as an hyper exponential, respectively they could be divided in batch and interactive, since usually in a batch system the differences in terms of service time of the various tasks are lower than the interactive one. This kind of jobs are served by the system in 2 different situation: the time slice is working normally and is set at 2.7 ms (preemption is enabled), the time slice is very high and will never work (preemption is disabled). When the service time of clients is negative exponential, the presence of the time slice doesn't affect the CPU so much in terms of mean clients enqueue, but lower drastically the mean wait of the clients, but in the simulator there is a simplification, it is not considering the context switch cost. In modern CPU the context switch time is so tiny that it's influence is negligible, but if we suppose to work with very limited resource, for example in an embedded context where CPUs are not performant, disabling the preemption can reduce the cost of the context switching, in particular if the tasks have a small service time that differ not much from one another.\\
+The four cases presented previously simulate the system with 2 different kind of jobs: process with service time distributed as a negative exponential and as an hyper exponential, respectively they could be divided in batch and interactive, since usually in a batch system the differences in terms of service time of the various tasks are lower than the interactive one. This kind of jobs are served by the system in 2 different situation: the time slice is working normally and is set at 2.7 ms (preemption is enabled), the time slice is very high and will never work (preemption is disabled). When the service time of clients is negative exponential, the presence of the time slice doesn't affect the CPU so much in terms of mean clients enqueue, but drastically decrease the mean waiting time of the clients, but in the simulator there is a simplification, it is not considering the context switch cost, in a modern environment usually the context switch time is negligible, the same is not true when we consider embedded device with real time task, in which the context switch time can become an important time of the time spent by the CPU.
 A very different situation happen when the clients have an hyper exponential service time, in this situation the time slice is really important for the system in order to work properly, in fact when disabled the mean waiting time and the mean clients in queue increase drastically, the system in this state would be unusable on a normal laptop/PC, since when the user press for example a character on the keyboard awaiting it to be visible on the screen, many milliseconds can elapse until this event can happen.\\
 Another important aspect is the comparison against MVA, due to its intrinsics nature it cannot take in consideration the presence of the reserve station, this show an important impact that this station is having on the whole system, the reduction of the mean queue in the IO2 (in general in all the peripherals) and the response time of the system that otherwise would be much higher. Thus taking the MPD as a parameter and supposing to increase it ,after having reached the optimal point , the system will lower its throughput as long as the MPD increase, this behavior is known as thrashing.
 
@@ -617,7 +603,7 @@ the greater one.
     \end{aligned}
 \end{displaymath}
 from this calculation we can say that $V_bS_b=V_5S_5=1125ms$ and so , station 5 (IO2) is
-our bottleneck. Let's extract some additional information, as the total cycle time when $N=1$ ,i.e Y(1)
+our bottleneck. Let's extract some additional information, as the total cycle time when $N=1 \rightarrow Y(1)$
 \begin{displaymath}
     D=\sum_{i=1}^{N}D_i=\sum_{i=1}^{N}V_iS_i + V_0S_0=7975ms
 \end{displaymath}
