@@ -1,16 +1,24 @@
+/**
+ * @file LinkedList.hpp
+ * @author matteo.ielacqua
+ * @brief Implementazione dall'esercizio corrispondente di una double linked list
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
 
 #include "Core.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Node.hpp"
-#include <FormatParser.hpp>
 #include <concepts>
 #include <cstddef>
 #include <cstdio>
 #include <exception>
-#include <fmt/core.h>
-#include <fmt/format.h>
+
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -18,6 +26,13 @@
 #include <string>
 #include <type_traits>
 
+/**
+ * @brief classe template per le double linked list
+ * il requisito comparable dice al compilatore che qualunque classe
+ * può essere usata purchè implementi un operatore di eguaglianza per il tipo passato come parametro
+ * 
+ * @tparam T 
+ */
 template <class T>
     requires Comparable<T>
 class DoubleLinkedList
@@ -278,20 +293,19 @@ inline DoubleLinkedList<T> DoubleLinkedList<T>::Take(std::function<bool(const T 
     return list;
 }
 
-template <typename T> struct fmt::formatter<DoubleLinkedList<T>>
-{
-    FormatParser p{};
-    constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
-    {
-        return p.parse(ctx);
-    }
 
-    auto format(const DoubleLinkedList<T> &list, format_context &ctx) const -> format_context::iterator
+/**
+ * @brief Formattatore per le liste di eventi 
+ * 
+ * @param list 
+ * @return std::string 
+ */
+    static std::string format_as(const DoubleLinkedList<Event> &list)
     {
         std::string result = "";
         if (list.Count() == 0)
         {
-            return fmt::format_to(ctx.out(), "[EMPTY]");
+            return fmt::format( "[EMPTY]");
         }
         auto itr = list.begin();
         while (itr != list.end())
@@ -301,6 +315,6 @@ template <typename T> struct fmt::formatter<DoubleLinkedList<T>>
             itr++;
         }
         result += fmt::format("[{}]", *itr);
-        return fmt::format_to(ctx.out(), "{}", result);
+        return fmt::format( "{}", result);
     }
-};
+

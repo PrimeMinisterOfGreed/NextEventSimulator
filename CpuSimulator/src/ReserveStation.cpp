@@ -1,3 +1,13 @@
+/**
+ * @file ReserveStation.cpp
+ * @author matteo.ielacqua
+ * @brief implementazione della stazione di riserva, generica istanza di una stazione FCFS
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "ReserveStation.hpp"
 #include "Core.hpp"
 #include "Enums.hpp"
@@ -13,6 +23,12 @@ void ReserveStation::ProcessDeparture(Event &evt)
     panic("This station has not departure options");
 }
 
+/**
+ * @brief costruttore per la stazione di riserva,
+ * la stazione di riserva non ha eventi di partenza, poichè scoda eventi di arrivo 
+ * per la CPU ogni volta che un cliente lascia la stazione di swap out
+ * @param scheduler 
+ */
 ReserveStation::ReserveStation(IScheduler *scheduler)
     : FCFSStation(scheduler, "RESERVE_STATION", Stations::RESERVE_STATION)
 {
@@ -30,6 +46,7 @@ ReserveStation::ReserveStation(IScheduler *scheduler)
         }
     });
 }
+
 
 void ReserveStation::ProcessArrival(Event &evt)
 {

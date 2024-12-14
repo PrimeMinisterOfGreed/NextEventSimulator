@@ -1,11 +1,10 @@
 #include "Core.hpp"
 #include "Event.hpp"
 #include "Measure.hpp"
-#include "Shell/SimulationShell.hpp"
 #include "rngs.hpp"
-#include <Strategies/TaggedCustomer.hpp>
+#include "TaggedCustomer.hpp"
 #include <algorithm>
-#include <fmt/core.h>
+
 #include <functional>
 
 void TaggedCustomer::ConnectEntrance(BaseStation *station, bool arrival)
@@ -43,17 +42,11 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
         station->OnDeparture(l);
 }
 
-void TaggedCustomer::CompleteRegCycle(double actualclock)
+void TaggedCustomer::CompleteRegCycle()
 {
-    if (_transitory.delta() > 0.1)
-    {
-        _transitory.push(_acc.sum() / _acc.Count());
-    }
-    else
-    {
+
         _mean(_acc.sum(), _acc.Count());
         _acc.Reset();
-    }
 }
 
 void TaggedCustomer::CompleteSimulation()

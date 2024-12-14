@@ -1,5 +1,5 @@
 #pragma once
-#include "Collections/LinkedList.hpp"
+#include "LinkedList.hpp"
 #include "Event.hpp"
 #include <memory>
 

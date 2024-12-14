@@ -1,6 +1,14 @@
-//
-// Created by drfaust on 03/02/23.
-//
+/**
+ * @file Measure.hpp
+ * @author matteo.ielacqua
+ * @brief contiene una raccolta di accumulatori, implementati sulla falsa riga di ciò che offre
+ * la libreria boost::accumulator
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #pragma once
 
@@ -13,8 +21,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <fmt/core.h>
-#include <fmt/format.h>
+#include "fmt/format.h"
 #include <functional>
 #include <iterator>
 #include <stdexcept>
@@ -23,23 +30,27 @@
 #include <valarray>
 #include <vector>
 
+/**
+ * @brief classe che rappresenta un intervallo di confidenza
+ * restituisce confine superiore, confine inferiore ,larghezza dell'intervallo e precisione dell'intervallo
+ */
 struct Interval
 {
     double _mean;
     double _delta;
-
+    double _t;
   public:
-    Interval(double mean, double delta) : _mean(mean), _delta(delta)
+    Interval(double mean, double delta,double t) : _mean(mean), _delta(delta),_t(t)
     {
     }
 
     double higher() const
     {
-        return _mean + _delta;
+        return _mean + _delta*_t;
     }
     double lower() const
     {
-        return _mean - _delta;
+        return _mean - _delta*_t;
     }
 
     double width() const
@@ -67,6 +78,10 @@ struct Interval
     }
 };
 
+/**
+ * @brief Classe base che rappresenta i metodi comuni a tutte le misure 
+ * 
+ */
 class BaseMeasure
 {
   protected:
@@ -112,6 +127,11 @@ class BaseMeasure
     virtual ~BaseMeasure() = default;
 };
 
+/**
+ * @brief classe generica per i tipi che possono essere accumulati 
+ * e possiedono il concetto di unità di misura
+ * @tparam T 
+ */
 template <typename T> class Measure : public BaseMeasure
 {
   private:
@@ -156,11 +176,18 @@ template <typename T> class Measure : public BaseMeasure
     }
 };
 
+/**
+ * @brief Classe accumulatrice per misure che hanno diversi momenti 
+ * sulla media, vista questa caratteristica il tipo accettato è solo double 
+ * utilizzata nel progetto per accumulare l'active time del tagged customer entro 
+ * il ciclo di rigeneramento
+ * @tparam Moments 
+ */
 template <int Moments = 2> class Accumulator : public Measure<double>
 {
 
   private:
-    double _confidence = 0.95;
+    double _confidence = 0.90;
     double _precision = 0.05;
     double _sum[Moments]{};
 
@@ -265,19 +292,25 @@ template <int Moments = 2> class Accumulator : public Measure<double>
         double alpha = 1 - _confidence;
         auto count = Count();
         double delta = 0.0;
+        auto t = 0.0;
         if (count < 40)
         {
-            delta = idfStudent(count - 1, 1 - (alpha / 2)) * (sigma / sqrt(count - 1));
+            t = idfStudent(count - 1, 1 - (alpha / 2)) * (sigma / sqrt(count - 1));
         }
         else
         {
-            delta = idfNormal(0.0, 1.0, 1 - alpha / 2);
+            t = idfNormal(0.0, 1.0, 1 - alpha / 2);
         }
-        delta = (delta * variance()) / sqrtf(count);
-        return {u, delta};
+        delta = (variance()) / sqrtf(count);
+        return {u, delta,t};
     }
 };
 
+/**
+ * @brief formattatore per la classe accumulator 
+ * 
+ * @tparam  
+ */
 template <> struct fmt::formatter<Accumulator<>>
 {
     char mode[16]{};
@@ -311,140 +344,14 @@ template <> struct fmt::formatter<Accumulator<>>
     }
 };
 
-template <int Moments = 2> struct BufferedMeasure : public Accumulator<Moments>
-{
-  private:
-    std::vector<double> data{};
-
-  public:
-    virtual void Accumulate(double value) override
-    {
-        Accumulator<Moments>::Accumulate(value);
-        data.push_back(value);
-    }
-
-    BufferedMeasure(std::string name, std::string unit) : Accumulator<Moments>(name, unit)
-    {
-    }
-
-    virtual void Reset() override
-    {
-        Accumulator<>::Reset();
-        data.clear();
-    }
-    const std::vector<double> &Data()
-    {
-        return data;
-    }
-};
-
-template <> struct fmt::formatter<BufferedMeasure<>> : fmt::formatter<string_view>
-{
-    auto format(BufferedMeasure<> &m, format_context &ctx) -> format_context::iterator
-    {
-        return fmt::format_to(
-            ctx.out(),
-            "Measure: {}, Mean: {}, Variance:{}, Precision:{}, Samples:{}, LB:{}, LH:{},LastValue:{},BufferSize:{}",
-            m.Name(), m.mean(), m.variance(), m.confidence().precision(), m.Count(), m.confidence().lower(),
-            m.confidence().higher(), m.Current(), m.Data().size());
-    }
-};
-
-template <int Esembles = 2> struct EsembledMeasure : public Measure<double>
-{
-  public:
-    Accumulator<> accs[Esembles];
-    EsembledMeasure() : Measure("", "")
-    {
-    }
-    EsembledMeasure(std::string name, std::string unit) : Measure(name, unit)
-    {
-        for (int i = 0; i < Esembles; i++)
-            accs[i] = Accumulator<>{name, unit};
-    }
-
-    void Accumulate(double value) override
-    {
-        Measure<double>::Accumulate(value);
-        accs[0](value);
-    }
-
-    virtual void Reset() override
-    {
-        for (int i = 0; i < Esembles; i++)
-            accs[i].Reset();
-    }
-
-    virtual void MoveEsemble(int esemble)
-    {
-        core_assert(esemble < Esembles, "Targeting unexsisting esemble");
-        if (esemble > 0)
-        {
-            MoveEsemble(esemble - 1);
-            if (accs[esemble - 1].Count() > 0)
-                accs[esemble](accs[esemble - 1].mean());
-        }
-    }
-
-    EsembledMeasure &WithConfidence(double confidence)
-    {
-        for (int i = 0; i < Esembles; i++)
-            accs[i].WithConfidence(confidence);
-        return *this;
-    }
-
-    EsembledMeasure &WithPrecision(double precision)
-    {
-        for (int i = 0; i < Esembles; i++)
-            accs[i].WithPrecision(precision);
-        return *this;
-    }
-
-    Accumulator<> &operator[](int esemble)
-    {
-        return accs[esemble];
-    }
-
-    Interval confidence()
-    {
-        return accs[Esembles - 1].confidence();
-    }
-};
-
-template <int Esemble> struct fmt::formatter<EsembledMeasure<Esemble>>
-{
-    constexpr auto parse(format_parse_context &ctx) -> format_parse_context::iterator
-    {
-        return ctx.begin();
-    }
-
-    auto format(EsembledMeasure<Esemble> m, format_context &ctx) const -> format_context::iterator
-    {
-        format_context::iterator it = fmt::format_to(ctx.out(), "Measure:{},unit:{} ########\n", m.Name(), m.Unit());
-        for (int i = 0; i < Esemble; i++)
-        {
-            fmt::format_to(it, "Ensemble:{}#########\n{}\n", i, m[i]);
-        }
-        return it;
-    }
-};
-
-class MobileMeanMeasure : BaseMeasure
-{
-    std::vector<double> _means;
-    std::vector<double> _buffer;
-    int _meansPtr;
-    int _bufferPtr;
-
-  public:
-    void push(double value);
-    double delta() const;
-    MobileMeanMeasure(int bufferSize, int maxMeans);
-};
-
+/**
+ * @brief classe che rappresenta le misure che vanno accumulate
+ * considerando la loro forte natura correlata, come ad esempio tutte le osservazioni
+ * compiute nell'ambito di una simulazione con il metodo rigenerativo
+ */
 struct CovariatedMeasure : BaseMeasure
 {
-    double _confidence = 0.95;
+    double _confidence = 0.90;
     double _precision = 0.05;
     double _current[2]{};
     double _sum[2]{};
@@ -493,7 +400,6 @@ struct CovariatedMeasure : BaseMeasure
         _weightedsum = 0;
         BaseMeasure::Reset();
     }
-    int SampleNeedsForPrecision();
 
     double times(int moment = 0)
     {
@@ -506,6 +412,11 @@ struct CovariatedMeasure : BaseMeasure
     }
 };
 
+/**
+ * @brief formattatore per la classe covariated measure 
+ * 
+ * @tparam  
+ */
 template <> struct fmt::formatter<CovariatedMeasure>
 {
     char mode[16]{};
@@ -539,16 +450,4 @@ template <> struct fmt::formatter<CovariatedMeasure>
     }
 };
 
-namespace helper
-{
-template <typename T, typename K, typename F> std::vector<T> take(K item, F &&fnc)
-{
-    std::vector<T> res{};
-    for (auto e : item)
-    {
-        res.push_back(fnc(e));
-    }
-    return res;
-};
 
-} // namespace helper

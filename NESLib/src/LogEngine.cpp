@@ -1,10 +1,16 @@
+/**
+ * @file LogEngine.cpp
+ * @author matteo.ielacqua
+ * @brief implementazione per le trace del logengine, maggiori informazioni a @see LogEngine.hpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "LogEngine.hpp"
 #include <cstdio>
 #include <filesystem>
-#include <fmt/args.h>
-#include <fmt/color.h>
-#include <fmt/core.h>
-#include <fmt/format.h>
 #include <fstream>
 #include <ios>
 #include <istream>
@@ -12,26 +18,7 @@
 #include <streambuf>
 #include <string>
 
-LogEngine *LogEngine::_instance = nullptr;
 
-constexpr fmt::color LogTypeToColor(LogType type)
-{
-    using fmt::color;
-    switch (type)
-    {
-    case LogType::EXCEPTION:
-        return fmt::color::red;
-    case LogType::RESULT:
-        return fmt::color::green;
-    case LogType::INFORMATION:
-        return fmt::color::blue;
-    case LogType::TRANSFER:
-        return fmt::color::aqua;
-    case LogType::DEBUG:
-        return fmt::color::yellow;
-    }
-    return fmt::color::white;
-}
 
 void writeBuffer(std::istream &buffer, std::ostream &save)
 {
@@ -61,15 +48,6 @@ void LogEngine::Flush()
 void LogEngine::Trace(LogType type, std::string message)
 {
     using namespace std;
-    std::string log = fmt::format("[{}]{}\n", type, message);
-    char buffer[log.size() + 1+ 1024];
-    memset(buffer, 0, sizeof(buffer));
-    sprintf(buffer, "%s\n", log.c_str());
-    if ((_printStdout && !_pauseStdout))
-        fmt::print(fmt::fg(LogTypeToColor(type)), "[{}]{}\n",type,message);
-    _buffer.write(buffer, log.size() + 1);
-    if (_buffer.tellp() > 1024 * 1024)
-    {
-        Flush();
-    }
+    auto res = fmt::format("[{}]{}\n",type,message);
+    printf("%s",res.c_str());
 }

@@ -1,5 +1,16 @@
+/**
+ * @file Scheduler.hpp
+ * @author matteo.ielacqua
+ * @brief classe base di uno scheduler, inteso come oggetto che smista e gestisce gli 
+ * eventi per le varie stazioni
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
-#include "Collections/LinkedList.hpp"
+#include "LinkedList.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
 #include "LogEngine.hpp"

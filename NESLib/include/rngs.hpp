@@ -1,8 +1,9 @@
 /* -----------------------------------------------------------------------
  * Name            : rngs.h  (header file for the library file rngs.c)
- * Author          : Steve Park & Dave Geyer, DrFaust
+ * Author          : Steve Park & Dave Geyer, matteo.ielacqua
  * Language        : C++
  * -----------------------------------------------------------------------
+ * implementa la classe dei numeri casuali come stream objects che afferiscono a un determinato generatore
  */
 #pragma once
 
@@ -46,6 +47,10 @@ struct CompositionStream : public BaseStream
     }
 };
 
+/**
+ * @brief Implementazione di un semplice router per le stazioni che hanno  
+ * più possibilità per le partenze
+ */
 struct Router
 {
     std::vector<int> _indexes;

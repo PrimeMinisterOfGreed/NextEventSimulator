@@ -1,7 +1,16 @@
+/**
+ * @file OperativeSystem.cpp
+ * @author matteo.ielacqua
+ * @see OperativeSystem.hpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "OperativeSystem.hpp"
 #include "CPU.hpp"
 #include "Core.hpp"
-#include "DataWriter.hpp"
 #include "DelayStation.hpp"
 #include "Enums.hpp"
 #include "Event.hpp"
@@ -13,7 +22,7 @@
 #include "SystemParameters.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
-#include <fmt/core.h>
+
 
 void OS::Execute()
 {

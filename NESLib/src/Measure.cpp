@@ -1,6 +1,13 @@
-//
-// Created by drfaust on 03/02/23.
-//
+/**
+ * @file Measure.cpp
+ * @author implementazione per gli accumulatori, maggiori informazioni @see Measure.hpp
+ * @brief 
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #include "Measure.hpp"
 #include "Core.hpp"
@@ -20,6 +27,13 @@ std::vector<double> slice(std::vector<double>::iterator begin, std::vector<doubl
     return res;
 }
 
+/**
+ * @brief Accumula una coppia (valore,intervallo_di_tempo) sostanzialmente da un 
+ * ciclo di rigeneramento
+ * 
+ * @param value 
+ * @param time 
+ */
 void CovariatedMeasure::Accumulate(double value, double time)
 {
     _count++;
@@ -32,18 +46,24 @@ void CovariatedMeasure::Accumulate(double value, double time)
     _weightedsum += (value * time);
 }
 
+/**
+ * @brief ritorna lo stimatore puntuale calcolato partendo dalle variabili accumulate
+ * 
+ * @return double 
+ */
 double CovariatedMeasure::R() const
 {
     return _sum[0] / _times[0];
 }
 
-double CovariatedMeasure::variance() const
-{
 
-    auto a = _sum[1] - 2 * R() * _weightedsum + pow(R(), 2) * _times[1];
-    return a * (1.0 / (_count - 1));
-}
-
+/**
+ * @brief Calcola l'intervallo di confidenza usando la formula proposta dalle slide
+ * assieme alla distribuzione t_{\infty}. Non controlla quanti campioni ha accumulato
+ * per dare l'opportunità al compilatore di ottimizzare il valore e non calcolarlo ogni volta
+ * è cura dello sviluppatore assicurarsi che almeno 40 campioni vengano raccolti
+ * @return Interval 
+ */
 Interval CovariatedMeasure::confidence() const
 {
     double alpha = 1 - _confidence;
@@ -52,54 +72,7 @@ Interval CovariatedMeasure::confidence() const
     double b = (sqrt(_sum[1] - (2 * R() * _weightedsum) + (pow(R(), 2) * _times[1])));
     double delta = a * (b / _times[0]);
     double t = idfNormal(0, 1, 1 - (alpha / 2));
-    return Interval(R(), delta * t);
+    return Interval(R(), delta ,t);
 }
 
-int CovariatedMeasure::SampleNeedsForPrecision()
-{
-    auto alpha = 1 - _confidence;
-    auto t = idfNormal(0, 1, 1 - (alpha / 2));
-    auto a = t * variance();
-    auto b = R() * _precision;
-    return floor(pow(a / b, 2));
-}
 
-void MobileMeanMeasure::push(double value)
-{
-    _buffer[_bufferPtr] = value;
-    if (_bufferPtr == _buffer.size() - 1)
-    {
-        double mean = 0;
-        // calculate mean in _buffer
-
-        for (auto it = _buffer.begin(); it != _buffer.end(); ++it)
-        {
-            mean += *it;
-        }
-        mean /= _buffer.size();
-        // push mean in _means
-        _means[_meansPtr] = mean;
-        _meansPtr = (_meansPtr + 1) % _means.size();
-        _bufferPtr = 0;
-    }
-    else
-    {
-        _bufferPtr++;
-    }
-}
-
-double MobileMeanMeasure::delta() const
-{
-    double u1 = _means[(_meansPtr - 2) % _means.size()];
-    double u2 = _means[(_meansPtr - 1) % _means.size()];
-    if (u1 == 0 && u2 == 0)
-    {
-        return HUGE_VAL;
-    }
-    return u1 - u2;
-}
-
-MobileMeanMeasure::MobileMeanMeasure(int bufferSize, int maxMeans)
-    : _means(bufferSize), _buffer(maxMeans), _bufferPtr(), _meansPtr(), BaseMeasure("mobilemean", "s")
-{
-}

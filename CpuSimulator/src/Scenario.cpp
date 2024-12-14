@@ -1,8 +1,19 @@
+/**
+ * @file Scenario.cpp
+ * @author matteo.ielacqua
+ * @brief classe di scenari disponibili che impostano il simulatore parametricamente
+ * al momento nel simulatore solo quello dettagliato di default viene usato
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "SimulationEnv.hpp"
 #include "Station.hpp"
-#include "Strategies/RegenerationPoint.hpp"
+#include "RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
-#include <fmt/core.h>
+
 #include <string>
 #include <tuple>
 #include <vector>
@@ -65,7 +76,6 @@ SCENARIO(Default) // first request
 
     auto &regPoint = manager->regPoint;
     // first CPU must have 0 clients because is hyperexp
-    auto os = manager->shell->Scheduler();
     manager->results.tgt.OnEntrance([&regPoint](auto e) { regPoint->Trigger(); });
 
     AddClientConditionRule(regPoint.get(),

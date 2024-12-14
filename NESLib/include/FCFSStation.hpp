@@ -1,5 +1,15 @@
+/**
+ * @file FCFSStation.hpp
+ * @author matteo.ielacqua
+ * @brief header per la stazione FCFS, maggiori informazioni in @see FCFSStation.cpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
-#include "Collections/LinkedList.hpp"
+#include "LinkedList.hpp"
 #include "Event.hpp"
 #include "ISimulator.hpp"
 #include "LogEngine.hpp"

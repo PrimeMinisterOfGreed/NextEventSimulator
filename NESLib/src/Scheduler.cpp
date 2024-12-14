@@ -1,10 +1,18 @@
+/**
+ * @file Scheduler.cpp
+ * @author matteo.ielacqua
+ * @see Scheduler.hpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "Scheduler.hpp"
 #include "Core.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Station.hpp"
-#include <fmt/core.h>
-
 bool Scheduler::Route(Event evt)
 {
     for (auto station : _stations)

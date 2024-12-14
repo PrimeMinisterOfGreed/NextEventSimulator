@@ -1,3 +1,13 @@
+/**
+ * @file CPU.hpp
+ * @author header file per la stazione di cpu, maggiori informazioni a @see CPU.cpp
+ * @brief 
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
 
 #include "Enums.hpp"

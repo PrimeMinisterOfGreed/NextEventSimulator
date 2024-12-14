@@ -1,4 +1,14 @@
-
+/**
+ * @file Node.hpp
+ * @author matteo.ielacqua
+ * @brief Nodo generico che contiene i valori della double linked list
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+#pragma once
 #include <algorithm>
 #include <concepts>
 #include <functional>

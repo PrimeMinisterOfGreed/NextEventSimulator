@@ -1,13 +1,26 @@
+/**
+ * @file LogEngine.hpp
+ * @author matteo.ielacqua
+ * @brief classe di utiliti per la raccolta di log dalle varie trace
+ * ogni volta che una trace emette un messaggio , questo viene marchiato con 
+ * il nome della sorgente che lo ha emesso 
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
 
-#include "FormatParser.hpp"
-#include <fmt/core.h>
-#include <fmt/format.h>
+#include"fmt/format.h"
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
+
+
+
 
 enum class LogType : int
 {
@@ -18,27 +31,23 @@ enum class LogType : int
     TRANSFER
 };
 
-template <> struct fmt::formatter<enum LogType> : formatter<string_view>
-{
-    auto format(const LogType &type, format_context &ctx) const -> format_context::iterator
-    {
+
+static std::string format_as(LogType type){
         switch (type)
         {
         case LogType::EXCEPTION:
-            return fmt::format_to(ctx.out(), "Exception");
+            return fmt::format( "Exception");
         case LogType::RESULT:
-            return fmt::format_to(ctx.out(), "Result");
+            return fmt::format("Result");
         case LogType::INFORMATION:
-            return fmt::format_to(ctx.out(), "Information");
+            return fmt::format( "Information");
         case LogType::TRANSFER:
-            return fmt::format_to(ctx.out(), "Transfer");
+            return fmt::format( "Transfer");
         case LogType::DEBUG:
-            return fmt::format_to(ctx.out(), "Debug");
+            return fmt::format( "Debug");
         }
-        return fmt::format_to(ctx.out(), "");
+        return ""; 
     }
-};
-
 // use for dynamic format, else use fmt::format
 template <typename... Args> std::string makeformat(const char *format, Args... args)
 {
@@ -58,12 +67,8 @@ class LogEngine
     bool _pauseStdout = false;
     std::stringstream _buffer;
     std::string _logFile;
-    static LogEngine *_instance;
     std::vector<TraceSource *> _sources;
     LogEngine()
-    {
-    }
-    LogEngine(std::string logFile) : _logFile{logFile}
     {
     }
 
@@ -74,11 +79,6 @@ class LogEngine
     {
         _sources.push_back(source);
     }
-    static void CreateInstance(std::string logFile)
-    {
-        _instance = new LogEngine(logFile);
-    }
-
     const std::vector<TraceSource *> GetSources() const
     {
         return _sources;
@@ -94,7 +94,8 @@ class LogEngine
     }
     static LogEngine *Instance()
     {
-        return _instance;
+        static LogEngine _instance{};
+        return &_instance;
     }
 
     void PrintStdout(bool value)
@@ -132,9 +133,9 @@ struct TraceSource
 
     void Init()
     {
-        if (LogEngine::_instance != nullptr)
+        if (LogEngine::Instance() != nullptr)
         {
-            engine = LogEngine::_instance;
+            engine = LogEngine::Instance();
             engine->AddSource(this);
         }
         else
@@ -144,7 +145,7 @@ struct TraceSource
     }
     void Trace(LogType type, std::string message)
     {
-        if (engine == nullptr || LogEngine::_instance != engine)
+        if (engine == nullptr || LogEngine::Instance() != engine)
             Init();
         if (verbosity >= (int)type && engine != nullptr)
         {

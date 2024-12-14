@@ -1,7 +1,16 @@
+/**
+ * @file Core.cpp
+ * @author matteo ielacqua (you@domain.com)
+ * @brief implementazione dei panic handler, maggiori dettagli in @see Core.hpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "LogEngine.hpp"
-#include <Core.hpp>
+#include "Core.hpp"
 #include <cstring>
-#include <fmt/core.h>
 [[noreturn]] void _panic(const char *message)
 {
     if (LogEngine::Instance() == nullptr)
@@ -35,7 +44,7 @@ void _panic(std::string message, const char *file, int line)
 
 void abort()
 {
-    fmt::println("[CriticalException] Error abort called");
+    printf("[CriticalException] Error abort called");
     while (1)
     {
        //trap 

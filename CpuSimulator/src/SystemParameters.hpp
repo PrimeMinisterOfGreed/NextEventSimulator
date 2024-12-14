@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Shell/SimulationShell.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
@@ -35,12 +34,5 @@ struct SystemParameters
         return instance;
     }
 
-    void AddControlCommands(SimulationShell *shell)
-    {
-        shell->AddCommand("env", [](SimulationShell *s, const char *context) {
-            auto p = SystemParameters::Parameters();
-            s->Log()->Information("Z={}\nMPD={}\nN={}\navgSwaping={}", p.workStationThinkTime, p.multiProgrammingDegree,
-                                  p.numclients, p.averageSwapIn);
-        });
-    }
+
 };

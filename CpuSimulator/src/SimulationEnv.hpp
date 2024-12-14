@@ -1,25 +1,25 @@
+/**
+ * @file SimulationEnv.hpp
+ * @author matteo.ielacqua
+ * @brief gestore dell'ambiente di simulazione
+ * gestisce l'esecuzione e la raccolta di informazioni dalla simulazione 
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #pragma once
-#include "DataWriter.hpp"
-#include "Event.hpp"
-#include "ISimulator.hpp"
 #include "LogEngine.hpp"
-#include "Measure.hpp"
 #include "OperativeSystem.hpp"
-#include "Shell/SimulationShell.hpp"
 #include "SimulationResult.hpp"
-#include "Station.hpp"
-#include "Strategies/RegenerationPoint.hpp"
-#include "Strategies/TaggedCustomer.hpp"
-#include "SystemParameters.hpp"
-#include "rngs.hpp"
+#include "RegenerationPoint.hpp"
 #include <cmath>
 #include <cstdlib>
-#include <fmt/core.h>
+
 #include <functional>
-#include <map>
 #include <memory>
-#include <sstream>
-#include <utility>
 #include <vector>
 
 void SetupEnvironment();
@@ -27,22 +27,20 @@ struct BaseScenario;
 struct SimulationManager
 {
 
-    MobileMeanMeasure _transition{20, 10};
     std::vector<BaseScenario *> _scenarios{};
     BaseScenario *_currScenario;
     std::vector<std::function<void()>> _collectFunctions{};
     std::unique_ptr<OS> os;
     std::unique_ptr<RegenerationPoint> regPoint;
-    SimulationShell *shell;
+
     TraceSource logger{"SIMManager", 1};
     SimulationResult results{};
-    bool hot = false;
     SimulationManager();
 
-    static SimulationManager &Instance()
+    static SimulationManager *Instance()
     {
         static SimulationManager manager{};
-        return manager;
+        return &manager;
     }
 
     void AddScenario(BaseScenario *s)
@@ -54,21 +52,32 @@ struct SimulationManager
     {
         std::erase_if(_scenarios, [s](auto s1) { return s == s1; });
     }
-
-    void SetupShell(SimulationShell *shell);
-    void HReset();
-    void CollectMeasures();
-
-  private:
+    // imposta uno scenario come "situazione di simulazione corrente"
     void SetupScenario(std::string name);
-    void SetupEnvironment();
+    // effettua un hard reset delle strutture contenute
+    void HReset();
+    /**
+     * @brief itera su tutte le stazioni contenute chiedendo a SimulationResult
+     * di collezionare le osservazioni che si desidera ottenere
+     * 
+     */
+    void CollectMeasures();
+    /**
+     * @brief itera per un certo numero di volte fino a collezionare  
+     * un certo numero di campioni
+     * @param samples con n>0 colleziona i campioni selezionati, con n == -1
+     * itera fino a collezionare abbastanza misure da far scendere la precisione sotto la soglia 
+     * di precisione prestabilità dall'accumulatore dell'active time
+     * @param logMeasures 
+     * @param logActualState 
+     */
     void CollectSamples(int samples, bool logMeasures = false, bool logActualState = false);
+  private:
+    // utility usata per avere un printout degli stati raggiunti quando un certo evento si innesca
+    // non utilizzato direttamente dal progetto
     void SearchStates(int iterations, bool logActualState = false);
 
-    // COMMANDS
-    void select_scenario(const char *ctx);
-    void perform_number_regeneration(const char *ctx);
-    void search_states(const char *ctx);
+
 };
 
 struct BaseScenario
@@ -77,10 +86,10 @@ struct BaseScenario
     std::string name;
     BaseScenario(std::string name) : name(name)
     {
-        SimulationManager::Instance().AddScenario(this);
+        SimulationManager::Instance()->AddScenario(this);
     }
     ~BaseScenario()
     {
-        SimulationManager::Instance().RemoveScenario(this);
+        SimulationManager::Instance()->RemoveScenario(this);
     }
 };

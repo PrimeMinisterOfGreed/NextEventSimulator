@@ -1,13 +1,22 @@
+/**
+ * @file Station.cpp
+ * @see Station.hpp
+ * @brief 
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "Station.hpp"
 #include "Core.hpp"
-#include "DataCollector.hpp"
-#include "DataWriter.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include "Measure.hpp"
 #include "Scheduler.hpp"
 #include <cassert>
-#include <fmt/core.h>
+
 #include <iterator>
 #include <regex>
 #include <sstream>

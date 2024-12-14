@@ -1,3 +1,13 @@
+/**
+ * @file CPU.cpp
+ * @author matteo ielacqua
+ * @brief Definizione del funzionamento della stazione di CPU, istanza sostanzialmente di una stazione generica
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "CPU.hpp"
 #include "Core.hpp"
 #include "Enums.hpp"
@@ -7,15 +17,18 @@
 #include "Usings.hpp"
 #include "rngs.hpp"
 #include "rvgs.h"
-#include <fmt/core.h>
 #include <vector>
 
-// burst is written this way because of this
-// https://rossetti.github.io/RossettiArenaBook/app-rnrv-rvs.html#AppRNRV:subsec:MTSRV
+
 Cpu::Cpu(IScheduler *scheduler) : Station("CPU", Stations::CPU), _scheduler(scheduler)
 {
 }
 
+/**
+ * @brief Processa un evento di arrivo
+ * 
+ * @param evt 
+ */
 void Cpu::ProcessArrival(Event &evt)
 {
 
@@ -30,7 +43,12 @@ void Cpu::ProcessArrival(Event &evt)
     }
     Manage(evt);
 }
-
+/**
+ * @brief Gestore degli eventi per la cpu, contiene anche gli stream objects per la generazione
+ * di istanze delle variabili aleatorie.
+ * 
+ * @param evt 
+ */
 void Cpu::Manage(Event &evt)
 {
     static VariableStream sliceStream{99,
@@ -50,6 +68,11 @@ void Cpu::Manage(Event &evt)
     _eventUnderProcess = evt;
 }
 
+/**
+ * @brief Processa un evento di partenza
+ * 
+ * @param evt 
+ */
 void Cpu::ProcessDeparture(Event &evt)
 {
 
@@ -81,6 +104,12 @@ void Cpu::ProcessDeparture(Event &evt)
     }
 }
 
+/**
+ * @brief Genera un burst con distribuzione iper esponenziale per il processo 
+ * che sta attraversando la fase di processamento, questa funzione viene usata 
+ * solo se il timeslice (burstmode) è in modalità fissa (FIXED)
+ * @return double 
+ */
 double Cpu::Burst()
 {
     static CompositionStream hyperExp{3,

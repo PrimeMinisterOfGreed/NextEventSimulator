@@ -1,6 +1,14 @@
-//
-// Created by drfaust on 23/01/23.
-//
+/**
+ * @file SwapOut.cpp
+ * @author matteo.ielacqua
+ * @brief implementazione dello swap out, che non ha tempo di processamento 
+ * e pertanto smista solo i clienti tra delay e swap in
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "SwapOut.hpp"
 #include "Enums.hpp"
 #include "rngs.hpp"

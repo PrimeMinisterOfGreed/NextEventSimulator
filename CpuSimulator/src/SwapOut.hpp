@@ -1,6 +1,13 @@
-//
-// Created by drfaust on 23/01/23.
-//
+/**
+ * @file SwapOut.hpp
+ * @author matteo.ielacqua
+ * @see SwapOut.cpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
 
 #include "ISimulator.hpp"

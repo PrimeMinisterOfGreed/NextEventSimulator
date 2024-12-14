@@ -1,4 +1,14 @@
-#include "Strategies/RegenerationPoint.hpp"
+/**
+ * @file RegenerationPoint.cpp
+ * @author matteo.ielacqua
+ * @see RegenerationPoint.hpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+#include "RegenerationPoint.hpp"
 
 RegenerationPoint::RegenerationPoint(IScheduler *sched, ISimulator *simulator) : simulator(simulator), scheduler(sched)
 {

@@ -1,5 +1,14 @@
+/**
+ * @file Station.hpp
+ * @author matteo.ielacqua
+ * @brief implementazione di una generica stazione all'interno del sistema
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
-#include "DataCollector.hpp"
 #include "Event.hpp"
 #include "LogEngine.hpp"
 #include <functional>

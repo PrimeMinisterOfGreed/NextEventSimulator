@@ -1,112 +1,23 @@
 #include "SimulationResult.hpp"
 #include "Core.hpp"
 #include "Measure.hpp"
-#include "MvaSolver.hpp"
-#include "Shell/SimulationShell.hpp"
 #include "Station.hpp"
-#include "Strategies/TaggedCustomer.hpp"
+#include "TaggedCustomer.hpp"
 #include "SystemParameters.hpp"
 #include <cstring>
-#include <fmt/core.h>
-#include <fmt/format.h>
 #include <sstream>
 #include <string>
 #include <vector>
 
-void ConfidenceHits::Accumulate(bool x_in, bool u_in, bool n_in, bool w_in, bool activeTime_in)
-{
-    throughput_in = x_in;
-    utilization_in = u_in;
-    meanClients_in = n_in;
-    meanWaits_in = w_in;
-    activeTime_in = activeTime_in;
-    throughput += x_in;
-    utilization += u_in;
-    meanclients += n_in;
-    meanwaits += w_in;
-    activeTimes += activeTime_in;
-}
 
-void SimulationResult::CollectResult(int seed)
-{
-    for (auto value : _acc)
-    {
-        auto station = value.first;
-        bool found = false;
-        for (auto s : mva.Stations())
-        {
-            if (s == station)
-            {
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-            return;
-        int n = SystemParameters::Parameters().numclients;
-        double t_throughput = mva.Throughputs(station)[n];
-        double t_utilization = mva.Utilizations(station)[n];
-        double t_meanclients = mva.MeanClients(station)[n];
-        double t_meanwait = mva.MeanWaits(station)[n];
-        double t_activeTime = mva.ActiveTimes()[n];
 
-        auto ref = _acc[station];
-
-        _confidenceHits[station].Accumulate(ref[StationStats::throughput].confidence().isInTval(t_throughput),
-                                            ref[StationStats::utilization].confidence().isInTval(t_utilization),
-                                            ref[StationStats::meancustomer].confidence().isInTval(t_meanclients),
-                                            ref[StationStats::meanwait].confidence().isInTval(t_meanwait),
-                                            tgt._mean.confidence().isInTval(t_activeTime));
-        seeds.push_back(seed);
-    }
-}
 
 SimulationResult::SimulationResult() : _logger("SimulationResults", 1)
 {
-    if (!mva.inited)
-        mva.PreloadModel();
+
 }
 
-void SimulationResult::AddShellCommands(SimulationShell *shell)
-{
-    shell->AddCommand("lsimresults", [this](SimulationShell *shell, const char *context) { LogSimResults(); });
-    shell->AddCommand("ltgtstats", [this](SimulationShell *s, auto ctx) {
-        s->Log()->Result("{},Expected:{}", tgt._mean, mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
-    });
 
-    shell->AddCommand("lmeasures", [this](SimulationShell *shell, const char *ctx) {
-        char buffer[36]{};
-        std::stringstream stream{ctx};
-        stream >> buffer;
-        if (strlen(buffer) == 0)
-        {
-            LogResult();
-        }
-        else
-        {
-            LogResult(std::string{buffer});
-        }
-    });
-    shell->AddCommand("queryMeasure", [this](SimulationShell *shell, const char *ctx) {
-        char buffer[36]{};
-        std::stringstream stream{ctx};
-        stream >> buffer;
-        auto station = std::string(buffer);
-        stream >> buffer;
-        if (station == "ActiveTime")
-        {
-            fmt::println("ActiveTime;{:csv};{}", tgt._mean,
-                         mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
-            return;
-        }
-        auto measure = std::string(buffer);
-        auto s = _acc[station];
-        auto &acc = measure == "N" ? s._acc[s.meancustomer] : s._acc[s.meanwait];
-        auto expected = mva.ExpectedForAccumulator(station, &acc);
-        fmt::println("{};{:csv};{}", station, acc, expected);
-    });
-    shell->AddCommand("reset_measures", [this](auto s, auto ctx) { Reset(); });
-}
 
 void SimulationResult::Reset()
 {
@@ -114,75 +25,51 @@ void SimulationResult::Reset()
     {
         v.second.Reset();
     }
-    _activeTime.Reset();
     tgt._mean.Reset();
     tgt._acc.Reset();
 }
 
 void SimulationResult::Collect(const BaseStation &station)
 {
-    if (tgt._transitory.delta() <= 0.1)
         _acc[station.Name()].Collect(station);
 }
 
-void SimulationResult::CollectActiveTime(double value)
-{
-    if (tgt._transitory.delta() <= 0.1)
-        _activeTime.Accumulate(value);
-}
+
 
 bool SimulationResult::PrecisionReached()
 {
-    auto logger = SimulationShell::Instance().Log();
     for (std::string tg : _precisionTargets)
     {
         if (tg == "ActiveTime" && tgt._mean.confidence().precision() > requiredPrecision)
         {
-            logger->Information("Target:{} not reached precision", tg);
             return false;
         }
         else if (!_acc[tg].Ready())
         {
-            logger->Information("Target:{} not reached precision", tg);
 
             return false;
         }
     }
-    logger->Information("All target reached required precision {} ", requiredPrecision);
     return true;
 }
 
-void SimulationResult::LogSimResults()
-{
-    auto logger = SimulationShell::Instance().Log();
 
-    for (auto s : mva.Stations())
-    {
-        logger->Result("Station:{}\n{}", s, _confidenceHits[s]);
-    }
-}
-
-bool SimulationResult::IsTransitoryPeriod()
-{
-    return this->tgt._transitory.delta() > 0.1;
-}
-
-std::string format_station_measures(std::string name, MVASolver &mva, StationStats &acc)
+std::string format_station_measures(std::string name, StationStats &acc)
 {
 
     std::string result = "";
     for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
     {
-        auto expected = mva.ExpectedForAccumulator(name, &acc[(StationStats::MeasureType)i]);
-        result += fmt::format("{:5f},Expected:{:5f}\n", acc[(StationStats::MeasureType)i], expected);
+ 
+        result += fmt::format("{:5f}\n", acc[(StationStats::MeasureType)i]);
     }
     return result;
 }
 
-std::string get_active_time(MVASolver &mva, const TaggedCustomer &tgt)
+std::string get_active_time(const TaggedCustomer &tgt)
 {
 
-    return fmt::format("{},Expected:{}", tgt._mean, mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+    return fmt::format("{}", tgt._mean);
 }
 
 std::string format_measure_output(std::string stationName, std::string measureOutput)
@@ -198,32 +85,25 @@ std::string format_measure_output(std::string stationName, std::string measureOu
 void SimulationResult::LogResult(std::string name)
 {
     std::string log = "";
-    if (name == "ALL")
+    if (name.compare("ALL") == 0)
     {
         for (auto s : _acc)
         {
-            log += format_measure_output(s.first, format_station_measures(name, mva, _acc[s.first]));
+            log += format_measure_output(s.first, format_station_measures(name,  _acc[s.first]));
         }
-        log += get_active_time(mva, tgt);
+        log += get_active_time( tgt);
     }
-    else if (name == "ActiveTime")
+    else if (name == "ACTIVETIME" || name == "ActiveTime")
     {
-        log = get_active_time(mva, tgt);
+        log = get_active_time(tgt);
     }
     else
     {
-        log += format_measure_output(name, format_station_measures(name, mva, _acc[name]));
+        log += format_measure_output(name, format_station_measures(name,  _acc[name]));
     }
-    SimulationShell::Instance().Log()->Result("{}", log);
+    fmt::print("{}",log);
 }
 
-std::string format_as(ConfidenceHits b)
-{
-    return fmt::format("Name   Hits   Last\n Throughput {}  {} \n Utilization  {}  {} \n MeanWaits  {}  {}\n "
-                       "MeanClients  {}   {}\n ActiveTime {} {}",
-                       b.throughput, b.throughput_in, b.utilization, b.utilization_in, b.meanwaits, b.meanWaits_in,
-                       b.meanclients, b.meanClients_in, b.activeTimes, b.activeTime_in);
-}
 
 std::string format_as(StationStats stats)
 {

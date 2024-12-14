@@ -1,3 +1,13 @@
+/**
+ * @file DelayStation.hpp
+ * @author matteo.ielacqua
+ * @brief header per l'implementazione della stazione di delay, maggiori informazioni a @see DelayStation.cpp
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "Event.hpp"
 #include "ISimulator.hpp"
 #include "Station.hpp"

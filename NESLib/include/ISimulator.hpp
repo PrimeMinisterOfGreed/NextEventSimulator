@@ -1,5 +1,15 @@
+/**
+ * @file ISimulator.hpp
+ * @author instestazione per una generica interfaccia di un qualunque simulatore
+ * che ci si aspetta possa essere inizializzato ed eseguito
+ * @brief 
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #pragma once
-#include "DataCollector.hpp"
 #include "Event.hpp"
 #include "Station.hpp"
 #include "Usings.hpp"
@@ -13,6 +23,11 @@ class ISimulator
     virtual void Initialize() = 0;
 };
 
+/**
+ * @brief Uno scheduler è un contenitore di stazioni che può gestire e smistare i vari eventi 
+ * in arrivo
+ * 
+ */
 class IScheduler
 {
   public:
@@ -25,6 +40,10 @@ class IScheduler
     virtual double GetClock() = 0;
 };
 
+/**
+ * @brief interfaccia per riconoscere i contentitori di eventi 
+ * 
+ */
 class IQueueHolder
 {
   protected:

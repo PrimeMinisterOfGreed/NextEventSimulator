@@ -1,6 +1,13 @@
-//
-// Created by drfaust on 23/01/23.
-//
+/**
+ * @file SwapIn.cpp
+ * @author matteo.ielacqua
+ * @brief implementazione dello swap in, generica istanza di una stazione FCFS
+ * @version 0.1
+ * @date 2024-12-11
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "SwapIn.hpp"
 #include "Enums.hpp"
 #include "SystemParameters.hpp"
