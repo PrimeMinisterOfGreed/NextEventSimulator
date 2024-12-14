@@ -11,7 +11,7 @@
  */
 #include "SimulationEnv.hpp"
 #include "Station.hpp"
-#include "RegenerationPoint.hpp"
+#include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
 
 #include <string>

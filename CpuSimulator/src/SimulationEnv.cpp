@@ -19,7 +19,7 @@
 #include "OperativeSystem.hpp"
 #include "SimulationResult.hpp"
 #include "Station.hpp"
-#include "RegenerationPoint.hpp"
+#include "Strategies/RegenerationPoint.hpp"
 #include "SystemParameters.hpp"
 #include "Usings.hpp"
 #include "rngs.hpp"

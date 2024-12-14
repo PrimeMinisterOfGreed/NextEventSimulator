@@ -2,7 +2,7 @@
 #include "Event.hpp"
 #include "Measure.hpp"
 #include "rngs.hpp"
-#include "TaggedCustomer.hpp"
+#include "Strategies/TaggedCustomer.hpp"
 #include <algorithm>
 
 #include <functional>

@@ -14,7 +14,7 @@
 #include "Measure.hpp"
 #include "Scheduler.hpp"
 #include "Station.hpp"
-#include "TaggedCustomer.hpp"
+#include "Strategies/TaggedCustomer.hpp"
 
 #include <map>
 #include <optional>

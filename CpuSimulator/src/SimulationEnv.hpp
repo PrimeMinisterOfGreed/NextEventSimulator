@@ -14,7 +14,7 @@
 #include "LogEngine.hpp"
 #include "OperativeSystem.hpp"
 #include "SimulationResult.hpp"
-#include "RegenerationPoint.hpp"
+#include "Strategies/RegenerationPoint.hpp"
 #include <cmath>
 #include <cstdlib>
 

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#include "RegenerationPoint.hpp"
+#include "Strategies/RegenerationPoint.hpp"
 
 RegenerationPoint::RegenerationPoint(IScheduler *sched, ISimulator *simulator) : simulator(simulator), scheduler(sched)
 {

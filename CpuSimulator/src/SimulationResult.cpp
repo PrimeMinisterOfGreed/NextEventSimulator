@@ -2,7 +2,7 @@
 #include "Core.hpp"
 #include "Measure.hpp"
 #include "Station.hpp"
-#include "TaggedCustomer.hpp"
+#include "Strategies/TaggedCustomer.hpp"
 #include "SystemParameters.hpp"
 #include <cstring>
 #include <sstream>
