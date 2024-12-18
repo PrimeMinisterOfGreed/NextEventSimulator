@@ -1,6 +1,7 @@
 #include "SimulationResult.hpp"
 #include "Core.hpp"
 #include "Measure.hpp"
+#include "Shell/SimulationShell.hpp"
 #include "Station.hpp"
 #include "Strategies/TaggedCustomer.hpp"
 #include "SystemParameters.hpp"
@@ -101,7 +102,7 @@ void SimulationResult::LogResult(std::string name)
     {
         log += format_measure_output(name, format_station_measures(name,  _acc[name]));
     }
-    fmt::print("{}",log);
+   LogEngine::Instance()->Trace(LogType::RESULT, log); 
 }
 
 

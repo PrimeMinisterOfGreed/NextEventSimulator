@@ -37,8 +37,7 @@ int main(int argc, char **argv)
     });
     parser.parse_args(argc, argv);
     RandomStream::Global().PlantSeeds(123456789);
-    SimulationShell &shell = SimulationShell::Instance();
-    //SimulationManager::Instance().SetupShell(&shell);
+    SimulationShell &shell = SimulationShell::Instance(); 
     if (interactive)
         shell.Interactive();
     else if (commands.size() > 0)
