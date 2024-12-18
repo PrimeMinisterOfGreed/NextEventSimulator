@@ -45,15 +45,9 @@ void TaggedCustomer::ConnectLeave(BaseStation *station, bool arrival)
 
 void TaggedCustomer::CompleteRegCycle(double actualclock)
 {
-    if (_transitory.delta() > 0.1)
-    {
-        _transitory.push(_acc.sum() / _acc.Count());
-    }
-    else
-    {
+
         _mean(_acc.sum(), _acc.Count());
         _acc.Reset();
-    }
 }
 
 void TaggedCustomer::CompleteSimulation()

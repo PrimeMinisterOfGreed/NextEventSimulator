@@ -75,7 +75,6 @@ struct SimulationResult
     void CollectActiveTime(double value);
     bool PrecisionReached();
     void LogSimResults();
-    bool IsTransitoryPeriod();
     void AddPrecisionTarget(std::string name)
     {
         _precisionTargets.push_back(name);

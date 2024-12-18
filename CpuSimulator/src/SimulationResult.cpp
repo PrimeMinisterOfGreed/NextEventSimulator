@@ -121,13 +121,13 @@ void SimulationResult::Reset()
 
 void SimulationResult::Collect(const BaseStation &station)
 {
-    if (tgt._transitory.delta() <= 0.1)
+
         _acc[station.Name()].Collect(station);
 }
 
 void SimulationResult::CollectActiveTime(double value)
 {
-    if (tgt._transitory.delta() <= 0.1)
+
         _activeTime.Accumulate(value);
 }
 
@@ -162,10 +162,7 @@ void SimulationResult::LogSimResults()
     }
 }
 
-bool SimulationResult::IsTransitoryPeriod()
-{
-    return this->tgt._transitory.delta() > 0.1;
-}
+
 
 std::string format_station_measures(std::string name, MVASolver &mva, StationStats &acc)
 {
@@ -173,8 +170,7 @@ std::string format_station_measures(std::string name, MVASolver &mva, StationSta
     std::string result = "";
     for (int i = StationStats::meancustomer; i < StationStats::MeasureType::size; i++)
     {
-        auto expected = mva.ExpectedForAccumulator(name, &acc[(StationStats::MeasureType)i]);
-        result += fmt::format("{:5f},Expected:{:5f}\n", acc[(StationStats::MeasureType)i], expected);
+        result += fmt::format("{:5f}\n", acc[(StationStats::MeasureType)i]);
     }
     return result;
 }
@@ -182,7 +178,7 @@ std::string format_station_measures(std::string name, MVASolver &mva, StationSta
 std::string get_active_time(MVASolver &mva, const TaggedCustomer &tgt)
 {
 
-    return fmt::format("{},Expected:{}", tgt._mean, mva.ActiveTimes()[SystemParameters::Parameters().numclients]);
+    return fmt::format("{}", tgt._mean);
 }
 
 std::string format_measure_output(std::string stationName, std::string measureOutput)
