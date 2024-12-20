@@ -114,7 +114,6 @@ void SimulationResult::Reset()
     {
         v.second.Reset();
     }
-    _activeTime.Reset();
     tgt._mean.Reset();
     tgt._acc.Reset();
 }
@@ -123,12 +122,6 @@ void SimulationResult::Collect(const BaseStation &station)
 {
 
         _acc[station.Name()].Collect(station);
-}
-
-void SimulationResult::CollectActiveTime(double value)
-{
-
-        _activeTime.Accumulate(value);
 }
 
 bool SimulationResult::PrecisionReached()

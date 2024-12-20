@@ -198,8 +198,7 @@ void SimulationManager::CollectMeasures()
 
         return results._acc[name][StationStats::meancustomer].R();
     };
-    results.CollectActiveTime((activeTime("CPU") + activeTime("IO1") + activeTime("IO2")) /
-                              results._acc["SWAP_IN"][StationStats::throughput].R());
+
 }
 
 void SimulationManager::SetupScenario(std::string name)

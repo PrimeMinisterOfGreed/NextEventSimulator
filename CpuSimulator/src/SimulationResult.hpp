@@ -58,7 +58,6 @@ struct SimulationResult
     static inline double requiredPrecision = 0.05;
     static inline double confidence = 0.90;
     std::map<std::string, StationStats> _acc;
-    Accumulator<> _activeTime{"activeTime", "ms"};
     std::vector<std::string> _precisionTargets = {"CPU", "IO1", "IO2", "ActiveTime"};
     MVASolver mva{};
     std::map<std::string, ConfidenceHits> _confidenceHits{};
@@ -72,7 +71,6 @@ struct SimulationResult
     void Reset();
     void Collect(const BaseStation &station);
     void CollectCustomMeasure(std::string name, double value, double clock);
-    void CollectActiveTime(double value);
     bool PrecisionReached();
     void LogSimResults();
     void AddPrecisionTarget(std::string name)
