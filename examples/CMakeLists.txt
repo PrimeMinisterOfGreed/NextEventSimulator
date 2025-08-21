@@ -1,0 +1,3 @@
+add_subdirectory(SSQSimulator)
+add_subdirectory(MachineRepairman)
+add_subdirectory(CpuSimulator)

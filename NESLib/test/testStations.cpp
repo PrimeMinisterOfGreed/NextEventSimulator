@@ -1,4 +1,3 @@
-#include "DataCollector.hpp"
 #include "Event.hpp"
 #include "FCFSStation.hpp"
 #include "LogEngine.hpp"
@@ -7,7 +6,6 @@
 #include "rngs.hpp"
 #include "TestEnv.hpp"
 #include "gtest/gtest.h"
-#include <fmt/base.h>
 #include <fmt/core.h>
 #include <memory>
 

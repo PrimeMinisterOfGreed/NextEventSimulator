@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctype.h>
-#include <fmt/base.h>
 #include <fmt/core.h>
 #include <fmt/printf.h>
 #include <iostream>

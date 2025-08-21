@@ -1,4 +1,4 @@
-include(../cmake/TestProjectGenerator.cmake)
+include(../../cmake/TestProjectGenerator.cmake)
 file(GLOB_RECURSE PRIV_SRC src/*.cpp)
 
 
